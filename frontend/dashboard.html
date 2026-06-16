@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plateforme de Bourse en Ligne - Tableau de bord</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="entete">
+    <h1>Plateforme de Bourse en Ligne</h1>
+    <button id="bouton-logout" class="bouton bouton-secondaire">Se deconnecter</button>
+  </header>
+
+  <main class="page-large">
+
+    <!-- ================================================================
+         Section profil utilisateur : infos issues de /userinfo et/ou
+         decodees depuis l'id_token (claims standard + realm_access.roles)
+         ================================================================ -->
+    <section class="carte">
+      <h2>Profil utilisateur</h2>
+      <div id="zone-profil">
+        <p>Chargement du profil...</p>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         Module Admin : visible uniquement si le role "administrateur"
+         est present dans realm_access.roles du token.
+         Appelle le backend FastAPI (port 8000) avec le Bearer access_token.
+         ================================================================ -->
+    <section id="module-admin" class="carte" hidden>
+      <h2>Module Admin</h2>
+      <p class="aide">
+        Ces sections appellent le backend
+        <code>http://localhost:8000/api/admin/...</code> avec l'en-tete
+        <code>Authorization: Bearer &lt;access_token&gt;</code>.
+      </p>
+
+      <p id="message-admin-erreur" class="message-erreur" hidden></p>
+
+      <!-- ---------------- Parametres de securite ---------------- -->
+      <article class="bloc-admin">
+        <h3>Parametres de securite (US-30, US-31)</h3>
+        <form id="formulaire-securite" class="formulaire">
+          <label>
+            Nombre maximal de tentatives echouees (3 a 10)
+            <input type="number" id="champ-max-tentatives" min="3" max="10" required />
+          </label>
+          <label>
+            Duree d'expiration de session par inactivite, en minutes (5 a 120)
+            <input type="number" id="champ-duree-session" min="5" max="120" required />
+          </label>
+          <button type="submit" class="bouton bouton-principal">Enregistrer</button>
+        </form>
+        <p id="securite-statut" class="statut"></p>
+      </article>
+
+      <!-- ---------------- Parametres OTP ---------------- -->
+      <article class="bloc-admin">
+        <h3>Parametres OTP (US-32, US-33)</h3>
+        <form id="formulaire-otp" class="formulaire">
+          <label class="ligne-case">
+            <input type="checkbox" id="champ-otp-actif-global" />
+            OTP impose a tous les investisseurs (otp_actif_global)
+          </label>
+          <label>
+            Regle de frequence
+            <select id="champ-otp-frequence-type">
+              <option value="chaque_connexion">A chaque connexion</option>
+              <option value="apres_n_jours">Apres N jours</option>
+              <option value="apres_n_connexions">Apres N connexions</option>
+            </select>
+          </label>
+          <label>
+            Valeur N (vide si "chaque_connexion")
+            <input type="number" id="champ-otp-frequence-valeur" min="1" />
+          </label>
+          <button type="submit" class="bouton bouton-principal">Enregistrer</button>
+        </form>
+        <p id="otp-statut" class="statut"></p>
+      </article>
+
+      <!-- ---------------- Devise de la plateforme ---------------- -->
+      <article class="bloc-admin">
+        <h3>Devise par defaut de la plateforme (US-34)</h3>
+        <form id="formulaire-devise" class="formulaire">
+          <label>
+            Code devise ISO 4217 (3 lettres, ex. EUR, USD, MAD)
+            <input type="text" id="champ-devise" maxlength="3" minlength="3" pattern="[A-Za-z]{3}" required />
+          </label>
+          <button type="submit" class="bouton bouton-principal">Enregistrer</button>
+        </form>
+        <p id="devise-statut" class="statut"></p>
+      </article>
+    </section>
+
+  </main>
+
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

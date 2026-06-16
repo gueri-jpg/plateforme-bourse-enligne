@@ -1,0 +1,6 @@
+# Dependances Python pour les producers/consumers Kafka
+# de la Plateforme de Bourse en Ligne.
+#
+# confluent-kafka : client Kafka officiel base sur librdkafka,
+# performant et largement utilise en production.
+confluent-kafka==2.6.1

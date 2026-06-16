@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plateforme de Bourse en Ligne - Connexion</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="page-centree">
+    <section class="carte">
+      <h1>Plateforme de Bourse en Ligne</h1>
+      <p>
+        Cette application delegue l'authentification a <strong>Keycloak</strong>
+        (realm <code>bourse-en-ligne</code>) via le flow OAuth2/OIDC
+        <strong>Authorization Code + PKCE</strong>.
+      </p>
+
+      <button id="bouton-login" class="bouton bouton-principal">
+        Se connecter avec Keycloak
+      </button>
+
+      <p class="aide">
+        Comptes de test disponibles (cf. <code>keycloak/realm-export.json</code>) :
+      </p>
+      <ul class="aide-liste">
+        <li><code>investisseur1</code> / <code>Investisseur123!</code> (role investisseur)</li>
+        <li><code>admin1</code> / <code>Administrateur123!</code> (role administrateur)</li>
+        <li><code>support1</code> / <code>Support123!</code> (role support_client)</li>
+      </ul>
+
+      <p id="message-erreur" class="message-erreur" hidden></p>
+    </section>
+  </main>
+
+  <!-- Module ES natif : pas d'etape de build necessaire -->
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>

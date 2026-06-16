@@ -1,0 +1,25 @@
+# ============================================================================
+# Dependances Python du backend "Module Admin" - Plateforme de Bourse en Ligne
+# ============================================================================
+
+# Framework web (API REST)
+fastapi>=0.115.0
+
+# Serveur ASGI pour lancer l'application FastAPI en developpement
+uvicorn[standard]>=0.34.0
+
+# Validation des modeles de donnees (requetes/reponses)
+pydantic>=2.11.0
+
+# Validation et configuration via variables d'environnement
+pydantic-settings>=2.7.0
+
+# Driver PostgreSQL (utilise via psycopg2, synchrone, simple pour ce squelette)
+psycopg2-binary>=2.9.9
+
+# Validation des tokens JWT emis par Keycloak (signature RS256 via JWKS)
+PyJWT[crypto]>=2.10.0
+
+# Client HTTP pour appeler l'Admin REST API de Keycloak (client_credentials,
+# PUT /admin/realms/..., gestion des utilisateurs)
+requests>=2.32.0

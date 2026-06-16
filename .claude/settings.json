@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip show *)",
+      "Bash(../.venv/Scripts/pip.exe list *)",
+      "Bash(.venv/Scripts/pip.exe list *)",
+      "Bash(.venv/Scripts/python.exe -u producer_consumer_orders_executed.py consommer)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\HP0\\\\OneDrive - Ecole Centrale Casablanca\\\\Plateforme-bourse-enligne\\\\backend\\\\app\\\\routers\")",
+      "Bash(python -m py_compile app/main.py app/config.py app/db.py app/auth.py app/keycloak_client.py app/routers/parametres_securite.py app/routers/parametres_otp.py app/routers/otp_utilisateur.py app/routers/parametres_devise.py)",
+      "Bash(python -c \"import fastapi\")",
+      "Bash(python -c \"import pydantic_settings\")",
+      "Bash(python -c \"import jwt\")",
+      "Bash(python -c \"import fastapi; print\\('fastapi OK', fastapi.__version__\\)\")",
+      "Bash(python -c \"import yaml; yaml.safe_load\\(open\\('docker-compose.yml'\\)\\); print\\('OK'\\)\")",
+      "Bash(docker compose *)",
+      "PowerShell(python --version)",
+      "PowerShell(python -c \"import sys; print\\(sys.version\\)\")",
+      "PowerShell(docker exec bourse-postgres psql -U bourse_user -d bourse_db -c \"\\\\d identite.utilisateurs\" 2>&1)",
+      "PowerShell(docker exec bourse-postgres psql -U bourse_user -d bourse_db -c \"SELECT id, keycloak_user_id, nom_utilisateur, email FROM identite.utilisateurs LIMIT 10;\" 2>&1)",
+      "PowerShell(docker exec bourse-postgres psql -U postgres -d bourse_db -c \"\\\\d identite.utilisateurs\")",
+      "PowerShell(docker exec bourse-postgres psql -U bourse_admin -d bourse_db -c \"\\\\d identite.utilisateurs\")",
+      "PowerShell(docker exec bourse-postgres psql -U bourse_admin -d bourse_db -c \"SELECT id, keycloak_user_id, nom_utilisateur, email FROM identite.utilisateurs LIMIT 10;\")",
+      "PowerShell(docker exec bourse-postgres psql -U bourse_admin -d bourse_db -c \"SELECT id, keycloak_user_id, email, nom, prenom FROM identite.utilisateurs;\")",
+      "Bash(.venv/Scripts/python.exe -u -m uvicorn app.main:app --reload --port 8000)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\HP0\\OneDrive - Ecole Centrale Casablanca\\Plateforme-bourse-enligne\\backend\\app"
+    ]
+  }
+}

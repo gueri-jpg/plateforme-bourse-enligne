@@ -1,0 +1,159 @@
+{
+  "realm": "bourse-en-ligne",
+  "enabled": true,
+  "displayName": "Plateforme de Bourse en Ligne",
+
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "accessTokenLifespan": 300,
+
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+
+  "resetPasswordAllowed": true,
+
+  "requiredActions": [
+    {
+      "alias": "CONFIGURE_TOTP",
+      "name": "Configure OTP",
+      "providerId": "CONFIGURE_TOTP",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 10,
+      "config": {}
+    },
+    {
+      "alias": "UPDATE_PASSWORD",
+      "name": "Update Password",
+      "providerId": "UPDATE_PASSWORD",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 20,
+      "config": {}
+    }
+  ],
+
+  "roles": {
+    "realm": [
+      {
+        "name": "investisseur",
+        "description": "Investisseur particulier : acces a son propre portefeuille, ses ordres et son historique"
+      },
+      {
+        "name": "administrateur",
+        "description": "Administrateur : gestion des comptes, du referentiel d'instruments et supervision globale des ordres"
+      },
+      {
+        "name": "support_client",
+        "description": "Support client : lecture seule sur comptes/portefeuilles/historiques, deblocage de compte"
+      }
+    ]
+  },
+
+  "clients": [
+    {
+      "clientId": "frontend-spa",
+      "name": "Frontend SPA - Plateforme de Bourse",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*##http://localhost:5173/*"
+      }
+    },
+    {
+      "clientId": "backend-api",
+      "name": "Backend API - Plateforme de Bourse",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": true,
+      "protocol": "openid-connect",
+      "secret": "backend-api-secret-a-changer",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "clientId": "admin-tools",
+      "name": "Admin Tools - Backend service account",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "protocol": "openid-connect",
+      "secret": "admin-tools-secret-a-changer",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
+    }
+  ],
+
+  "users": [
+    {
+      "username": "investisseur1",
+      "enabled": true,
+      "email": "investisseur1@bourse-en-ligne.local",
+      "firstName": "Alice",
+      "lastName": "Martin",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Investisseur123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["investisseur"]
+    },
+    {
+      "username": "admin1",
+      "enabled": true,
+      "email": "admin1@bourse-en-ligne.local",
+      "firstName": "Bob",
+      "lastName": "Admin",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Administrateur123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["administrateur"]
+    },
+    {
+      "username": "support1",
+      "enabled": true,
+      "email": "support1@bourse-en-ligne.local",
+      "firstName": "Claire",
+      "lastName": "Support",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Support123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["support_client"]
+    }
+  ]
+}
