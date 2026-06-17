@@ -22,10 +22,10 @@ services:
     container_name: bourse-postgres
     restart: unless-stopped
     environment:
-      # Identifiants de connexion a la base (a adapter en environnement reel)
-      POSTGRES_USER: bourse_admin
-      POSTGRES_PASSWORD: bourse_admin_password
-      POSTGRES_DB: bourse_db
+      # Identifiants lus depuis .env (voir .env.example)
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
       # Permet a PostgreSQL d'utiliser les locales fr_FR pour le tri/format
       PGTZ: Europe/Paris
     ports:
@@ -38,7 +38,7 @@ services:
       # demarrage (creation des schemas/tables decrits dans docs/architecture.md)
       - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bourse_admin -d bourse_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -122,15 +122,15 @@ services:
       - start-dev
       - --import-realm
     environment:
-      # Identifiants du compte administrateur Keycloak (console d'admin)
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin_password
+      # Identifiants du compte administrateur Keycloak (lus depuis .env)
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
 
       # Configuration de la base de donnees interne de Keycloak (PostgreSQL)
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
-      KC_DB_USERNAME: bourse_admin
-      KC_DB_PASSWORD: bourse_admin_password
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
 
       # Nom d'hote utilise pour generer les URLs (issuer, endpoints OIDC)
       KC_HOSTNAME: localhost
