@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     # Keycloak - realm "bourse-en-ligne" (cf. keycloak/realm-export.json)
     # ------------------------------------------------------------------
     # URL de base de Keycloak (sans chemin /realms/...)
-    KEYCLOAK_BASE_URL: str = "http://localhost:8080"
+    KEYCLOAK_BASE_URL: str = "http://localhost:9090"
     KEYCLOAK_REALM: str = "bourse-en-ligne"
 
     # Client utilise pour VALIDER les tokens JWT presentes par le frontend
