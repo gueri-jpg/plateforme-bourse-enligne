@@ -22,10 +22,10 @@ services:
     container_name: bourse-postgres
     restart: unless-stopped
     environment:
-      # Identifiants de connexion a la base (a adapter en environnement reel)
-      POSTGRES_USER: bourse_admin
-      POSTGRES_PASSWORD: bourse_admin_password
-      POSTGRES_DB: bourse_db
+      # Identifiants de connexion a la base (charges depuis .env a la racine)
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
       # Permet a PostgreSQL d'utiliser les locales fr_FR pour le tri/format
       PGTZ: Europe/Paris
     ports:
@@ -122,24 +122,39 @@ services:
       - start-dev
       - --import-realm
     environment:
-      # Identifiants du compte administrateur Keycloak (console d'admin)
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin_password
+      # Identifiants du compte administrateur Keycloak (charges depuis .env)
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
 
       # Configuration de la base de donnees interne de Keycloak (PostgreSQL)
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
-      KC_DB_USERNAME: bourse_admin
-      KC_DB_PASSWORD: bourse_admin_password
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
 
       # Nom d'hote utilise pour generer les URLs (issuer, endpoints OIDC)
       KC_HOSTNAME: localhost
-      KC_HOSTNAME_PORT: "8080"
+      KC_HOSTNAME_PORT: "9090"
       KC_HOSTNAME_STRICT: "false"
       KC_HTTP_ENABLED: "true"
+
+      # SMTP Resend - utilise par Keycloak pour l'envoi d'emails (mot de passe
+      # oublie, verification OTP, etc.). Ces variables sont lues dans le .env
+      # a la racine du projet. Les valeurs sont injectees ici afin d'etre
+      # accessibles dans le conteneur pour la configuration manuelle ou
+      # via l'Admin REST API (cf. README pour la procedure de configuration).
+      KC_SMTP_HOST: ${SMTP_HOST}
+      KC_SMTP_PORT: ${SMTP_PORT}
+      KC_SMTP_FROM: ${SMTP_FROM}
+      KC_SMTP_FROM_DISPLAY_NAME: ${SMTP_FROM_DISPLAY_NAME}
+      KC_SMTP_USER: resend
+      KC_SMTP_PASSWORD: ${RESEND_API_KEY}
+      KC_SMTP_STARTTLS: "true"
+      KC_SMTP_SSL: "false"
+      KC_SMTP_AUTH: "true"
     ports:
       # Console d'administration et endpoints OIDC du realm
-      - "8080:8080"
+      - "9090:8080"  # (hote)9090 -> conteneur:8080
     volumes:
       # Fichier d'export du realm "bourse-en-ligne" (clients, roles, utilisateurs de test)
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro

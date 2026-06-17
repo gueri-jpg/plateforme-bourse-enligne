@@ -1,4 +1,4 @@
-// ============================================================================
+ // ============================================================================
 // Configuration globale du frontend
 //
 // Centralise les constantes utilisees par les differentes pages
@@ -9,7 +9,8 @@
 // client "frontend-spa", flow Authorization Code + PKCE).
 // ============================================================================
 
-export const KEYCLOAK_BASE_URL = "http://localhost:8080";
+export const KEYCLOAK_BASE_URL = "http://localhost:9090";
+
 export const KEYCLOAK_REALM = "bourse-en-ligne";
 export const KEYCLOAK_CLIENT_ID = "frontend-spa";
 
@@ -37,7 +38,7 @@ export const REDIRECT_URI = `${FRONTEND_BASE_URL}/callback.html`;
 export const POST_LOGOUT_REDIRECT_URI = `${FRONTEND_BASE_URL}/index.html`;
 
 // URL de base du backend "Module Admin" (FastAPI, port 8000)
-export const BACKEND_API_BASE_URL = "http://localhost:8000";
+export const BACKEND_API_BASE_URL = "http://localhost:8002";
 
 // Cles utilisees pour stocker les donnees dans sessionStorage
 export const STORAGE_KEYS = {
