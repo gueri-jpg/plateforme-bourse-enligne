@@ -33,9 +33,14 @@ Role (cf. docs/architecture.md, sections 1 et 4) :
 import json
 import random
 import time
+import sys
 from datetime import datetime, timezone
 
-from confluent_kafka import Producer
+try:
+    from confluent_kafka import Producer
+except ImportError as err:
+    Producer = None
+    IMPORT_CONFLUENT_KAFKA_ERROR = err
 
 
 # ----------------------------------------------------------------------
@@ -167,4 +172,11 @@ def main():
 
 
 if __name__ == "__main__":
+    if Producer is None:
+        print(
+            "Erreur: le module confluent_kafka est introuvable. "
+            "Installez confluent-kafka et relancez le script."
+        )
+        sys.exit(1)
+
     main()
