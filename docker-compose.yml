@@ -132,9 +132,10 @@ services:
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
 
-      # Nom d'hote utilise pour generer les URLs (issuer, endpoints OIDC)
-      KC_HOSTNAME: localhost
-      KC_HOSTNAME_PORT: "9090"
+      # Nom d'hote complet utilise pour generer les URLs (issuer, endpoints OIDC).
+      # KC_HOSTNAME_PORT est deprecie en Keycloak 26 (hostname v2) - on passe
+      # directement l'URL complete avec le port externe expose sur l'hote.
+      KC_HOSTNAME: http://localhost:9090
       KC_HOSTNAME_STRICT: "false"
       KC_HTTP_ENABLED: "true"
 
