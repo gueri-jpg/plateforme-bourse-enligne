@@ -3,37 +3,955 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plateforme de Bourse en Ligne - Connexion</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <title>BourseOnline &middot; Marché en Direct</title>
+  <style>
+    :root {
+      --bg:       #070b1c;
+      --bg2:      #0b1020;
+      --panel:    #111733;
+      --panel2:   #0e1430;
+      --txt:      #e7ecff;
+      --muted:    #8a93b8;
+      --line:     #1f2a52;
+      --up:       #22c55e;
+      --down:     #ef4444;
+      --flat:     #9ca3af;
+      --accent:   #60a5fa;
+      --accent2:  #818cf8;
+      --gold:     #f59e0b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: linear-gradient(170deg, #050812 0%, #0b1020 50%, #070b1c 100%);
+      color: var(--txt);
+      font-family: -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Barre de progression ── */
+    #progress {
+      position: fixed; top: 0; left: 0; z-index: 100;
+      height: 2px; width: 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width .25s linear;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+      padding: 14px 28px;
+      background: rgba(7, 11, 28, .85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .header-brand {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .header-brand svg { width: 32px; height: 32px; flex-shrink: 0; }
+    .header-brand h1 {
+      font-size: 16px; font-weight: 700; letter-spacing: .4px;
+    }
+    .header-brand h1 span { color: var(--accent); }
+
+    .header-status {
+      display: flex; align-items: center; gap: 16px;
+      font-size: 12px; color: var(--muted); flex-wrap: wrap;
+    }
+    .dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--flat); margin-right: 5px; vertical-align: middle;
+      box-shadow: 0 0 6px currentColor;
+    }
+    .dot.ok   { background: var(--up);   color: var(--up);   }
+    .dot.warn { background: var(--gold); color: var(--gold); }
+    .dot.err  { background: var(--down); color: var(--down); }
+
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 8px;
+      font-size: 13px; font-family: inherit; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--line);
+      background: var(--panel); color: var(--txt);
+      transition: border-color .15s, background .15s;
+    }
+    .btn:hover { border-color: var(--accent); }
+
+    .btn-login {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      border-color: #3b82f6; color: #fff;
+      box-shadow: 0 0 16px rgba(59,130,246,.35);
+    }
+    .btn-login:hover {
+      background: linear-gradient(135deg, #1e40af, #1d4ed8);
+      box-shadow: 0 0 24px rgba(59,130,246,.5);
+    }
+
+    select.ctrl {
+      background: var(--panel); color: var(--txt);
+      border: 1px solid var(--line); border-radius: 8px;
+      padding: 7px 10px; font-size: 12px; cursor: pointer; font-family: inherit;
+    }
+    select.ctrl:hover { border-color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; padding: 56px 24px 40px;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(96,165,250,.12); border: 1px solid rgba(96,165,250,.3);
+      border-radius: 999px; padding: 4px 14px; font-size: 12px;
+      color: var(--accent); margin-bottom: 20px;
+    }
+    .hero h2 {
+      font-size: clamp(26px, 4vw, 44px); font-weight: 700;
+      line-height: 1.15; max-width: 700px;
+      background: linear-gradient(135deg, #e7ecff 30%, #60a5fa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      margin-top: 14px; color: var(--muted); font-size: 14px;
+      max-width: 520px; line-height: 1.6;
+    }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; justify-content: center; }
+    .btn-hero {
+      padding: 12px 24px; font-size: 14px; font-weight: 600;
+      background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+      border: none; border-radius: 10px; color: #fff;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 4px 20px rgba(59,130,246,.4);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-hero:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(59,130,246,.55); }
+    .btn-ghost {
+      padding: 12px 24px; font-size: 14px; font-weight: 500;
+      background: transparent; border: 1px solid var(--line);
+      border-radius: 10px; color: var(--txt);
+      cursor: pointer; font-family: inherit;
+      transition: border-color .15s;
+    }
+    .btn-ghost:hover { border-color: var(--accent); }
+
+    /* ── Main content ── */
+    main { max-width: 1500px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* ── Index cards ── */
+    .indices {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px; margin-bottom: 22px;
+    }
+    .card {
+      background: linear-gradient(160deg, var(--panel), var(--panel2));
+      border: 1px solid var(--line); border-radius: 14px;
+      padding: 18px 20px; position: relative; overflow: hidden;
+      transition: background .8s ease, border-color .2s;
+    }
+    .card:hover { border-color: rgba(96,165,250,.35); }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      opacity: .5;
+    }
+    .card h3 {
+      font-size: 11px; color: var(--muted); font-weight: 500;
+      text-transform: uppercase; letter-spacing: .7px; margin-bottom: 6px;
+    }
+    .card .val {
+      font-size: 24px; font-weight: 600;
+      font-variant-numeric: tabular-nums; line-height: 1.2;
+    }
+    .card .delta { margin-top: 5px; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .card .ts    { margin-top: 6px; font-size: 11px; color: var(--muted); }
+
+    .up   { color: var(--up);   }
+    .down { color: var(--down); }
+    .flat { color: var(--flat); }
+
+    .flash-up   { background: rgba(34,197,94,.18) !important; }
+    .flash-down { background: rgba(239,68,68,.18) !important; }
+
+    /* ── Grid 2 col ── */
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+    @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+
+    /* ── Section box ── */
+    .box {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 14px; overflow: hidden;
+    }
+    .box h2 {
+      margin: 0; padding: 13px 18px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px; color: var(--muted); font-weight: 500;
+      text-transform: uppercase; letter-spacing: .6px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* ── Table ── */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td {
+      padding: 8px 14px; text-align: right;
+      font-variant-numeric: tabular-nums;
+      border-bottom: 1px solid var(--line);
+    }
+    th:first-child, td:first-child { text-align: left; }
+    th {
+      position: sticky; top: 0;
+      background: var(--panel2); color: var(--muted);
+      font-weight: 500; font-size: 11px;
+      text-transform: uppercase; letter-spacing: .5px; z-index: 1;
+    }
+    tbody tr { transition: background .8s ease; }
+    tbody tr:hover { background: rgba(96,165,250,.06); }
+
+    .sector-row td {
+      padding: 8px 14px;
+      background: #080d22; color: var(--accent);
+      font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+      border-top: 1px solid var(--line);
+    }
+
+    /* ── Search & controls ── */
+    .search {
+      padding: 10px 14px; border-bottom: 1px solid var(--line);
+      display: flex; gap: 8px; align-items: center;
+    }
+    .search input {
+      flex: 1; background: var(--panel2); color: var(--txt);
+      border: 1px solid var(--line); border-radius: 8px;
+      padding: 8px 12px; font-size: 13px; outline: none; font-family: inherit;
+    }
+    .search input:focus { border-color: var(--accent); }
+    .search input::placeholder { color: var(--muted); }
+
+    .scroll { max-height: 60vh; overflow: auto; }
+
+    /* ── Misc ── */
+    .badge {
+      display: inline-block; padding: 1px 8px; border-radius: 999px;
+      font-size: 10px; background: #1c2855; color: var(--accent); margin-left: 6px;
+    }
+    .small { font-size: 11px; color: var(--muted); }
+    .empty { padding: 30px; text-align: center; color: var(--muted); }
+
+    code {
+      background: rgba(96,165,250,.1); color: var(--accent);
+      border-radius: 4px; padding: 1px 5px; font-size: .85em;
+    }
+
+    /* ── Login modal overlay ── */
+    #modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(5, 8, 20, .75); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+    }
+    #modal-overlay.open { display: flex; }
+
+    .modal-card {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 16px; padding: 36px 32px; max-width: 420px; width: 90%;
+      text-align: center; box-shadow: 0 24px 80px rgba(0,0,0,.6);
+    }
+    .modal-card h3 { font-size: 20px; margin-bottom: 10px; }
+    .modal-card p  { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 24px; }
+    .modal-card ul {
+      list-style: none; text-align: left; margin-bottom: 24px;
+      background: var(--panel2); border: 1px solid var(--line);
+      border-radius: 10px; padding: 14px 16px;
+    }
+    .modal-card ul li {
+      font-size: 12px; color: var(--muted); padding: 3px 0;
+    }
+    .modal-card ul li code { color: var(--accent); }
+    .modal-close {
+      background: none; border: none; color: var(--muted);
+      font-size: 20px; cursor: pointer; position: absolute;
+      top: 12px; right: 16px;
+    }
+    .modal-card { position: relative; }
+    #message-erreur {
+      color: var(--down); font-size: 12px; margin-top: 10px;
+      min-height: 1em;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; color: var(--muted); font-size: 11px;
+      line-height: 1.7; padding: 30px 24px 0;
+      border-top: 1px solid var(--line);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      header { padding: 12px 16px; }
+      .hero { padding: 36px 16px 28px; }
+      main { padding: 0 12px 60px; }
+    }
+  </style>
 </head>
 <body>
-  <main class="page-centree">
-    <section class="carte">
-      <h1>Plateforme de Bourse en Ligne</h1>
-      <p>
-        Cette application delegue l'authentification a <strong>Keycloak</strong>
-        (realm <code>bourse-en-ligne</code>) via le flow OAuth2/OIDC
-        <strong>Authorization Code + PKCE</strong>.
-      </p>
 
-      <button id="bouton-login" class="bouton bouton-principal">
-        Se connecter avec Keycloak
-      </button>
+<div id="progress"></div>
 
-      <p class="aide">
-        Comptes de test disponibles (cf. <code>keycloak/realm-export.json</code>) :
-      </p>
-      <ul class="aide-liste">
-        <li><code>investisseur1</code> / <code>Investisseur123!</code> (role investisseur)</li>
-        <li><code>admin1</code> / <code>Administrateur123!</code> (role administrateur)</li>
-        <li><code>support1</code> / <code>Support123!</code> (role support_client)</li>
-      </ul>
+<!-- ============================================================ HEADER -->
+<header>
+  <div class="header-brand">
+    <!-- Logo SVG candlestick -->
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="6"  y="10" width="5" height="12" rx="1" fill="#22c55e"/>
+      <line x1="8.5"  y1="6"  x2="8.5"  y2="10" stroke="#22c55e" stroke-width="1.5"/>
+      <line x1="8.5"  y1="22" x2="8.5"  y2="26" stroke="#22c55e" stroke-width="1.5"/>
+      <rect x="14" y="14" width="5" height="8"  rx="1" fill="#ef4444"/>
+      <line x1="16.5" y1="10" x2="16.5" y2="14" stroke="#ef4444" stroke-width="1.5"/>
+      <line x1="16.5" y1="22" x2="16.5" y2="27" stroke="#ef4444" stroke-width="1.5"/>
+      <rect x="22" y="8"  width="5" height="14" rx="1" fill="#22c55e"/>
+      <line x1="24.5" y1="4"  x2="24.5" y2="8"  stroke="#22c55e" stroke-width="1.5"/>
+      <line x1="24.5" y1="22" x2="24.5" y2="26" stroke="#22c55e" stroke-width="1.5"/>
+    </svg>
+    <h1>BourseOnline <span>&middot; Live</span></h1>
+  </div>
 
-      <p id="message-erreur" class="message-erreur" hidden></p>
+  <div class="header-status">
+    <span><span class="dot" id="dot"></span><span id="state">en attente&hellip;</span></span>
+    <span>Maj&nbsp;: <strong id="lastUpdate">—</strong></span>
+    <span>Latence&nbsp;: <strong id="latency">—</strong></span>
+  </div>
+
+  <div class="header-actions">
+    <label class="small" style="display:flex;align-items:center;gap:6px">
+      Cadence
+      <select id="interval" class="ctrl">
+        <option value="5000">5 s</option>
+        <option value="10000" selected>10 s</option>
+        <option value="20000">20 s</option>
+        <option value="60000">1 min</option>
+      </select>
+    </label>
+    <button id="btnRefresh" class="btn">&#8635; Actualiser</button>
+    <button id="btnPause"   class="btn">Pause</button>
+    <button id="btnLogin"   class="btn btn-login">&#128274; Se connecter</button>
+  </div>
+</header>
+
+<!-- ============================================================ HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="dot ok"></span> Données en direct &middot; Bourse de Casablanca
+  </div>
+  <h2>Votre plateforme de trading<br>en temps réel</h2>
+  <p>
+    Accédez au marché actions de la Bourse de Casablanca en quasi-temps réel.
+    Gérez vos ordres, suivez vos positions et exploitez les opportunités —
+    tout depuis une interface unifiée et sécurisée.
+  </p>
+  <div class="hero-cta">
+    <button class="btn-hero" id="btnHeroLogin">Ouvrir un compte / Se connecter</button>
+    <button class="btn-ghost" onclick="document.getElementById('section-cotations').scrollIntoView({behavior:'smooth'})">
+      Voir les cotations &#8595;
+    </button>
+  </div>
+</section>
+
+<!-- ============================================================ MAIN -->
+<main>
+
+  <!-- Index cards -->
+  <div class="indices" id="indices">
+    <div class="card" data-k="masi">
+      <h3>MASI (intraday)</h3>
+      <div class="val">—</div>
+      <div class="delta flat">—</div>
+      <div class="ts">—</div>
+    </div>
+    <div class="card" data-k="masiHL">
+      <h3>MASI &middot; séance</h3>
+      <div class="val">—</div>
+      <div class="delta flat">—</div>
+      <div class="ts">—</div>
+    </div>
+    <div class="card" data-k="vol">
+      <h3>Volume global</h3>
+      <div class="val">—</div>
+      <div class="delta flat">MAD &middot; marché actions</div>
+      <div class="ts">—</div>
+    </div>
+    <div class="card" data-k="capi">
+      <h3>Capitalisation</h3>
+      <div class="val">—</div>
+      <div class="delta flat">MAD</div>
+      <div class="ts">—</div>
+    </div>
+    <div class="card" data-k="breadth">
+      <h3>Largeur du marché</h3>
+      <div class="val">—</div>
+      <div class="delta flat">hausses / baisses / stables</div>
+      <div class="ts">—</div>
+    </div>
+  </div>
+
+  <!-- Top movers -->
+  <div class="grid2">
+    <section class="box">
+      <h2>
+        <span>&#9650; Plus fortes hausses</span>
+        <span class="small" id="hcount">—</span>
+      </h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Valeur</th><th>Cours</th><th>Var.&nbsp;%</th><th>Diff.&nbsp;MAD</th>
+          </tr>
+        </thead>
+        <tbody id="topUp"><tr><td colspan="4" class="empty">&hellip;</td></tr></tbody>
+      </table>
     </section>
-  </main>
+    <section class="box">
+      <h2>
+        <span>&#9660; Plus fortes baisses</span>
+        <span class="small" id="lcount">—</span>
+      </h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Valeur</th><th>Cours</th><th>Var.&nbsp;%</th><th>Diff.&nbsp;MAD</th>
+          </tr>
+        </thead>
+        <tbody id="topDown"><tr><td colspan="4" class="empty">&hellip;</td></tr></tbody>
+      </table>
+    </section>
+  </div>
 
-  <!-- Module ES natif : pas d'etape de build necessaire -->
-  <script type="module" src="js/login.js"></script>
+  <!-- Cotations -->
+  <section class="box" id="section-cotations">
+    <h2>
+      <span>
+        Cotations &middot; Marché actions
+        <span class="badge" id="totalCount">0</span>
+      </span>
+      <span class="small">
+        Trier&nbsp;:
+        <select id="sort" class="ctrl" style="font-size:11px;padding:3px 6px">
+          <option value="sector">par secteur</option>
+          <option value="var_desc">var. décroissante</option>
+          <option value="var_asc">var. croissante</option>
+          <option value="vol_desc">volume décroissant</option>
+          <option value="name">nom</option>
+        </select>
+      </span>
+    </h2>
+    <div class="search">
+      <input id="q" placeholder="Filtrer une valeur (ATW, IAM, BCP…)" />
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Valeur</th>
+            <th>Cours</th>
+            <th>Var.&nbsp;%</th>
+            <th>Ouverture</th>
+            <th>+ haut</th>
+            <th>+ bas</th>
+            <th>Bid</th>
+            <th>Ask</th>
+            <th>Volume (MAD)</th>
+            <th>Titres</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="10" class="empty">Chargement&hellip;</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    Données&nbsp;: <a href="https://www.casablanca-bourse.com" target="_blank" rel="noopener">casablanca-bourse.com</a>
+    &middot; Relais local Python (<code>serve.py</code> sur <code>:8765</code>)
+    &middot; Données différées, usage pédagogique uniquement.<br>
+    &copy; 2026 BourseOnline &middot; Authentification via
+    <a href="https://www.keycloak.org" target="_blank" rel="noopener">Keycloak</a>
+    (OAuth2 / OIDC)
+  </footer>
+</main>
+
+<!-- ============================================================ MODAL LOGIN -->
+<div id="modal-overlay">
+  <div class="modal-card">
+    <button class="modal-close" id="btnModalClose" title="Fermer">&times;</button>
+    <h3>&#128274;&nbsp;Connexion</h3>
+    <p>
+      L'authentification est déléguée à <strong>Keycloak</strong>
+      via le flow <strong>Authorization Code&nbsp;+ PKCE</strong>.
+    </p>
+    <ul>
+      <li><code>investisseur1</code> / <code>Investisseur123!</code> — investisseur</li>
+      <li><code>admin1</code> / <code>Administrateur123!</code> — administrateur</li>
+      <li><code>support1</code> / <code>Support123!</code> — support client</li>
+    </ul>
+    <button id="bouton-login" class="btn-hero" style="width:100%">
+      Se connecter avec Keycloak
+    </button>
+    <p id="message-erreur"></p>
+  </div>
+</div>
+
+<!-- ============================================================ SCRIPTS -->
+
+<!-- Auth Keycloak (module ES) -->
+<script type="module">
+import {
+  KEYCLOAK_AUTH_ENDPOINT,
+  KEYCLOAK_CLIENT_ID,
+  REDIRECT_URI,
+  STORAGE_KEYS,
+} from "./js/config.js";
+import {
+  genererCodeVerifier,
+  genererCodeChallenge,
+  genererEtatAleatoire,
+} from "./js/pkce.js";
+
+const messageErreur = document.getElementById("message-erreur");
+
+const params = new URLSearchParams(window.location.search);
+if (params.has("erreur")) {
+  ouvrirModal();
+  messageErreur.textContent = params.get("erreur");
+}
+
+async function demarrerLoginKeycloak() {
+  try {
+    const codeVerifier  = genererCodeVerifier();
+    const codeChallenge = await genererCodeChallenge(codeVerifier);
+    const etat          = genererEtatAleatoire();
+
+    sessionStorage.setItem(STORAGE_KEYS.CODE_VERIFIER, codeVerifier);
+    sessionStorage.setItem("bourse_oauth_state", etat);
+
+    const p = new URLSearchParams({
+      client_id:             KEYCLOAK_CLIENT_ID,
+      response_type:         "code",
+      redirect_uri:          REDIRECT_URI,
+      scope:                 "openid profile email",
+      code_challenge:        codeChallenge,
+      code_challenge_method: "S256",
+      state:                 etat,
+    });
+
+    window.location.href = `${KEYCLOAK_AUTH_ENDPOINT}?${p.toString()}`;
+  } catch (e) {
+    console.error(e);
+    messageErreur.textContent = "Impossible de démarrer la connexion. Voir la console.";
+  }
+}
+
+function ouvrirModal() {
+  document.getElementById("modal-overlay").classList.add("open");
+}
+function fermerModal() {
+  document.getElementById("modal-overlay").classList.remove("open");
+}
+
+document.getElementById("bouton-login").addEventListener("click", demarrerLoginKeycloak);
+document.getElementById("btnLogin").addEventListener("click", ouvrirModal);
+document.getElementById("btnHeroLogin").addEventListener("click", ouvrirModal);
+document.getElementById("btnModalClose").addEventListener("click", fermerModal);
+document.getElementById("modal-overlay").addEventListener("click", e => {
+  if (e.target === document.getElementById("modal-overlay")) fermerModal();
+});
+</script>
+
+<!-- Marché BVC en temps réel -->
+<script>
+// Quand la page est servie via Nginx (port 80/443), /api/* est proxifié
+// vers le relais Python. Sur tout autre port (dev, Live Server…) on
+// appelle le relais directement sur localhost:8765.
+const RELAY = (location.port === "80" || location.port === "443" || location.port === "")
+  ? ""
+  : "http://localhost:8765";
+
+const API = {
+  overview: RELAY + "/api/overview",
+  stocks:   RELAY + "/api/stocks",
+  buildId:  RELAY + "/api/buildId",
+};
+
+const mkt = {
+  intervalMs: 10000,
+  paused: false,
+  busy:   false,
+  timer:  null,
+  prev:   { indices: {}, rows: new Map() },
+  rows:   [],
+};
+
+const $ = id => document.getElementById(id);
+
+function setStatus(kind, label) {
+  $("dot").className  = "dot " + kind;
+  $("state").textContent = label;
+}
+
+function fmtNum(x, dp) {
+  if (x === null || x === undefined || x === "") return "—";
+  const n = typeof x === "number" ? x
+    : parseFloat(String(x).replace(/[\s%]/g, "").replace(",", "."));
+  if (isNaN(n)) return "—";
+  return n.toLocaleString("fr-FR", { minimumFractionDigits: dp, maximumFractionDigits: dp });
+}
+function asNum(x) {
+  if (x === null || x === undefined || x === "") return NaN;
+  const n = typeof x === "number" ? x
+    : parseFloat(String(x).replace(/[\s%]/g, "").replace(",", "."));
+  return isNaN(n) ? NaN : n;
+}
+function cls(v) { return isNaN(v) ? "flat" : v > 0 ? "up" : v < 0 ? "down" : "flat"; }
+function sgn(v) { return isNaN(v) ? "" : v > 0 ? "▲ " : v < 0 ? "▼ " : "● "; }
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
+}
+function timeStr(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d)) return "—";
+  return d.toLocaleString("fr-FR", {
+    hour:"2-digit", minute:"2-digit", second:"2-digit",
+    day:"2-digit",  month:"2-digit",
+  });
+}
+
+async function getJson(url) {
+  const r = await fetch(url, { cache: "no-store" });
+  if (!r.ok) {
+    let detail = "";
+    try { detail = " – " + (await r.text()).slice(0, 160); } catch {}
+    throw new Error("HTTP " + r.status + detail);
+  }
+  return r.json();
+}
+
+/* ── Parsing ── */
+function findWidget(doc, pred) {
+  const node = doc?.pageProps?.node;
+  if (!node?.field_vactory_paragraphs) return null;
+  for (const p of node.field_vactory_paragraphs) {
+    const c = p.field_vactory_component;
+    if (!c) continue;
+    if (pred(c)) {
+      try { return typeof c.widget_data === "string" ? JSON.parse(c.widget_data) : c.widget_data; }
+      catch { return null; }
+    }
+  }
+  return null;
+}
+
+function parseOverview(doc) {
+  const w = findWidget(doc, c => /marches-overview/.test(c.widget_id || ""));
+  const out = { masi: null, vol: null, capi: null, ts: null, masiSeries: [] };
+  if (!w) return out;
+  const comps = Array.isArray(w.components) ? w.components : [w.components].filter(Boolean);
+  for (const comp of comps) {
+    if (!comp || typeof comp !== "object") continue;
+    if (comp.capitalisation?.value) out.capi = asNum(comp.capitalisation.value);
+    if (comp.volume?.volume)        out.vol  = asNum(comp.volume.volume);
+    const coll = comp.collection?.data?.data;
+    if (Array.isArray(coll) && coll.length) {
+      const series = coll
+        .map(it => ({ v: asNum(it.attributes?.indexValue), t: it.attributes?.transactTime }))
+        .filter(p => !isNaN(p.v) && p.t)
+        .sort((a, b) => new Date(a.t) - new Date(b.t));
+      if (series.length) {
+        const last = series[series.length - 1];
+        const first = series[0];
+        const high  = Math.max(...series.map(p => p.v));
+        const low   = Math.min(...series.map(p => p.v));
+        out.masi = {
+          value: last.v, open: first.v, high, low,
+          varJ: first.v ? (last.v - first.v) / first.v * 100 : NaN,
+          ts: last.t,
+        };
+        out.ts = last.t;
+        out.masiSeries = series;
+      }
+    }
+  }
+  return out;
+}
+
+function parseStocks(doc) {
+  const w = findWidget(doc, c => /marches-actions/.test(c.widget_id || ""));
+  if (!w) return [];
+  const sectors = Array.isArray(w.extra_field?.data) ? w.extra_field.data : [];
+  const out = [];
+  for (const sec of sectors) {
+    const title = sec.title || "—";
+    for (const it of (sec.items || [])) {
+      const inst = it.instrument || {};
+      out.push({
+        sector: title,
+        name:   inst.label || "—",
+        price:  asNum(it.field_cours_courant),
+        ref:    asNum(it.field_static_reference_price),
+        open:   asNum(it.field_opening_price),
+        pct:    asNum(it.field_var_veille),
+        high:   asNum(it.field_high_price),
+        low:    asNum(it.field_low_price),
+        bid:    asNum(it.field_best_bid_price),
+        ask:    asNum(it.field_best_ask_price),
+        volMAD: asNum(it.field_cumul_volume_echange),
+        volQty: asNum(it.field_cumul_titres_echanges),
+      });
+    }
+  }
+  return out;
+}
+
+function computeMovers(stocks) {
+  const arr = stocks.filter(s => !isNaN(s.pct) && !isNaN(s.price));
+  const up   = arr.slice().sort((a, b) => b.pct - a.pct).slice(0, 5);
+  const down = arr.slice().sort((a, b) => a.pct - b.pct).slice(0, 5);
+  const toMover = r => ({
+    name: r.name, price: r.price, pct: r.pct,
+    diff: !isNaN(r.ref) ? r.price - r.ref : NaN,
+  });
+  return { up: up.map(toMover), down: down.map(toMover) };
+}
+
+/* ── Render ── */
+function flashIfChanged(el, key, val) {
+  if (isNaN(val)) return;
+  const prev = mkt.prev.indices[key];
+  mkt.prev.indices[key] = val;
+  if (prev === undefined || prev === val) return;
+  el.classList.remove("flash-up", "flash-down");
+  void el.offsetWidth;
+  el.classList.add(val > prev ? "flash-up" : "flash-down");
+  setTimeout(() => el.classList.remove("flash-up", "flash-down"), 900);
+}
+
+function renderIndices(ov, stocks) {
+  const cMasi = document.querySelector('.card[data-k="masi"]');
+  if (ov.masi) {
+    cMasi.querySelector(".val").textContent = fmtNum(ov.masi.value, 2);
+    const d = cMasi.querySelector(".delta");
+    d.className = "delta " + cls(ov.masi.varJ);
+    d.textContent = isNaN(ov.masi.varJ)
+      ? "—"
+      : `${sgn(ov.masi.varJ)}${fmtNum(ov.masi.varJ, 2)} % depuis l'ouverture`;
+    cMasi.querySelector(".ts").textContent = "Tick : " + timeStr(ov.masi.ts);
+    flashIfChanged(cMasi, "vmasi", ov.masi.value);
+  }
+
+  const cHL = document.querySelector('.card[data-k="masiHL"]');
+  if (ov.masi) {
+    cHL.querySelector(".val").innerHTML =
+      `<span class="up">&#9650; ${fmtNum(ov.masi.high, 2)}</span>` +
+      ` &middot; <span class="down">&#9660; ${fmtNum(ov.masi.low, 2)}</span>`;
+    cHL.querySelector(".val").style.fontSize = "18px";
+    cHL.querySelector(".delta").textContent = `Ouverture : ${fmtNum(ov.masi.open, 2)}`;
+    cHL.querySelector(".ts").textContent = ov.masiSeries.length
+      ? `${ov.masiSeries.length} ticks aujourd'hui` : "—";
+  }
+
+  const cVol = document.querySelector('.card[data-k="vol"]');
+  cVol.querySelector(".val").textContent = fmtNum(ov.vol, 2);
+  cVol.querySelector(".ts").textContent  = ov.ts ? "Tick : " + timeStr(ov.ts) : "—";
+  flashIfChanged(cVol, "vol", ov.vol);
+
+  const cCap = document.querySelector('.card[data-k="capi"]');
+  cCap.querySelector(".val").textContent = fmtNum(ov.capi, 0);
+  cCap.querySelector(".ts").textContent  = ov.ts ? "Tick : " + timeStr(ov.ts) : "—";
+  flashIfChanged(cCap, "capi", ov.capi);
+
+  const cBr = document.querySelector('.card[data-k="breadth"]');
+  const up = stocks.filter(s => s.pct > 0).length;
+  const dn = stocks.filter(s => s.pct < 0).length;
+  const fl = stocks.filter(s => !isNaN(s.pct) && s.pct === 0).length;
+  cBr.querySelector(".val").innerHTML =
+    `<span class="up">${up}</span> / <span class="down">${dn}</span> / <span class="flat">${fl}</span>`;
+  cBr.querySelector(".val").style.fontSize = "22px";
+  const ratio = dn ? (up / dn) : (up ? Infinity : 0);
+  const dBr = cBr.querySelector(".delta");
+  dBr.className = "delta " + (up > dn ? "up" : up < dn ? "down" : "flat");
+  dBr.textContent = `Ratio H/B : ${isFinite(ratio) ? ratio.toFixed(2) : "∞"}`;
+  cBr.querySelector(".ts").textContent = `${stocks.length} valeurs scrutées`;
+}
+
+function renderMovers(tbodyId, list, countId) {
+  const tb = $(tbodyId);
+  if (!list.length) {
+    tb.innerHTML = `<tr><td colspan="4" class="empty">—</td></tr>`;
+    $(countId).textContent = "—";
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  for (const r of list) {
+    const tr = document.createElement("tr");
+    const c  = cls(r.pct);
+    tr.innerHTML = `
+      <td>${esc(r.name)}</td>
+      <td>${fmtNum(r.price, 2)}</td>
+      <td class="${c}">${isNaN(r.pct) ? "—" : sgn(r.pct) + fmtNum(r.pct, 2) + " %"}</td>
+      <td class="${c}">${isNaN(r.diff) ? "—" : fmtNum(r.diff, 2)}</td>`;
+    frag.appendChild(tr);
+  }
+  tb.replaceChildren(frag);
+  $(countId).textContent = list.length + " valeurs";
+}
+
+function renderRows() {
+  const q    = $("q").value.trim().toLowerCase();
+  const sort = $("sort").value;
+  let arr    = mkt.rows.slice();
+  if (q) arr = arr.filter(r =>
+    r.name.toLowerCase().includes(q) || r.sector.toLowerCase().includes(q));
+
+  if      (sort === "var_desc")  arr.sort((a, b) => (isNaN(b.pct) ? -1e9 : b.pct) - (isNaN(a.pct) ? -1e9 : a.pct));
+  else if (sort === "var_asc")   arr.sort((a, b) => (isNaN(a.pct) ?  1e9 : a.pct) - (isNaN(b.pct) ?  1e9 : b.pct));
+  else if (sort === "vol_desc")  arr.sort((a, b) => (isNaN(b.volMAD) ? -1 : b.volMAD) - (isNaN(a.volMAD) ? -1 : a.volMAD));
+  else if (sort === "name")      arr.sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  else arr.sort((a, b) =>
+    a.sector.localeCompare(b.sector, "fr") || a.name.localeCompare(b.name, "fr"));
+
+  const tb = $("rows");
+  if (!arr.length) {
+    tb.innerHTML = `<tr><td colspan="10" class="empty">Aucune valeur ne correspond.</td></tr>`;
+    $("totalCount").textContent = mkt.rows.length;
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  let curSec = null;
+  for (const r of arr) {
+    if (sort === "sector" && r.sector !== curSec) {
+      curSec = r.sector;
+      const tr = document.createElement("tr");
+      tr.className = "sector-row";
+      tr.innerHTML = `<td colspan="10">${esc(curSec)}</td>`;
+      frag.appendChild(tr);
+    }
+    const c  = cls(r.pct);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${esc(r.name)}</td>
+      <td>${fmtNum(r.price, 2)}</td>
+      <td class="${c}">${isNaN(r.pct) ? "—" : sgn(r.pct) + fmtNum(r.pct, 2) + " %"}</td>
+      <td>${fmtNum(r.open,   2)}</td>
+      <td>${fmtNum(r.high,   2)}</td>
+      <td>${fmtNum(r.low,    2)}</td>
+      <td class="small">${fmtNum(r.bid, 2)}</td>
+      <td class="small">${fmtNum(r.ask, 2)}</td>
+      <td>${fmtNum(r.volMAD, 0)}</td>
+      <td class="small">${fmtNum(r.volQty, 0)}</td>`;
+    const prev = mkt.prev.rows.get(r.name);
+    if (prev !== undefined && !isNaN(r.price) && !isNaN(prev) && r.price !== prev) {
+      tr.classList.add(r.price > prev ? "flash-up" : "flash-down");
+      setTimeout(() => tr.classList.remove("flash-up", "flash-down"), 900);
+    }
+    frag.appendChild(tr);
+  }
+  tb.replaceChildren(frag);
+  $("totalCount").textContent = mkt.rows.length;
+
+  const m = new Map();
+  for (const r of mkt.rows) m.set(r.name, r.price);
+  mkt.prev.rows = m;
+}
+
+/* ── Polling ── */
+function setProgress(start) {
+  const p = $("progress");
+  if (start) {
+    p.style.width = "0%";
+    requestAnimationFrame(() => { p.style.width = "80%"; });
+  } else {
+    p.style.width = "100%";
+    setTimeout(() => { p.style.width = "0%"; }, 250);
+  }
+}
+
+async function tick() {
+  if (mkt.busy || mkt.paused) return;
+  mkt.busy = true;
+  setStatus("warn", "récupération…");
+  setProgress(true);
+  const t0 = performance.now();
+  try {
+    const [ovDoc, stDoc] = await Promise.all([
+      getJson(API.overview),
+      getJson(API.stocks),
+    ]);
+    getJson(API.buildId).catch(() => {});   // fire-and-forget pour l'affichage buildId
+
+    const ov = parseOverview(ovDoc);
+    const st = parseStocks(stDoc);
+    const mv = computeMovers(st);
+
+    renderIndices(ov, st);
+    renderMovers("topUp",   mv.up,   "hcount");
+    renderMovers("topDown", mv.down, "lcount");
+    mkt.rows = st;
+    renderRows();
+
+    const ms = Math.round(performance.now() - t0);
+    $("lastUpdate").textContent = new Date().toLocaleTimeString("fr-FR");
+    $("latency").textContent    = ms + " ms";
+    setStatus("ok", st.length ? `en direct · ${st.length} valeurs` : "en direct (partiel)");
+  } catch (e) {
+    console.error(e);
+    setStatus("err", "échec : " + e.message);
+    if (/Failed to fetch|NetworkError|HTTP 502/i.test(e.message)) {
+      $("rows").innerHTML = `<tr><td colspan="10" class="empty" style="line-height:1.8;padding:28px">
+        <strong style="color:var(--down)">Relais local indisponible.</strong><br>
+        Lancez le proxy Python dans le dossier du projet :<br>
+        <code style="display:inline-block;margin-top:8px;padding:6px 12px;background:#080d22;
+          border:1px solid var(--line);border-radius:6px">python serve.py</code>
+      </td></tr>`;
+    }
+  } finally {
+    setProgress(false);
+    mkt.busy = false;
+  }
+}
+
+function schedule() {
+  if (mkt.timer) clearInterval(mkt.timer);
+  mkt.timer = setInterval(tick, mkt.intervalMs);
+}
+
+$("interval").addEventListener("change", e => {
+  mkt.intervalMs = parseInt(e.target.value, 10);
+  schedule();
+});
+$("btnRefresh").addEventListener("click", tick);
+$("btnPause").addEventListener("click", e => {
+  mkt.paused = !mkt.paused;
+  e.target.textContent = mkt.paused ? "Reprendre" : "Pause";
+  setStatus(
+    mkt.paused ? "warn" : "ok",
+    mkt.paused ? "en pause" : "en direct"
+  );
+});
+$("q").addEventListener("input", renderRows);
+$("sort").addEventListener("change", renderRows);
+
+tick();
+schedule();
+</script>
+
 </body>
 </html>
