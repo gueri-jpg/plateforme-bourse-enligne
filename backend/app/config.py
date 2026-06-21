@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     backend/, voir backend/README.md).
     """
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     # ------------------------------------------------------------------
     # PostgreSQL - base "bourse_db" (cf. docker-compose.yml / db/init.sql)
