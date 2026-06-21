@@ -4,3 +4,4 @@
 # confluent-kafka : client Kafka officiel base sur librdkafka,
 # performant et largement utilise en production.
 confluent-kafka==2.6.1
+requests>=2.32.0

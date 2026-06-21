@@ -8,13 +8,23 @@ Voir backend/README.md pour les instructions completes (variables
 d'environnement, exemples curl, etc.).
 """
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import ws_market
 from app.routers import otp_utilisateur, parametres_devise, parametres_otp, parametres_securite
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    ws_market.start_kafka_thread()
+    yield
 
 app = FastAPI(
     title="Plateforme de Bourse en Ligne - Module Admin",
+    lifespan=lifespan,
     description=(
         "API d'administration : seuils de securite (US-30/31), parametres OTP "
         "(US-32/33) et devise de la plateforme (US-34). "
@@ -42,6 +52,7 @@ app.include_router(parametres_securite.router)
 app.include_router(parametres_otp.router)
 app.include_router(parametres_devise.router)
 app.include_router(otp_utilisateur.router)
+app.include_router(ws_market.router)
 
 
 @app.get("/api/health", tags=["Supervision"])

@@ -23,3 +23,9 @@ PyJWT[crypto]>=2.10.0
 # Client HTTP pour appeler l'Admin REST API de Keycloak (client_credentials,
 # PUT /admin/realms/..., gestion des utilisateurs)
 requests>=2.32.0
+
+# Client Kafka pour le consumer WebSocket (ws_market.py)
+confluent-kafka==2.6.1
+
+# Support WebSocket natif FastAPI (inclus dans uvicorn[standard] mais explicité)
+websockets>=13.0

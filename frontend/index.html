@@ -340,6 +340,7 @@
     </label>
     <button id="btnRefresh" class="btn">&#8635; Actualiser</button>
     <button id="btnPause"   class="btn">Pause</button>
+    <button id="btnDashboard" class="btn btn-login" style="display:none" onclick="window.location.href='dashboard.html'">📊 Mon espace</button>
     <button id="btnLogin"   class="btn btn-login">&#128274; Se connecter</button>
   </div>
 </header>
@@ -872,7 +873,7 @@ function renderRows() {
   mkt.prev.rows = m;
 }
 
-/* ── Polling ── */
+/* ── Transport HTTP (secours) ── */
 function setProgress(start) {
   const p = $("progress");
   if (start) {
@@ -887,7 +888,7 @@ function setProgress(start) {
 async function tick() {
   if (mkt.busy || mkt.paused) return;
   mkt.busy = true;
-  setStatus("warn", "récupération…");
+  setStatus("warn", "récupération HTTP…");
   setProgress(true);
   const t0 = performance.now();
   try {
@@ -895,7 +896,7 @@ async function tick() {
       getJson(API.overview),
       getJson(API.stocks),
     ]);
-    getJson(API.buildId).catch(() => {});   // fire-and-forget pour l'affichage buildId
+    getJson(API.buildId).catch(() => {});
 
     const ov = parseOverview(ovDoc);
     const st = parseStocks(stDoc);
@@ -910,11 +911,11 @@ async function tick() {
     const ms = Math.round(performance.now() - t0);
     $("lastUpdate").textContent = new Date().toLocaleTimeString("fr-FR");
     $("latency").textContent    = ms + " ms";
-    setStatus("ok", st.length ? `en direct · ${st.length} valeurs` : "en direct (partiel)");
+    setStatus("ok", st.length ? `HTTP · ${st.length} valeurs` : "HTTP (partiel)");
   } catch (e) {
     console.error(e);
-    setStatus("err", "échec : " + e.message);
-    if (/Failed to fetch|NetworkError|HTTP 502/i.test(e.message)) {
+    setStatus("err", "échec HTTP : " + e.message);
+    if (/Failed to fetch|NetworkError|HTTP 502/i.test(e.message) && !wsState.active) {
       $("rows").innerHTML = `<tr><td colspan="10" class="empty" style="line-height:1.8;padding:28px">
         <strong style="color:var(--down)">Relais local indisponible.</strong><br>
         Lancez le proxy Python dans le dossier du projet :<br>
@@ -933,9 +934,65 @@ function schedule() {
   mkt.timer = setInterval(tick, mkt.intervalMs);
 }
 
+/* ── Transport WebSocket (primaire) ── */
+const WS_URL = (location.port === "80" || location.port === "443" || location.port === "")
+  ? `ws://${location.host}/ws/market`
+  : "ws://localhost:8000/ws/market";
+
+const wsState = { socket: null, reconnectDelay: 2000, active: false };
+
+function applySnapshot(data) {
+  if (!data.donnees) return;
+  const ov = parseOverview(data.donnees.overview);
+  const st = parseStocks(data.donnees.stocks);
+  const mv = computeMovers(st);
+  renderIndices(ov, st);
+  renderMovers("topUp",   mv.up,   "hcount");
+  renderMovers("topDown", mv.down, "lcount");
+  mkt.rows = st;
+  renderRows();
+  $("lastUpdate").textContent = new Date().toLocaleTimeString("fr-FR");
+  $("latency").textContent    = "WebSocket";
+  setStatus("ok", st.length ? `WebSocket · ${st.length} valeurs` : "WebSocket (partiel)");
+}
+
+function connectWS() {
+  setStatus("warn", "connexion WebSocket…");
+  wsState.socket = new WebSocket(WS_URL);
+
+  wsState.socket.onopen = () => {
+    wsState.active = true;
+    wsState.reconnectDelay = 2000;
+    // Couper le polling HTTP dès que le WebSocket est établi
+    if (mkt.timer) { clearInterval(mkt.timer); mkt.timer = null; }
+    setStatus("ok", "WebSocket connecté — en attente du prochain snapshot…");
+  };
+
+  wsState.socket.onmessage = evt => {
+    if (mkt.paused) return;
+    try {
+      const data = JSON.parse(evt.data);
+      if (data.evenement === "bvc_snapshot") applySnapshot(data);
+    } catch (e) { console.error("WS parse:", e); }
+  };
+
+  wsState.socket.onclose = () => {
+    wsState.active = false;
+    setStatus("warn", "WebSocket fermé — repli vers HTTP…");
+    // Activer le polling HTTP en secours
+    if (!mkt.timer) { tick(); schedule(); }
+    // Tentative de reconnexion avec backoff exponentiel
+    setTimeout(connectWS, wsState.reconnectDelay);
+    wsState.reconnectDelay = Math.min(wsState.reconnectDelay * 2, 30000);
+  };
+
+  // onerror déclenche toujours onclose — pas de gestion séparée nécessaire
+  wsState.socket.onerror = () => {};
+}
+
 $("interval").addEventListener("change", e => {
   mkt.intervalMs = parseInt(e.target.value, 10);
-  schedule();
+  if (!wsState.active) schedule();
 });
 $("btnRefresh").addEventListener("click", tick);
 $("btnPause").addEventListener("click", e => {
@@ -943,14 +1000,21 @@ $("btnPause").addEventListener("click", e => {
   e.target.textContent = mkt.paused ? "Reprendre" : "Pause";
   setStatus(
     mkt.paused ? "warn" : "ok",
-    mkt.paused ? "en pause" : "en direct"
+    mkt.paused ? "en pause" : (wsState.active ? "WebSocket · en direct" : "HTTP · en direct")
   );
 });
 $("q").addEventListener("input", renderRows);
 $("sort").addEventListener("change", renderRows);
 
-tick();
-schedule();
+// Si l'utilisateur est déjà connecté (token en session), afficher "Mon espace"
+if (sessionStorage.getItem("bourse_access_token")) {
+  document.getElementById("btnDashboard").style.display = "inline-flex";
+  document.getElementById("btnLogin").style.display = "none";
+}
+
+// Démarrage : WebSocket en priorité.
+// Le tick HTTP n'est déclenché qu'en secours (onclose du WebSocket).
+connectWS();
 </script>
 
 </body>
