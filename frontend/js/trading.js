@@ -1,12 +1,21 @@
 // ============================================================================
 // trading.js — Gestion du portefeuille, des ordres et de la watchlist
 // Toutes les données sont persistées en localStorage (démo / pédagogique).
+// Les clés sont préfixées par l'identifiant Keycloak (sub) de l'utilisateur
+// connecté, afin que chaque compte ait ses propres données isolées.
 // ============================================================================
 
+let _userId = "default";
+
+/** Doit être appelé au démarrage du dashboard avec le claim "sub" du token. */
+export function setUserId(sub) {
+  _userId = sub && sub.length > 0 ? sub : "default";
+}
+
 const KEYS = {
-  PORTFOLIO: "bourse_portfolio",
-  ORDERS:    "bourse_orders",
-  WATCHLIST: "bourse_watchlist",
+  get PORTFOLIO() { return `bourse_portfolio_${_userId}`; },
+  get ORDERS()    { return `bourse_orders_${_userId}`; },
+  get WATCHLIST() { return `bourse_watchlist_${_userId}`; },
 };
 
 const CAPITAL_INITIAL = 100_000; // MAD

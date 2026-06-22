@@ -710,7 +710,7 @@
 <script type="module">
 import { obtenirAccessTokenValide, obtenirIdToken, decoderJwt, recupererUserInfo, seDeconnecter } from "./js/auth.js";
 import { BACKEND_API_BASE_URL, STORAGE_KEYS } from "./js/config.js";
-import { getPortfolio, getOrders, getWatchlist, isInWatchlist, toggleWatchlist, placeOrder, resetPortfolio } from "./js/trading.js";
+import { getPortfolio, getOrders, getWatchlist, isInWatchlist, toggleWatchlist, placeOrder, resetPortfolio, setUserId } from "./js/trading.js";
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 const accessToken = await obtenirAccessTokenValide();
@@ -718,17 +718,22 @@ if (!accessToken) {
   window.location.href = "index.html?erreur=Session expirée, veuillez vous reconnecter.";
   throw new Error("Non authentifié");
 }
-const idToken  = obtenirIdToken();
-const claims   = idToken ? decoderJwt(idToken) : {};
-const roles    = claims?.realm_access?.roles ?? [];
-const isAdmin  = roles.includes("administrateur");
+
+// Les rôles (realm_access) sont dans l'access token, pas toujours dans l'id_token
+const accessClaims = decoderJwt(accessToken);
+const roles   = accessClaims?.realm_access?.roles ?? [];
+const isAdmin = roles.includes("administrateur");
 
 document.getElementById("btn-logout").addEventListener("click", seDeconnecter);
 
-// Display username
+// Récupération du profil utilisateur
 let userInfo;
-try { userInfo = await recupererUserInfo(accessToken); } catch { userInfo = claims; }
+try { userInfo = await recupererUserInfo(accessToken); } catch { userInfo = accessClaims || {}; }
 const displayName = userInfo.name || userInfo.preferred_username || "—";
+
+// Isolation des données par utilisateur (localStorage préfixé par sub)
+setUserId(userInfo.sub || accessClaims?.sub || "default");
+
 document.getElementById("user-displayname").textContent = displayName;
 if (isAdmin) document.getElementById("user-role-badge").style.display = "inline";
 if (isAdmin) document.getElementById("nav-admin").style.display = "flex";
