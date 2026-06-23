@@ -46,10 +46,6 @@
         "description": "Investisseur particulier : acces a son propre portefeuille, ses ordres et son historique"
       },
       {
-        "name": "administrateur",
-        "description": "Administrateur : gestion des comptes, du referentiel d'instruments et supervision globale des ordres"
-      },
-      {
         "name": "support_client",
         "description": "Support client : lecture seule sur comptes/portefeuilles/historiques, deblocage de compte"
       }
@@ -122,22 +118,6 @@
         }
       ],
       "realmRoles": ["investisseur"]
-    },
-    {
-      "username": "admin1",
-      "enabled": true,
-      "email": "admin1@bourse-en-ligne.local",
-      "firstName": "Bob",
-      "lastName": "Admin",
-      "emailVerified": true,
-      "credentials": [
-        {
-          "type": "password",
-          "value": "Administrateur123!",
-          "temporary": false
-        }
-      ],
-      "realmRoles": ["administrateur"]
     },
     {
       "username": "support1",

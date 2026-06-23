@@ -157,8 +157,10 @@ services:
       # Console d'administration et endpoints OIDC du realm
       - "9090:8080"  # (hote)9090 -> conteneur:8080
     volumes:
-      # Fichier d'export du realm "bourse-en-ligne" (clients, roles, utilisateurs de test)
+      # Realm investisseurs/support (bourse-en-ligne)
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      # Realm administrateurs (bourse-admin) — séparé pour isoler les comptes admin
+      - ./keycloak/realm-admin-export.json:/opt/keycloak/data/import/realm-admin-export.json:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -218,6 +220,26 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    networks:
+      - bourse-network
+
+  # --------------------------------------------------------------------
+  # Back-Office Admin (Nginx) : sert l'interface d'administration sur le
+  # port 3001, isolée de la plateforme investisseurs (port 3000).
+  # Realm dédié : "bourse-admin" — seul admin1 peut s'y connecter.
+  # --------------------------------------------------------------------
+  admin-frontend:
+    image: nginx:alpine
+    container_name: bourse-admin-frontend
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    volumes:
+      - ./admin:/usr/share/nginx/html:ro
+      - ./admin/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - keycloak
+      - backend
     networks:
       - bourse-network
 

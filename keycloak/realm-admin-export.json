@@ -1,0 +1,78 @@
+{
+  "realm": "bourse-admin",
+  "enabled": true,
+  "displayName": "Back-Office Administration",
+
+  "ssoSessionIdleTimeout": 900,
+  "ssoSessionMaxLifespan": 14400,
+  "accessTokenLifespan": 300,
+
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "failureFactor": 3,
+
+  "resetPasswordAllowed": true,
+
+  "roles": {
+    "realm": [
+      {
+        "name": "administrateur",
+        "description": "Administrateur plateforme : acces complet au back-office"
+      }
+    ]
+  },
+
+  "clients": [
+    {
+      "clientId": "admin-spa",
+      "name": "Back-Office Admin SPA",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3001/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3001"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3001/*"
+      }
+    },
+    {
+      "clientId": "admin-backend-api",
+      "name": "Backend API - Admin realm (bearer-only)",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    }
+  ],
+
+  "users": [
+    {
+      "username": "admin1",
+      "enabled": true,
+      "email": "admin1@bourse-admin.local",
+      "firstName": "Bob",
+      "lastName": "Admin",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Administrateur123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["administrateur"]
+    }
+  ]
+}

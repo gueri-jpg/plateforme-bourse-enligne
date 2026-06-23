@@ -33,11 +33,16 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "bourse_admin_password"
 
     # ------------------------------------------------------------------
-    # Keycloak - realm "bourse-en-ligne" (cf. keycloak/realm-export.json)
+    # Keycloak - realm "bourse-en-ligne" (investisseurs + support)
     # ------------------------------------------------------------------
-    # URL de base de Keycloak (sans chemin /realms/...)
     KEYCLOAK_BASE_URL: str = "http://localhost:9090"
     KEYCLOAK_REALM: str = "bourse-en-ligne"
+
+    # ------------------------------------------------------------------
+    # Keycloak - realm "bourse-admin" (administrateurs uniquement)
+    # Realm separe pour isoler les comptes admin des comptes investisseurs.
+    # ------------------------------------------------------------------
+    KEYCLOAK_ADMIN_REALM: str = "bourse-admin"
 
     # Client utilise pour VALIDER les tokens JWT presentes par le frontend
     # (resource server / bearer-only - cf. realm-export.json "backend-api").
@@ -82,11 +87,18 @@ class Settings(BaseSettings):
 
     @property
     def keycloak_issuer(self) -> str:
-        """
-        Issuer ("iss") attendu dans les tokens JWT emis par ce realm.
-        Doit correspondre exactement a la valeur KC_HOSTNAME du docker-compose.yml.
-        """
+        """Issuer du realm investisseurs (bourse-en-ligne)."""
         return self.keycloak_realm_url
+
+    @property
+    def keycloak_admin_realm_jwks_url(self) -> str:
+        """URL JWKS du realm administrateurs (bourse-admin)."""
+        return f"{self.KEYCLOAK_BASE_URL}/realms/{self.KEYCLOAK_ADMIN_REALM}/protocol/openid-connect/certs"
+
+    @property
+    def keycloak_admin_issuer(self) -> str:
+        """Issuer du realm administrateurs (bourse-admin)."""
+        return f"{self.KEYCLOAK_BASE_URL}/realms/{self.KEYCLOAK_ADMIN_REALM}"
 
 
 # Instance unique de configuration, importee par les autres modules

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BourseOnline · Administration</title>
+  <style>
+    :root { --bg:#0a0a0f; --panel:#13131a; --line:#2a2a3a; --txt:#f0f0f5;
+      --muted:#7a7a9a; --accent:#f59e0b; --accent2:#fbbf24; }
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    html, body { min-height:100vh; background:var(--bg); color:var(--txt);
+      font-family:-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; }
+
+    .login-card {
+      background:var(--panel); border:1px solid var(--line); border-radius:16px;
+      padding:40px 36px; width:100%; max-width:400px; text-align:center;
+      box-shadow:0 24px 80px rgba(0,0,0,.5);
+    }
+    .admin-badge {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.3);
+      color:var(--accent); border-radius:999px; padding:4px 14px;
+      font-size:12px; margin-bottom:20px;
+    }
+    h1 { font-size:22px; font-weight:700; margin-bottom:10px; }
+    .subtitle { color:var(--muted); font-size:13px; line-height:1.6; margin-bottom:28px; }
+    .warning {
+      background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.2);
+      border-radius:10px; padding:12px 16px; margin-bottom:24px;
+      font-size:12px; color:var(--accent); text-align:left; line-height:1.6;
+    }
+    .btn-login {
+      width:100%; padding:13px; border-radius:10px; border:none;
+      background:linear-gradient(135deg,#d97706,#f59e0b); color:#000;
+      font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;
+      transition:opacity .15s;
+    }
+    .btn-login:hover { opacity:.88; }
+    #msg-erreur { color:#ef4444; font-size:12px; margin-top:12px; min-height:1.2em; }
+    .footer { margin-top:24px; font-size:11px; color:var(--muted); }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="admin-badge">⚙️ Back-Office</div>
+  <h1>Administration</h1>
+  <p class="subtitle">Accès réservé aux administrateurs de la plateforme BourseOnline.</p>
+  <div class="warning">
+    🔒 Cet espace utilise un realm Keycloak dédié <strong>bourse-admin</strong>,
+    isolé de la plateforme investisseurs.
+  </div>
+  <button class="btn-login" id="btn-login">Se connecter en tant qu'administrateur</button>
+  <p id="msg-erreur"></p>
+</div>
+
+<p class="footer">BourseOnline · Back-Office Administration · Realm <code style="color:var(--accent)">bourse-admin</code></p>
+
+<script type="module">
+import { KEYCLOAK_AUTH_ENDPOINT, KEYCLOAK_CLIENT_ID, REDIRECT_URI, STORAGE_KEYS } from "./js/config.js";
+import { genererCodeVerifier, genererCodeChallenge, genererEtatAleatoire } from "./js/pkce.js";
+
+const msgErreur = document.getElementById("msg-erreur");
+const params = new URLSearchParams(window.location.search);
+if (params.has("erreur")) msgErreur.textContent = params.get("erreur");
+
+document.getElementById("btn-login").addEventListener("click", async () => {
+  try {
+    const codeVerifier  = genererCodeVerifier();
+    const codeChallenge = await genererCodeChallenge(codeVerifier);
+    const etat          = genererEtatAleatoire();
+    sessionStorage.setItem(STORAGE_KEYS.CODE_VERIFIER, codeVerifier);
+    sessionStorage.setItem("admin_oauth_state", etat);
+    const p = new URLSearchParams({
+      client_id: KEYCLOAK_CLIENT_ID, response_type: "code",
+      redirect_uri: REDIRECT_URI, scope: "openid profile email",
+      code_challenge: codeChallenge, code_challenge_method: "S256", state: etat,
+    });
+    window.location.href = `${KEYCLOAK_AUTH_ENDPOINT}?${p.toString()}`;
+  } catch (e) {
+    msgErreur.textContent = "Erreur lors du démarrage de la connexion.";
+    console.error(e);
+  }
+});
+</script>
+</body>
+</html>

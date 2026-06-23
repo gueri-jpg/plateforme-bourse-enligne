@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>BourseOnline · Admin · Connexion…</title>
+  <style>
+    body { background:#0a0a0f; color:#f0f0f5; font-family:system-ui,sans-serif;
+      display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .card { text-align:center; }
+    p { color:#7a7a9a; margin-top:8px; font-size:13px; }
+    #msg-erreur { color:#ef4444; display:none; }
+    a { color:#f59e0b; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div id="msg-statut">Authentification en cours…</div>
+  <p id="msg-erreur"></p>
+  <p><a href="index.html" id="lien-retour" style="display:none">← Retour à la connexion</a></p>
+</div>
+<script type="module">
+import { KEYCLOAK_TOKEN_ENDPOINT, KEYCLOAK_CLIENT_ID, REDIRECT_URI, STORAGE_KEYS } from "./js/config.js";
+import { enregistrerTokens } from "./js/auth.js";
+
+const msgStatut  = document.getElementById("msg-statut");
+const msgErreur  = document.getElementById("msg-erreur");
+const lienRetour = document.getElementById("lien-retour");
+
+const params     = new URLSearchParams(window.location.search);
+if (params.has("error")) { erreur(params.get("error_description") || params.get("error")); }
+else { traiter(); }
+
+async function traiter() {
+  const code         = params.get("code");
+  const etatRecu     = params.get("state");
+  const etatAttendu  = sessionStorage.getItem("admin_oauth_state");
+  const codeVerifier = sessionStorage.getItem(STORAGE_KEYS.CODE_VERIFIER);
+  if (!code)         { erreur("Code d'autorisation manquant."); return; }
+  if (etatAttendu && etatRecu !== etatAttendu) { erreur("Paramètre state invalide."); return; }
+  if (!codeVerifier) { erreur("Session expirée — recommencez la connexion."); return; }
+  try {
+    const r = await fetch(KEYCLOAK_TOKEN_ENDPOINT, {
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body: new URLSearchParams({ grant_type:"authorization_code",
+        client_id:KEYCLOAK_CLIENT_ID, code, redirect_uri:REDIRECT_URI, code_verifier:codeVerifier }),
+    });
+    if (!r.ok) throw new Error(`Erreur ${r.status} : ${await r.text()}`);
+    enregistrerTokens(await r.json());
+    sessionStorage.removeItem(STORAGE_KEYS.CODE_VERIFIER);
+    sessionStorage.removeItem("admin_oauth_state");
+    msgStatut.textContent = "Connexion réussie, redirection…";
+    window.location.href = "dashboard.html";
+  } catch(e) { erreur("Erreur lors de l'échange du code. Voir la console."); console.error(e); }
+}
+
+function erreur(msg) {
+  msgStatut.textContent = "";
+  msgErreur.textContent = msg; msgErreur.style.display = "block";
+  lienRetour.style.display = "inline";
+}
+</script>
+</body>
+</html>

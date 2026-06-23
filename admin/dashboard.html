@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BourseOnline · Back-Office</title>
+  <style>
+    :root {
+      --bg:#0a0a0f; --bg2:#0d0d14; --panel:#13131a; --panel2:#0f0f16;
+      --txt:#f0f0f5; --muted:#7a7a9a; --line:#2a2a3a;
+      --accent:#f59e0b; --accent2:#fbbf24;
+      --up:#22c55e; --down:#ef4444; --sidebar:190px;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html, body { height:100%; background:var(--bg); color:var(--txt);
+      font-family:-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+      font-size:13px; overflow:hidden; }
+
+    .app { display:grid; grid-template-rows:52px 1fr; height:100vh; }
+    .app-body { display:grid; grid-template-columns:var(--sidebar) 1fr; overflow:hidden; }
+
+    /* Header */
+    .header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 20px; background:var(--panel);
+      border-bottom:1px solid var(--line); gap:16px;
+    }
+    .header-logo { display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; }
+    .header-logo span { color:var(--accent); }
+    .header-badge {
+      background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.25);
+      color:var(--accent); border-radius:999px; padding:3px 12px; font-size:11px; font-weight:600;
+    }
+    .header-user { display:flex; align-items:center; gap:10px; }
+    .user-chip { background:var(--panel2); border:1px solid var(--line); border-radius:8px;
+      padding:5px 12px; font-size:12px; color:var(--muted); }
+    .user-chip strong { color:var(--txt); }
+    .btn-sm { padding:6px 14px; border-radius:8px; border:1px solid var(--line);
+      background:var(--panel2); color:var(--txt); cursor:pointer;
+      font-size:12px; font-family:inherit; transition:border-color .15s; }
+    .btn-sm:hover { border-color:var(--accent); }
+    .btn-danger { border-color:var(--down); color:var(--down); }
+    .btn-danger:hover { background:rgba(239,68,68,.08); }
+
+    /* Sidebar */
+    .sidebar {
+      background:var(--panel); border-right:1px solid var(--line);
+      padding:12px 0; display:flex; flex-direction:column; gap:2px; overflow-y:auto;
+    }
+    .nav-item {
+      display:flex; align-items:center; gap:10px; padding:10px 16px;
+      cursor:pointer; border:none; background:none; color:var(--muted);
+      font-family:inherit; font-size:13px; font-weight:500;
+      transition:background .12s, color .12s;
+      border-left:3px solid transparent; text-align:left; width:100%;
+    }
+    .nav-item:hover { background:rgba(245,158,11,.05); color:var(--txt); }
+    .nav-item.active { background:rgba(245,158,11,.08); color:var(--accent); border-left-color:var(--accent); }
+    .nav-icon { font-size:15px; min-width:20px; text-align:center; }
+    .nav-divider { height:1px; background:var(--line); margin:8px 12px; }
+
+    /* Content */
+    .content { overflow:auto; padding:24px; }
+    .section { display:none; animation:fadeIn .15s ease; }
+    .section.active { display:block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+
+    .section-title { font-size:17px; font-weight:600; margin-bottom:20px;
+      padding-bottom:12px; border-bottom:1px solid var(--line); }
+
+    /* Admin blocks */
+    .block {
+      background:var(--panel); border:1px solid var(--line); border-radius:12px;
+      padding:22px; margin-bottom:16px; max-width:680px;
+    }
+    .block h3 { font-size:14px; font-weight:600; margin-bottom:4px; }
+    .block .desc { font-size:12px; color:var(--muted); margin-bottom:18px; line-height:1.5; }
+    .block .desc code { background:rgba(245,158,11,.1); color:var(--accent);
+      border-radius:4px; padding:1px 5px; }
+
+    .form-row { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:10px; }
+    .field { display:flex; flex-direction:column; gap:5px; }
+    .field label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+    .field input[type="number"], .field input[type="text"], .field select {
+      background:var(--panel2); color:var(--txt); border:1px solid var(--line);
+      border-radius:8px; padding:8px 12px; font-size:13px; font-family:inherit; outline:none; }
+    .field input:focus, .field select:focus { border-color:var(--accent); }
+    .field-check { display:flex; align-items:center; gap:8px; padding:8px 0; }
+    .field-check label { font-size:13px; color:var(--txt); cursor:pointer; }
+
+    .btn-save {
+      padding:9px 22px; border-radius:8px; border:none;
+      background:linear-gradient(135deg,#d97706,#f59e0b); color:#000;
+      font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+      transition:opacity .15s;
+    }
+    .btn-save:hover { opacity:.85; }
+    .status { font-size:12px; margin-top:8px; min-height:1.2em; }
+    .status.ok  { color:var(--up); }
+    .status.err { color:var(--down); }
+
+    /* Stats cards */
+    .cards-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+    .kpi { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+      padding:16px 20px; flex:1; min-width:160px; }
+    .kpi h4 { font-size:10px; color:var(--muted); text-transform:uppercase;
+      letter-spacing:.6px; margin-bottom:6px; }
+    .kpi .val { font-size:26px; font-weight:700; color:var(--accent); }
+    .kpi .sub { font-size:11px; color:var(--muted); margin-top:3px; }
+
+    /* User table */
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th, td { padding:8px 12px; text-align:left; border-bottom:1px solid var(--line); }
+    th { background:var(--panel2); color:var(--muted); font-weight:500;
+      font-size:10px; text-transform:uppercase; letter-spacing:.5px; }
+    tbody tr:hover { background:rgba(245,158,11,.04); }
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px;
+      font-size:10px; font-weight:500; }
+    .badge.invest { background:rgba(96,165,250,.1); color:#60a5fa; }
+    .badge.support { background:rgba(34,197,94,.1); color:#22c55e; }
+    .badge.admin { background:rgba(245,158,11,.1); color:var(--accent); }
+
+    code { background:rgba(245,158,11,.1); color:var(--accent); border-radius:4px; padding:1px 5px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-logo">
+      ⚙️ BourseOnline <span>· Back-Office</span>
+    </div>
+    <div class="header-badge">Realm : bourse-admin</div>
+    <div class="header-user">
+      <div class="user-chip"><strong id="user-name">—</strong></div>
+      <button class="btn-sm btn-danger" id="btn-logout">Déconnecter</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <button class="nav-item active" data-section="overview">
+        <span class="nav-icon">📊</span> Vue d'ensemble
+      </button>
+      <button class="nav-item" data-section="securite">
+        <span class="nav-icon">🔒</span> Sécurité
+      </button>
+      <button class="nav-item" data-section="otp">
+        <span class="nav-icon">🔑</span> OTP / 2FA
+      </button>
+      <button class="nav-item" data-section="devise">
+        <span class="nav-icon">💱</span> Devise
+      </button>
+      <div class="nav-divider"></div>
+      <button class="nav-item" data-section="utilisateurs">
+        <span class="nav-icon">👥</span> Utilisateurs
+      </button>
+    </nav>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- Vue d'ensemble -->
+      <div class="section active" id="section-overview">
+        <div class="section-title">Vue d'ensemble · Administration</div>
+        <div class="cards-row">
+          <div class="kpi">
+            <h4>Realm investisseurs</h4>
+            <div class="val">bourse-en-ligne</div>
+            <div class="sub">investisseur · support_client</div>
+          </div>
+          <div class="kpi">
+            <h4>Realm admin</h4>
+            <div class="val">bourse-admin</div>
+            <div class="sub">administrateur uniquement</div>
+          </div>
+          <div class="kpi">
+            <h4>Back-office</h4>
+            <div class="val">:3001</div>
+            <div class="sub">port dédié, isolé de :3000</div>
+          </div>
+        </div>
+        <div class="block">
+          <h3>Périmètre de ce back-office</h3>
+          <div class="desc">
+            Ce back-office est accessible uniquement via le realm <code>bourse-admin</code>.
+            Les tokens investisseurs (<code>bourse-en-ligne</code>) sont rejetés ici.
+            L'administrateur configure la plateforme sans pouvoir accéder aux comptes trading.
+          </div>
+          <ul style="font-size:12px;color:var(--muted);line-height:2;padding-left:18px">
+            <li>🔒 <strong style="color:var(--txt)">Sécurité</strong> — seuil de blocage après échecs, durée de session (US-30/31)</li>
+            <li>🔑 <strong style="color:var(--txt)">OTP / 2FA</strong> — activation globale, règles de fréquence (US-32/33)</li>
+            <li>💱 <strong style="color:var(--txt)">Devise</strong> — devise par défaut de la plateforme (US-34)</li>
+            <li>👥 <strong style="color:var(--txt)">Utilisateurs</strong> — vue des comptes investisseurs et support</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Sécurité -->
+      <div class="section" id="section-securite">
+        <div class="section-title">🔒 Paramètres de sécurité</div>
+        <div class="block">
+          <h3>Blocage après tentatives échouées — US-30</h3>
+          <div class="desc">
+            Nombre de tentatives de connexion infructueuses avant blocage temporaire du compte.
+            Valeur recommandée : 3 à 5 tentatives.
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Max tentatives (3–10)</label>
+              <input type="number" id="a-max-tentatives" min="3" max="10" style="width:100px" />
+            </div>
+            <button class="btn-save" id="btn-save-tentatives">Enregistrer</button>
+          </div>
+          <div class="status" id="st-tentatives"></div>
+        </div>
+
+        <div class="block">
+          <h3>Expiration de session par inactivité — US-31</h3>
+          <div class="desc">
+            Durée d'inactivité au-delà de laquelle la session est automatiquement expirée.
+            Valeur recommandée : 15 à 60 minutes.
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Durée (minutes, 5–120)</label>
+              <input type="number" id="a-duree-session" min="5" max="120" style="width:120px" />
+            </div>
+            <button class="btn-save" id="btn-save-session">Enregistrer</button>
+          </div>
+          <div class="status" id="st-session"></div>
+        </div>
+      </div>
+
+      <!-- OTP -->
+      <div class="section" id="section-otp">
+        <div class="section-title">🔑 Authentification à deux facteurs (OTP)</div>
+        <div class="block">
+          <h3>Configuration globale OTP — US-32/33</h3>
+          <div class="desc">
+            Activation de l'OTP pour tous les investisseurs et définition de la règle de fréquence.
+            Le canal de livraison (TOTP via application authentificateur) est géré par Keycloak.
+          </div>
+          <div class="form-row" style="flex-direction:column;align-items:flex-start;gap:14px">
+            <div class="field-check">
+              <input type="checkbox" id="a-otp-actif" />
+              <label for="a-otp-actif">Imposer l'OTP à tous les investisseurs</label>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label>Fréquence de demande</label>
+                <select id="a-otp-freq">
+                  <option value="chaque_connexion">À chaque connexion</option>
+                  <option value="apres_n_jours">Après N jours</option>
+                  <option value="apres_n_connexions">Après N connexions</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Valeur N</label>
+                <input type="number" id="a-otp-val" min="1" style="width:80px" placeholder="—" />
+              </div>
+              <button class="btn-save" id="btn-save-otp">Enregistrer</button>
+            </div>
+          </div>
+          <div class="status" id="st-otp"></div>
+        </div>
+      </div>
+
+      <!-- Devise -->
+      <div class="section" id="section-devise">
+        <div class="section-title">💱 Devise de la plateforme</div>
+        <div class="block">
+          <h3>Devise par défaut des comptes espèces — US-34</h3>
+          <div class="desc">
+            Devise appliquée par défaut aux nouveaux comptes investisseurs lors de leur création.
+            Format ISO 4217 : <code>MAD</code>, <code>EUR</code>, <code>USD</code>…
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Code ISO 4217</label>
+              <input type="text" id="a-devise" maxlength="3" style="width:90px;text-transform:uppercase" placeholder="MAD" />
+            </div>
+            <button class="btn-save" id="btn-save-devise">Enregistrer</button>
+          </div>
+          <div class="status" id="st-devise"></div>
+        </div>
+      </div>
+
+      <!-- Utilisateurs -->
+      <div class="section" id="section-utilisateurs">
+        <div class="section-title">👥 Utilisateurs de la plateforme</div>
+        <div class="block">
+          <h3>Comptes actifs (realm bourse-en-ligne)</h3>
+          <div class="desc">
+            Liste des utilisateurs enregistrés dans le realm investisseurs.
+            La gestion complète (activation, blocage, réinitialisation) est disponible
+            dans la <a href="http://localhost:9090/admin/master/console/#/bourse-en-ligne/users"
+              target="_blank" style="color:var(--accent)">console Keycloak →</a>
+          </div>
+          <table>
+            <thead><tr><th>Nom d'utilisateur</th><th>Prénom Nom</th><th>Email</th><th>Rôle</th><th>Statut</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>investisseur1</code></td>
+                <td>Alice Martin</td>
+                <td>investisseur1@bourse-en-ligne.local</td>
+                <td><span class="badge invest">investisseur</span></td>
+                <td style="color:#22c55e">● Actif</td>
+              </tr>
+              <tr>
+                <td><code>support1</code></td>
+                <td>Claire Support</td>
+                <td>support1@bourse-en-ligne.local</td>
+                <td><span class="badge support">support_client</span></td>
+                <td style="color:#22c55e">● Actif</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /app-body -->
+</div><!-- /app -->
+
+<script type="module">
+import { obtenirAccessTokenValide, recupererUserInfo, decoderJwt, seDeconnecter } from "./js/auth.js";
+import { BACKEND_API_BASE_URL } from "./js/config.js";
+
+// Auth check
+const token = await obtenirAccessTokenValide();
+if (!token) { window.location.href = "index.html?erreur=Session expirée."; throw new Error(); }
+
+const claims = decoderJwt(token);
+const roles  = claims?.realm_access?.roles ?? [];
+if (!roles.includes("administrateur")) {
+  window.location.href = "index.html?erreur=Accès refusé — rôle administrateur requis.";
+  throw new Error();
+}
+
+let userInfo;
+try { userInfo = await recupererUserInfo(token); } catch { userInfo = claims; }
+document.getElementById("user-name").textContent = userInfo.preferred_username || userInfo.name || "—";
+document.getElementById("btn-logout").addEventListener("click", seDeconnecter);
+
+// Navigation
+document.querySelectorAll(".nav-item[data-section]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("section-" + btn.dataset.section).classList.add("active");
+  });
+});
+
+// API helper
+async function api(path, options = {}) {
+  const t = await obtenirAccessTokenValide();
+  if (!t) throw new Error("Session expirée");
+  const r = await fetch(`${BACKEND_API_BASE_URL}${path}`, {
+    ...options, headers: { ...(options.headers||{}), Authorization: `Bearer ${t}` },
+  });
+  if (!r.ok) throw new Error(`Erreur ${r.status} : ${await r.text()}`);
+  return r.json();
+}
+
+function setStatus(id, msg, ok) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = "status " + (ok ? "ok" : "err");
+}
+
+// Load security params
+api("/api/admin/parametres/securite").then(d => {
+  document.getElementById("a-max-tentatives").value = d.max_tentatives_echouees;
+  document.getElementById("a-duree-session").value  = d.duree_expiration_session_minutes;
+}).catch(() => {});
+
+api("/api/admin/parametres/otp").then(d => {
+  document.getElementById("a-otp-actif").checked = d.otp_actif_global;
+  document.getElementById("a-otp-freq").value    = d.otp_frequence_type;
+  document.getElementById("a-otp-val").value     = d.otp_frequence_valeur ?? "";
+}).catch(() => {});
+
+api("/api/admin/parametres/devise").then(d => {
+  document.getElementById("a-devise").value = d.devise_par_defaut;
+}).catch(() => {});
+
+// Save handlers
+document.getElementById("btn-save-tentatives").addEventListener("click", async () => {
+  try {
+    await api("/api/admin/parametres/securite", { method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ max_tentatives_echouees: Number(document.getElementById("a-max-tentatives").value),
+        duree_expiration_session_minutes: Number(document.getElementById("a-duree-session").value) })
+    });
+    setStatus("st-tentatives", "Enregistré.", true);
+  } catch(e) { setStatus("st-tentatives", e.message, false); }
+});
+
+document.getElementById("btn-save-session").addEventListener("click", async () => {
+  try {
+    await api("/api/admin/parametres/securite", { method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ max_tentatives_echouees: Number(document.getElementById("a-max-tentatives").value),
+        duree_expiration_session_minutes: Number(document.getElementById("a-duree-session").value) })
+    });
+    setStatus("st-session", "Enregistré.", true);
+  } catch(e) { setStatus("st-session", e.message, false); }
+});
+
+document.getElementById("btn-save-otp").addEventListener("click", async () => {
+  const type = document.getElementById("a-otp-freq").value;
+  try {
+    await api("/api/admin/parametres/otp", { method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ otp_actif_global: document.getElementById("a-otp-actif").checked,
+        otp_frequence_type: type,
+        otp_frequence_valeur: type === "chaque_connexion" ? null : Number(document.getElementById("a-otp-val").value) })
+    });
+    setStatus("st-otp", "Enregistré.", true);
+  } catch(e) { setStatus("st-otp", e.message, false); }
+});
+
+document.getElementById("btn-save-devise").addEventListener("click", async () => {
+  try {
+    await api("/api/admin/parametres/devise", { method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ devise_par_defaut: document.getElementById("a-devise").value.toUpperCase() })
+    });
+    setStatus("st-devise", "Enregistré.", true);
+  } catch(e) { setStatus("st-devise", e.message, false); }
+});
+</script>
+</body>
+</html>

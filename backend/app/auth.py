@@ -34,12 +34,13 @@ bearer_scheme = HTTPBearer(
 )
 
 # ----------------------------------------------------------------------
-# Client JWKS : recupere et met en cache les cles publiques du realm
-# Keycloak (endpoint /protocol/openid-connect/certs). PyJWKClient gere
-# automatiquement le rafraichissement du cache si une cle inconnue (kid)
-# est rencontree (ex: rotation de cles cote Keycloak).
+# Deux clients JWKS : un par realm Keycloak.
+#   - _jwks_bourse  : realm "bourse-en-ligne"  (investisseurs, support)
+#   - _jwks_admin   : realm "bourse-admin"     (administrateurs)
+# PyJWKClient gere automatiquement le cache et la rotation des cles.
 # ----------------------------------------------------------------------
-_jwks_client = PyJWKClient(settings.keycloak_jwks_url)
+_jwks_bourse = PyJWKClient(settings.keycloak_jwks_url)
+_jwks_admin  = PyJWKClient(settings.keycloak_admin_realm_jwks_url)
 
 
 class UtilisateurAuthentifie:
@@ -65,36 +66,50 @@ class UtilisateurAuthentifie:
 
 def _decoder_token(token: str) -> dict:
     """
-    Decode et valide un token JWT Keycloak :
-      - verifie la signature RS256 a l'aide de la cle publique JWKS
-        correspondant au "kid" present dans l'en-tete du token,
-      - verifie l'issuer ("iss") : doit correspondre au realm configure,
-      - verifie l'expiration ("exp").
+    Decode et valide un token JWT Keycloak.
 
-    Leve une HTTPException 401 si le token est invalide, expire, ou si
-    la signature ne peut etre verifiee.
+    Strategie multi-realm :
+      1. On lit l'issuer ("iss") du token sans verifier la signature pour
+         determiner quel realm a emis le token.
+      2. On selectionne le client JWKS correspondant (bourse-en-ligne ou
+         bourse-admin) et on valide la signature + l'issuer.
+
+    Leve HTTPException 401 si invalide/expire, 403 si l'issuer est inconnu.
     """
     try:
-        signing_key = _jwks_client.get_signing_key_from_jwt(token)
+        # Lecture de l'issuer sans verification de signature (safe car on
+        # verifie la signature immediatement apres avec le bon JWKS)
+        unverified = jwt.decode(token, options={"verify_signature": False})
+        issuer = unverified.get("iss", "")
+
+        if issuer == settings.keycloak_admin_issuer:
+            jwks_client = _jwks_admin
+            expected_issuer = settings.keycloak_admin_issuer
+        elif issuer == settings.keycloak_issuer:
+            jwks_client = _jwks_bourse
+            expected_issuer = settings.keycloak_issuer
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Issuer inconnu : {issuer}. Tokens acceptes : bourse-en-ligne, bourse-admin.",
+            )
+
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
         claims = jwt.decode(
             token,
             signing_key.key,
             algorithms=["RS256"],
-            issuer=settings.keycloak_issuer,
-            # Le claim "aud" n'est pas toujours peuple par defaut par Keycloak
-            # pour les access tokens (depend des "client scopes" du realm) ;
-            # on desactive donc sa verification stricte ici et on se repose
-            # sur la verification de l'issuer + des roles realm pour
-            # l'autorisation. Si un "audience mapper" est configure sur le
-            # client "backend-api", la verification peut etre durcie en
-            # passant audience=settings.KEYCLOAK_BACKEND_CLIENT_ID.
+            issuer=expected_issuer,
             options={"verify_aud": False},
         )
         return claims
+
+    except HTTPException:
+        raise
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Le token a expire, veuillez vous reconnecter ou rafraichir votre session.",
+            detail="Le token a expire, veuillez vous reconnecter.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     except jwt.PyJWTError as erreur:
