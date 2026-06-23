@@ -108,6 +108,33 @@ def on_delivery(err, msg):
         )
 
 
+def _extract_masi_last_tick(overview: dict) -> str | None:
+    """
+    Extrait le transactTime du dernier tick MASI dans le JSON BVC.
+    Sert à détecter si les données overview ont réellement changé.
+    """
+    try:
+        node = overview["pageProps"]["node"]
+        for p in node.get("field_vactory_paragraphs", []):
+            c = p.get("field_vactory_component", {})
+            if "marches-overview" not in c.get("widget_id", ""):
+                continue
+            wd = c.get("widget_data", "{}")
+            w = json.loads(wd) if isinstance(wd, str) else wd
+            for comp in w.get("components", []):
+                coll = comp.get("collection", {}).get("data", {}).get("data", [])
+                if coll:
+                    times = [
+                        it["attributes"]["transactTime"]
+                        for it in coll
+                        if "transactTime" in it.get("attributes", {})
+                    ]
+                    return max(times) if times else None
+    except Exception:
+        pass
+    return None
+
+
 def main():
     producer = Producer(KAFKA_CONFIG)
     print(
@@ -115,14 +142,34 @@ def main():
         f"broker={KAFKA_CONFIG['bootstrap.servers']}. Ctrl+C pour arrêter."
     )
 
+    # Dernier tick MASI connu — détecte si l'endpoint BVC a été mis à jour
+    _last_masi_tick: str | None = None
+    _stale_count: int = 0
+
     while True:
         try:
             overview = fetch_bvc_json("fr/live-market/overview")
-            stocks = fetch_bvc_json("fr/live-market/marche-actions-groupement")
+            stocks   = fetch_bvc_json("fr/live-market/marche-actions-groupement")
+
+            masi_tick = _extract_masi_last_tick(overview)
+            stale     = (masi_tick is not None and masi_tick == _last_masi_tick)
+
+            if stale:
+                _stale_count += 1
+            else:
+                _stale_count = 0
+                _last_masi_tick = masi_tick
+
             payload = json.dumps(
                 {
                     "evenement": "bvc_snapshot",
                     "horodatage": datetime.now(timezone.utc).isoformat(),
+                    # _stale=True signifie que l'endpoint BVC overview n'a pas changé
+                    # depuis le dernier snapshot : les données MASI/vol/capi sont gelées.
+                    # Les cours des actions (stocks) peuvent quant à eux être plus récents.
+                    "_stale": stale,
+                    "_stale_since": _last_masi_tick,
+                    "_stale_count": _stale_count,
                     "donnees": {"overview": overview, "stocks": stocks},
                 },
                 ensure_ascii=False,
@@ -134,7 +181,8 @@ def main():
                 callback=on_delivery,
             )
             producer.poll(0)
-            print(f"[BVC] Snapshot envoyé à {datetime.now().strftime('%H:%M:%S')}")
+            status = f"⚠️  données gelées (×{_stale_count})" if stale else "✓ nouvelles données"
+            print(f"[BVC] Snapshot à {datetime.now().strftime('%H:%M:%S')} — {status}")
         except Exception as e:
             print(f"[ERREUR] Scraping BVC : {e}")
 
