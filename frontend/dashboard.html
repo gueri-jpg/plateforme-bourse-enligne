@@ -327,8 +327,7 @@
       <div class="user-chip">
         <strong id="user-displayname">—</strong>
         <span id="user-role-badge" style="margin-left:6px;display:none;
-          background:rgba(96,165,250,.12);color:var(--accent);
-          border-radius:999px;padding:1px 8px;font-size:10px;">administrateur</span>
+          border-radius:999px;padding:1px 8px;font-size:10px;"></span>
       </div>
       <button class="btn-sm btn-danger" id="btn-logout">Déconnecter</button>
     </div>
@@ -341,22 +340,28 @@
       <button class="nav-item active" data-section="marche">
         <span class="nav-icon">📊</span> Marché
       </button>
-      <button class="nav-item" data-section="watchlist">
+      <!-- Investisseur uniquement -->
+      <button class="nav-item" data-section="watchlist" id="nav-watchlist" style="display:none">
         <span class="nav-icon">⭐</span> Watchlist
       </button>
-      <button class="nav-item" data-section="portefeuille">
+      <button class="nav-item" data-section="portefeuille" id="nav-portefeuille" style="display:none">
         <span class="nav-icon">💼</span> Portefeuille
       </button>
-      <button class="nav-item" data-section="ordres">
+      <button class="nav-item" data-section="ordres" id="nav-ordres" style="display:none">
         <span class="nav-icon">🔄</span> Passer un ordre
       </button>
-      <button class="nav-item" data-section="historique">
+      <button class="nav-item" data-section="historique" id="nav-historique" style="display:none">
         <span class="nav-icon">📋</span> Historique
+      </button>
+      <!-- Support client uniquement -->
+      <button class="nav-item" data-section="assistance" id="nav-assistance" style="display:none">
+        <span class="nav-icon">🎧</span> Assistance clients
       </button>
       <div class="nav-divider"></div>
       <button class="nav-item" data-section="profil">
         <span class="nav-icon">👤</span> Mon profil
       </button>
+      <!-- Administrateur uniquement -->
       <button class="nav-item" data-section="admin" id="nav-admin" style="display:none">
         <span class="nav-icon">⚙️</span> Admin
       </button>
@@ -591,6 +596,53 @@
         </div>
       </div>
 
+      <!-- ── ASSISTANCE (support_client) ── -->
+      <div class="dash-section" id="section-assistance">
+        <div class="section-title">Assistance clients</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+          <div class="kpi-card" style="border-left:3px solid var(--accent)">
+            <h3>Périmètre support</h3>
+            <div class="val" style="font-size:14px;margin-top:6px">Lecture seule</div>
+            <div class="delta muted" style="margin-top:4px">Aucun ordre possible</div>
+          </div>
+          <div class="kpi-card">
+            <h3>Actions autorisées</h3>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.7">
+              ✓ Consulter les cours BVC<br>
+              ✓ Voir le profil investisseur<br>
+              ✓ Débloquer un compte<br>
+              ✓ Diagnostiquer un incident
+            </div>
+          </div>
+          <div class="kpi-card">
+            <h3>Actions interdites</h3>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.7">
+              ✗ Passer des ordres<br>
+              ✗ Modifier un portefeuille<br>
+              ✗ Changer les paramètres<br>
+              ✗ Accéder au module admin
+            </div>
+          </div>
+        </div>
+        <div class="box">
+          <div class="box-head"><span>Recherche d'un compte investisseur</span></div>
+          <div style="padding:20px">
+            <div style="display:flex;gap:10px;margin-bottom:16px">
+              <input id="support-search" placeholder="Nom d'utilisateur ou email…"
+                style="flex:1;background:var(--panel2);color:var(--txt);border:1px solid var(--line);
+                  border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;outline:none" />
+              <button class="btn-sm" onclick="supportSearch()">Rechercher</button>
+            </div>
+            <div id="support-result" style="color:var(--muted);font-size:13px">
+              La consultation des comptes investisseurs nécessite une connexion au backend
+              (<code>GET /api/admin/utilisateurs</code>). Le module admin gère ces données via Keycloak.
+              Connectez-vous en tant qu'<strong>administrateur</strong> pour accéder à la gestion complète
+              des comptes.
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── PROFIL ── -->
       <div class="dash-section" id="section-profil">
         <div class="section-title">Mon profil</div>
@@ -721,8 +773,10 @@ if (!accessToken) {
 
 // Les rôles (realm_access) sont dans l'access token, pas toujours dans l'id_token
 const accessClaims = decoderJwt(accessToken);
-const roles   = accessClaims?.realm_access?.roles ?? [];
-const isAdmin = roles.includes("administrateur");
+const roles        = accessClaims?.realm_access?.roles ?? [];
+const isAdmin      = roles.includes("administrateur");
+const isInvestor   = roles.includes("investisseur");
+const isSupport    = roles.includes("support_client");
 
 document.getElementById("btn-logout").addEventListener("click", seDeconnecter);
 
@@ -735,8 +789,27 @@ const displayName = userInfo.name || userInfo.preferred_username || "—";
 setUserId(userInfo.sub || accessClaims?.sub || "default");
 
 document.getElementById("user-displayname").textContent = displayName;
-if (isAdmin) document.getElementById("user-role-badge").style.display = "inline";
-if (isAdmin) document.getElementById("nav-admin").style.display = "flex";
+
+// Badge et couleur selon le rôle
+const badge = document.getElementById("user-role-badge");
+if (isAdmin) {
+  badge.textContent = "administrateur";
+  badge.style.cssText += "display:inline;background:rgba(245,158,11,.12);color:#f59e0b";
+} else if (isSupport) {
+  badge.textContent = "support client";
+  badge.style.cssText += "display:inline;background:rgba(129,140,248,.12);color:#818cf8";
+} else if (isInvestor) {
+  badge.textContent = "investisseur";
+  badge.style.cssText += "display:inline;background:rgba(34,197,94,.12);color:#22c55e";
+}
+
+// Affichage conditionnel des sections selon le rôle
+if (isInvestor) {
+  ["nav-watchlist","nav-portefeuille","nav-ordres","nav-historique"]
+    .forEach(id => document.getElementById(id).style.display = "flex");
+}
+if (isAdmin)   document.getElementById("nav-admin").style.display = "flex";
+if (isSupport) document.getElementById("nav-assistance").style.display = "flex";
 
 // Profil section
 document.getElementById("profil-content").innerHTML = `
@@ -961,8 +1034,11 @@ function renderStocksTable() {
     const prev=mkt.prev.get(r.name);
     const flash = (prev!==undefined && !isNaN(r.price) && r.price!==prev)
       ? (r.price>prev?"flash-up":"flash-down") : "";
+    const starCell = isInvestor
+      ? `<td onclick="event.stopPropagation()"><button class="star-btn ${starred?"starred":""}" data-name="${esc(r.name)}" onclick="event.stopPropagation();toggleStar('${esc(r.name)}',this)">${starred?"★":"☆"}</button></td>`
+      : `<td></td>`;
     html+=`<tr class="${flash}" data-name="${esc(r.name)}" onclick="selectStock('${esc(r.name)}')">
-      <td onclick="event.stopPropagation()"><button class="star-btn ${starred?"starred":""}" data-name="${esc(r.name)}" onclick="event.stopPropagation();toggleStar('${esc(r.name)}',this)">${starred?"★":"☆"}</button></td>
+      ${starCell}
       <td style="font-weight:500">${esc(r.name)}</td>
       <td>${fmtN(r.price,2)}</td>
       <td class="${c}">${isNaN(r.pct)?"—":sgn(r.pct)+fmtN(Math.abs(r.pct),2)+" %"}</td>
@@ -992,6 +1068,12 @@ window.selectStock = function(name) {
   const starBtn = document.getElementById("panel-star");
   starBtn.textContent = starred ? "★" : "☆";
   starBtn.classList.toggle("starred", starred);
+  starBtn.style.visibility = isInvestor ? "visible" : "hidden";
+  // Boutons Acheter/Vendre : investisseur seulement
+  const panelBuy  = document.getElementById("panel-btn-buy");
+  const panelSell = document.getElementById("panel-btn-sell");
+  panelBuy.style.display  = isInvestor ? "" : "none";
+  panelSell.style.display = isInvestor ? "" : "none";
   document.getElementById("stock-panel").classList.add("open");
 };
 
@@ -1364,6 +1446,16 @@ if (isAdmin) {
 
 // Expose functions needed by inline onclick handlers in dynamically generated HTML
 window.renderWatchlist = renderWatchlist;
+
+// Recherche support (placeholder — backend requis pour données réelles)
+window.supportSearch = function() {
+  const q = document.getElementById("support-search").value.trim();
+  const el = document.getElementById("support-result");
+  if (!q) { el.innerHTML = `<span style="color:var(--down)">Saisissez un nom ou email.</span>`; return; }
+  el.innerHTML = `<span style="color:var(--muted)">Recherche de <strong style="color:var(--txt)">${esc(q)}</strong> —
+    cette fonctionnalité nécessite l'endpoint <code>GET /api/admin/utilisateurs?q=${esc(q)}</code>
+    (backend FastAPI + Keycloak Admin API). Contactez un administrateur pour la gestion des comptes.</span>`;
+};
 
 // Initial renders
 renderOrdreForm();
