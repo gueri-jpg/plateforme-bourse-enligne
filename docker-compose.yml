@@ -205,8 +205,7 @@ services:
   # --------------------------------------------------------------------
   # BVC Producer : scrape la Bourse de Casablanca toutes les 30 s et
   # publie un snapshot JSON sur le topic Kafka "market.prices".
-  # Ce service remplace le producer simulé (producer_market_prices.py)
-  # pour les données de marché réelles.
+  # Scrape casablanca-bourse.com et publie les cotations sur market.prices.
   # --------------------------------------------------------------------
   bvc-producer:
     build:
