@@ -295,6 +295,46 @@
       border-radius: 4px; padding: 1px 5px; font-size: .9em;
     }
     .muted { color: var(--muted); }
+
+    /* ── Badges statut ordres ── */
+    .badge-status { display:inline-block; padding:2px 9px; border-radius:999px; font-size:10px; font-weight:600; }
+    .badge-status.exec    { background:rgba(34,197,94,.12); color:var(--up); }
+    .badge-status.pending { background:rgba(245,158,11,.12); color:var(--gold); }
+    .badge-status.cancel  { background:rgba(156,163,175,.12); color:var(--flat); }
+    .badge-status.reject  { background:rgba(239,68,68,.12); color:var(--down); }
+
+    /* ── Badge marché ouvert/fermé ── */
+    .market-badge { display:inline-flex; align-items:center; gap:5px;
+      padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; }
+    .market-badge.open   { background:rgba(34,197,94,.1); color:var(--up); }
+    .market-badge.closed { background:rgba(245,158,11,.1); color:var(--gold); }
+
+    /* ── Modal de confirmation d'ordre ── */
+    .modal-confirm-overlay {
+      display:none; position:fixed; inset:0; z-index:200;
+      background:rgba(5,8,20,.75); backdrop-filter:blur(6px);
+      align-items:center; justify-content:center;
+    }
+    .modal-confirm-overlay.open { display:flex; }
+    .modal-confirm-card {
+      background:var(--panel); border:1px solid var(--line); border-radius:16px;
+      padding:28px; width:100%; max-width:400px;
+      box-shadow:0 24px 80px rgba(0,0,0,.5); animation:fadeIn .15s ease;
+    }
+    .modal-confirm-title { font-size:16px; font-weight:700; margin-bottom:16px; }
+    .modal-confirm-body  { font-size:13px; color:var(--muted); line-height:1.9; }
+    .modal-confirm-body strong { color:var(--txt); }
+    .modal-market-status { margin:12px 0; }
+    .modal-confirm-actions { display:flex; gap:10px; margin-top:20px; }
+    .mc-btn-cancel  { flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);
+      background:var(--panel2); color:var(--txt); cursor:pointer; font-family:inherit; font-size:13px; }
+    .mc-btn-cancel:hover { border-color:var(--accent); }
+    .mc-btn-confirm { flex:2; padding:10px; border-radius:8px; border:none;
+      font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:opacity .15s; }
+    .mc-btn-confirm.achat { background:var(--up); color:#fff; }
+    .mc-btn-confirm.vente { background:var(--down); color:#fff; }
+    .mc-btn-confirm:hover:not(:disabled) { opacity:.85; }
+    .mc-btn-confirm:disabled { opacity:.4; cursor:not-allowed; }
   </style>
 </head>
 <body>
@@ -583,8 +623,8 @@
           <div class="scroll-table">
             <table>
               <thead><tr>
-                <th>Date</th><th>Valeur</th><th>Sens</th><th>Type</th>
-                <th>Qté</th><th>Prix</th><th>Total MAD</th><th>Statut</th>
+                <th>Date création</th><th>Valeur</th><th>Sens</th><th>Type</th>
+                <th>Qté</th><th>Prix</th><th>Total MAD</th><th>Exécution</th><th>Statut</th>
               </tr></thead>
               <tbody id="hist-rows">
                 <tr><td colspan="8" style="padding:30px;text-align:center;color:var(--muted)">
@@ -718,6 +758,19 @@
   </div><!-- /app-body -->
 </div><!-- /app -->
 
+<!-- ══════════════════════════════════════ MODAL CONFIRMATION ORDRE ══════════ -->
+<div class="modal-confirm-overlay" id="order-confirm-overlay">
+  <div class="modal-confirm-card">
+    <div class="modal-confirm-title" id="mc-title">Confirmer l'ordre</div>
+    <div class="modal-confirm-body" id="mc-body"></div>
+    <div class="modal-market-status" id="mc-market"></div>
+    <div class="modal-confirm-actions">
+      <button class="mc-btn-cancel" id="mc-btn-cancel">✕ Annuler</button>
+      <button class="mc-btn-confirm achat" id="mc-btn-confirm">✓ Confirmer</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════ STOCK DETAIL PANEL ════════════════ -->
 <div class="stock-panel" id="stock-panel">
   <div class="stock-panel-header">
@@ -762,7 +815,7 @@
 <script type="module">
 import { obtenirAccessTokenValide, obtenirIdToken, decoderJwt, recupererUserInfo, seDeconnecter } from "./js/auth.js";
 import { BACKEND_API_BASE_URL, STORAGE_KEYS } from "./js/config.js";
-import { getPortfolio, getOrders, getWatchlist, isInWatchlist, toggleWatchlist, placeOrder, resetPortfolio, setUserId } from "./js/trading.js";
+import { getPortfolio, getOrders, getWatchlist, isInWatchlist, toggleWatchlist, placeOrder, cancelOrder, checkPendingOrders, isMarketOpen, marketStatusLabel, resetPortfolio, setUserId } from "./js/trading.js";
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 const accessToken = await obtenirAccessTokenValide();
@@ -948,6 +1001,17 @@ function applySnapshot(donnees) {
   renderPortfolioLive();
   updateOrderPrice();
   document.getElementById("mkt-count").textContent = st.length + " valeurs";
+
+  // Déclenchement automatique des ordres en_attente (limités + marché hors horaires)
+  const executed = checkPendingOrders(st);
+  for (const o of executed) {
+    showToast(
+      `Ordre exécuté ✓`,
+      `${o.direction === "achat" ? "Achat" : "Vente"} ${o.qty} × ${o.name} à ${fmtN(o.price, 2)} MAD`,
+      "success"
+    );
+  }
+  if (executed.length > 0) { renderHistorique(); renderPortfolioLive(); }
 }
 
 // ── Format helpers ─────────────────────────────────────────────────────────────
@@ -1306,26 +1370,82 @@ document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener(
 document.getElementById("ord-qty").addEventListener("input", updateOrderSummary);
 document.getElementById("ord-limit-price").addEventListener("input", updateOrderSummary);
 
-document.getElementById("btn-confirm-order").addEventListener("click", () => {
+// ── Modal de confirmation d'ordre ────────────────────────────────────────────
+let _pendingOrder = null;
+
+function openOrderModal() {
   const name = document.getElementById("ord-instrument").value;
   if (!name) { showFormMsg("Sélectionnez un instrument.", "err"); return; }
   const direction = document.querySelector('input[name="direction"]:checked').value;
   const type      = document.querySelector('input[name="type"]:checked').value;
-  const qty   = parseInt(document.getElementById("ord-qty").value) || 0;
-  const price = getOrderPrice();
-  if (qty <= 0) { showFormMsg("Quantité invalide.", "err"); return; }
-  if (isNaN(price) || price <= 0) { showFormMsg("Prix invalide.", "err"); return; }
-  const r = mkt.rows.find(s=>s.name===name);
-  const result = placeOrder({ name, sector: r?.sector||"", direction, type, qty, price });
+  const qty       = parseInt(document.getElementById("ord-qty").value) || 0;
+  const price     = getOrderPrice();
+  if (qty <= 0)            { showFormMsg("Quantité invalide.", "err"); return; }
+  if (isNaN(price)||price<=0) { showFormMsg("Prix invalide.", "err"); return; }
+  const r = mkt.rows.find(s => s.name === name);
+  _pendingOrder = { name, sector: r?.sector||"", direction, type, qty, price };
+
+  const { open, label } = marketStatusLabel();
+  const verb = direction === "achat" ? "d'achat" : "de vente";
+  const dirColor = direction === "achat" ? "var(--up)" : "var(--down)";
+
+  let expectedStatus;
+  if (type === "marche" && open)  expectedStatus = "exécuté immédiatement";
+  else if (type === "marche")     expectedStatus = "en attente d'ouverture (09:00 BVC)";
+  else                            expectedStatus = "en attente (ordre limité)";
+
+  document.getElementById("mc-title").textContent = `Confirmation ${verb}`;
+  document.getElementById("mc-body").innerHTML = `
+    <div><strong>Instrument</strong> ${esc(name)}</div>
+    <div><strong>Sens</strong> <span style="color:${dirColor}">${direction === "achat" ? "▲ Achat" : "▼ Vente"}</span></div>
+    <div><strong>Type</strong> ${type === "marche" ? "Au marché" : "À cours limité"}</div>
+    <div><strong>Quantité</strong> ${qty} titre(s)</div>
+    <div><strong>Prix unitaire</strong> ${fmtN(price, 2)} MAD</div>
+    <div><strong>Montant total</strong> ${fmtN(qty * price, 2)} MAD</div>
+    <div><strong>Statut attendu</strong> ${expectedStatus}</div>`;
+  document.getElementById("mc-market").innerHTML =
+    `<span class="market-badge ${open ? "open" : "closed"}">${open ? "●" : "○"} ${label}</span>`;
+
+  const confirmBtn = document.getElementById("mc-btn-confirm");
+  confirmBtn.className = "mc-btn-confirm " + direction;
+  confirmBtn.textContent = direction === "achat" ? "✓ Confirmer l'achat" : "✓ Confirmer la vente";
+
+  document.getElementById("order-confirm-overlay").classList.add("open");
+}
+
+function closeOrderModal() {
+  document.getElementById("order-confirm-overlay").classList.remove("open");
+  _pendingOrder = null;
+}
+
+document.getElementById("btn-confirm-order").addEventListener("click", openOrderModal);
+document.getElementById("mc-btn-cancel").addEventListener("click", closeOrderModal);
+document.getElementById("order-confirm-overlay").addEventListener("click", e => {
+  if (e.target === document.getElementById("order-confirm-overlay")) closeOrderModal();
+});
+
+document.getElementById("mc-btn-confirm").addEventListener("click", () => {
+  if (!_pendingOrder) return;
+  const btn = document.getElementById("mc-btn-confirm");
+  btn.disabled = true; // Protection double-clic
+
+  const result = placeOrder(_pendingOrder);
+  closeOrderModal();
+
   if (result.success) {
-    showToast("Ordre exécuté ✓", result.message, "success");
     showFormMsg(result.message, "ok");
+    const toastType = result.status === "exécuté" ? "success" : "";
+    const toastTitle = { "exécuté": "Ordre exécuté ✓", "en_attente": "Ordre transmis ⏳" }[result.status] || "Ordre";
+    showToast(toastTitle, result.message, toastType);
     renderPortfolioLive();
     renderWatchlistLive();
+    renderHistorique();
   } else {
     showFormMsg(result.message, "err");
-    showToast("Ordre rejeté", result.message, "error");
+    showToast("Ordre rejeté ✕", result.message, "error");
   }
+
+  setTimeout(() => { btn.disabled = false; }, 500);
 });
 
 function showFormMsg(msg, type) {
@@ -1340,24 +1460,45 @@ function renderHistorique() {
   document.getElementById("hist-count").textContent = orders.length;
   const tb = document.getElementById("hist-rows");
   if (!orders.length) {
-    tb.innerHTML = `<tr><td colspan="8" style="padding:30px;text-align:center;color:var(--muted)">Aucun ordre.</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="9" style="padding:30px;text-align:center;color:var(--muted)">Aucun ordre.</td></tr>`;
     return;
   }
+
+  const statusBadge = {
+    "exécuté":    `<span class="badge-status exec">✓ exécuté</span>`,
+    "en_attente": `<span class="badge-status pending">⏳ en attente</span>`,
+    "annulé":     `<span class="badge-status cancel">✕ annulé</span>`,
+    "rejeté":     `<span class="badge-status reject">✗ rejeté</span>`,
+  };
+
   tb.innerHTML = orders.map(o => {
     const d = new Date(o.date).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+    const execD = o.executionDate ? new Date(o.executionDate).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
     const cDir = o.direction==="achat"?"up":"down";
+    const badge = statusBadge[o.status] || `<span class="badge-status">${esc(o.status)}</span>`;
+    const cancelBtn = o.status === "en_attente"
+      ? `<button class="btn-sell" style="font-size:10px;padding:2px 7px" onclick="doCancelOrder(${o.id})">Annuler</button>`
+      : "";
     return `<tr>
-      <td>${d}</td>
+      <td style="font-size:11px">${d}</td>
       <td style="font-weight:500">${esc(o.name)}</td>
       <td class="${cDir}">${o.direction==="achat"?"▲ Achat":"▼ Vente"}</td>
       <td style="color:var(--muted)">${o.type==="marche"?"Marché":"Limité"}</td>
       <td>${o.qty}</td>
       <td>${fmtN(o.price,2)}</td>
       <td>${fmtN(o.total,2)}</td>
-      <td><span class="status-badge exec">${esc(o.status)}</span></td>
+      <td style="font-size:11px">${execD}</td>
+      <td>${badge} ${cancelBtn}</td>
     </tr>`;
   }).join("");
 }
+
+window.doCancelOrder = function(orderId) {
+  const result = cancelOrder(orderId);
+  showToast(result.success ? "Ordre annulé" : "Erreur", result.message, result.success ? "" : "error");
+  renderHistorique();
+  renderPortfolioLive();
+};
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 let toastTimer;

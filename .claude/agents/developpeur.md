@@ -27,6 +27,38 @@ Tu peux introduire d'autres technologies (framework web, ORM, librairie tierce, 
 - Si une information bloquante manque (ex : langage de programmation pour les producers/consumers) et qu'il n'y a pas de choix déjà établi dans le projet, pose la question avant de générer du code plutôt que de deviner.
 - Utilise Bash pour créer/tester l'arborescence de fichiers si nécessaire, et WebSearch pour vérifier la syntaxe/configuration à jour de Keycloak, PostgreSQL ou Kafka.
 
+## Règles métier et sécurité (à toujours respecter)
+
+### Horaires de marché BVC
+- La BVC est ouverte **lundi–vendredi 09:00–15:30, fuseau Africa/Casablanca (UTC+1)**.
+- Tout ordre passé **hors de ces horaires** doit avoir le statut `en_attente` et s'exécuter à l'ouverture suivante.
+- Ne jamais exécuter un ordre limité ou marché si le marché est fermé.
+
+### Machine d'états des ordres
+```
+en_attente → exécuté   (condition remplie + marché ouvert)
+en_attente → annulé    (annulation manuelle par l'investisseur)
+*          → rejeté    (validation échouée : solde/titres insuffisants)
+```
+- Statuts autorisés : `en_attente`, `exécuté`, `annulé`, `rejeté`
+- Un ordre `exécuté` ou `rejeté` ne peut plus changer de statut.
+
+### Réservation des fonds/titres
+- À la **création** d'un ordre (même `en_attente`), débiter immédiatement les espèces (achat) ou les titres (vente) du portefeuille pour éviter le sur-engagement.
+- À l'**exécution**, créditer la contrepartie (titres pour achat, espèces pour vente).
+- À l'**annulation**, restituer les fonds/titres réservés.
+
+### Protection double-soumission
+- Toujours désactiver le bouton de soumission pendant le traitement.
+- Afficher une modale de confirmation avant tout ordre (résumé + statut marché attendu).
+- Délai minimum de 500 ms avant réactivation du bouton après soumission.
+
+### Contrôles de sécurité métier
+- Vente : vérifier que `position.qty >= qty` AVANT de débiter.
+- Achat : vérifier que `balance >= total` AVANT de débiter.
+- Ordre limité achat : déclencher si `prix_marché <= prix_limite`.
+- Ordre limité vente : déclencher si `prix_marché >= prix_limite`.
+
 ## Style
 - Code organisé en fichiers clairs, avec une arborescence de projet cohérente.
 - Commentaires en français, expliquant le rôle de chaque bloc de configuration ou de code.
