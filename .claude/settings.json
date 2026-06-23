@@ -21,7 +21,13 @@
       "PowerShell(docker exec bourse-postgres psql -U bourse_admin -d bourse_db -c \"\\\\d identite.utilisateurs\")",
       "PowerShell(docker exec bourse-postgres psql -U bourse_admin -d bourse_db -c \"SELECT id, keycloak_user_id, nom_utilisateur, email FROM identite.utilisateurs LIMIT 10;\")",
       "PowerShell(docker exec bourse-postgres psql -U bourse_admin -d bourse_db -c \"SELECT id, keycloak_user_id, email, nom, prenom FROM identite.utilisateurs;\")",
-      "Bash(.venv/Scripts/python.exe -u -m uvicorn app.main:app --reload --port 8000)"
+      "Bash(.venv/Scripts/python.exe -u -m uvicorn app.main:app --reload --port 8000)",
+      "Bash(ls \"C:/Users/HP0/.claude/projects/C--Users-HP0-OneDrive---Ecole-Centrale-Casablanca-Plateforme-bourse-enligne/\" | head -50)",
+      "Read(//c/Users/HP0/.claude/projects/C--Users-HP0-OneDrive---Ecole-Centrale-Casablanca-Plateforme-bourse-enligne/**)",
+      "Read(//c/Users/HP0/.claude/projects/C--Users-Half0-OneDrive---Ecole-Centrale-Casablanca-Plateforme-bourse-enligne/**)",
+      "Bash(docker context *)",
+      "PowerShell(docker compose logs backend 2>&1)",
+      "Bash(git push *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\HP0\\OneDrive - Ecole Centrale Casablanca\\Plateforme-bourse-enligne\\backend\\app"
