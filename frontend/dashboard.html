@@ -443,12 +443,6 @@
             <div class="delta flat">H / B / =</div>
             <div class="sub">—</div>
           </div>
-          <div class="kpi-card" data-k="var-avg">
-            <h3>Var. moy. actions <span style="font-size:9px;color:var(--up)">● live</span></h3>
-            <div class="val">—</div>
-            <div class="delta flat">depuis clôture veille</div>
-            <div class="sub">calculé sur les 80 valeurs</div>
-          </div>
         </div>
 
         <!-- Top movers -->
@@ -997,29 +991,18 @@ function parseStocks(doc) {
   return out;
 }
 
-function applySnapshot(data) {
-  const stale = data._stale === true;
-  const staleSince = data._stale_since;
-
-  const ov = parseOverview(data.donnees.overview);
-  const st = parseStocks(data.donnees.stocks);
+function applySnapshot(donnees) {
+  const ov = parseOverview(donnees.overview);
+  const st = parseStocks(donnees.stocks);
   mkt.overview = ov;
   mkt.rows = st;
-
-  // Calcul de la variation moyenne des cours (dynamique, indépendante du cache BVC)
-  // field_cours_courant vs field_static_reference_price (cours de référence = clôture veille)
-  const varsValides = st.filter(s => !isNaN(s.pct));
-  const varMoyenne  = varsValides.length
-    ? varsValides.reduce((sum, s) => sum + s.pct, 0) / varsValides.length
-    : NaN;
-
-  renderMarket(stale, staleSince, varMoyenne);
+  renderMarket();
   renderWatchlistLive();
   renderPortfolioLive();
   updateOrderPrice();
   document.getElementById("mkt-count").textContent = st.length + " valeurs";
 
-  // Déclenchement automatique des ordres en_attente
+  // Déclenchement automatique des ordres en_attente (limités + marché hors horaires)
   const executed = checkPendingOrders(st);
   for (const o of executed) {
     showToast(
@@ -1048,60 +1031,27 @@ function timeStr(iso) {
 }
 
 // ── Render: Market ─────────────────────────────────────────────────────────────
-function renderMarket(stale = false, staleSince = null, varMoyenne = NaN) {
+function renderMarket() {
   const ov = mkt.overview;
-
-  // ── MASI card ──
+  // MASI card
   const cMasi = document.querySelector('#mkt-cards [data-k="masi"]');
   if (ov.masi) {
     cMasi.querySelector(".val").textContent = fmtN(ov.masi.value, 2);
     const d = cMasi.querySelector(".delta");
     d.className = "delta " + cls(ov.masi.varJ);
     d.textContent = isNaN(ov.masi.varJ) ? "—" : `${sgn(ov.masi.varJ)}${fmtN(Math.abs(ov.masi.varJ),2)} %`;
+    document.getElementById("mkt-ts").textContent = "Tick : " + timeStr(ov.ts);
   }
-
-  // ── Indicateur gelé / fraîcheur des données MASI ──
-  const tsEl = document.getElementById("mkt-ts");
-  if (stale && staleSince) {
-    const t = timeStr(staleSince);
-    tsEl.innerHTML =
-      `<span style="color:var(--gold)">⚠️ Données BVC gelées depuis ${t}</span>` +
-      `<br><span style="font-size:10px;color:var(--muted)">L'endpoint public BVC ne s'est pas mis à jour.</span>`;
-    cMasi.style.borderColor = "rgba(245,158,11,.4)";
-  } else {
-    tsEl.textContent = ov.ts ? "Tick : " + timeStr(ov.ts) : "—";
-    cMasi.style.borderColor = "";
-  }
-
-  // ── Volume & Capitalisation (mêmes données, même avertissement) ──
   const cVol = document.querySelector('#mkt-cards [data-k="vol"]');
   cVol.querySelector(".val").textContent = fmtN(ov.vol, 2);
-  if (stale) cVol.style.borderColor = "rgba(245,158,11,.3)";
-  else cVol.style.borderColor = "";
-
   const cCap = document.querySelector('#mkt-cards [data-k="capi"]');
   cCap.querySelector(".val").textContent = fmtN(ov.capi, 0);
-  if (stale) cCap.style.borderColor = "rgba(245,158,11,.3)";
-  else cCap.style.borderColor = "";
-  // Breadth (calculé depuis les données stocks — toujours dynamique)
+  // Breadth
   const st = mkt.rows;
   const up=st.filter(s=>s.pct>0).length, dn=st.filter(s=>s.pct<0).length, fl=st.filter(s=>!isNaN(s.pct)&&s.pct===0).length;
   const cBr = document.querySelector('#mkt-cards [data-k="breadth"]');
   cBr.querySelector(".val").innerHTML = `<span class="up">${up}</span> / <span class="down">${dn}</span> / <span class="flat">${fl}</span>`;
   cBr.querySelector(".val").style.fontSize = "20px";
-
-  // Variation moyenne des actions (live, indépendante du cache MASI BVC)
-  const cVarAvg = document.querySelector('#mkt-cards [data-k="var-avg"]');
-  if (cVarAvg && !isNaN(varMoyenne)) {
-    const sign = varMoyenne > 0 ? "▲ " : varMoyenne < 0 ? "▼ " : "● ";
-    const c = varMoyenne > 0 ? "up" : varMoyenne < 0 ? "down" : "flat";
-    cVarAvg.querySelector(".val").textContent = sign + fmtN(Math.abs(varMoyenne), 2) + " %";
-    cVarAvg.querySelector(".val").className = "val " + c;
-    cVarAvg.querySelector(".delta").className = "delta " + c;
-    cVarAvg.querySelector(".delta").textContent =
-      varMoyenne > 0 ? "Tendance haussière" : varMoyenne < 0 ? "Tendance baissière" : "Marché stable";
-  }
-
   // Top movers
   renderMovers("top-up-d", "hcount-d", [...st].sort((a,b)=>(isNaN(b.pct)?-99:b.pct)-(isNaN(a.pct)?-99:a.pct)).slice(0,5));
   renderMovers("top-down-d", "lcount-d", [...st].sort((a,b)=>(isNaN(a.pct)?99:a.pct)-(isNaN(b.pct)?99:b.pct)).slice(0,5));
