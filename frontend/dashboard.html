@@ -1597,6 +1597,10 @@ function renderHistorique() {
     const d    = new Date(o.date).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
     const cDir = o.direction === "achat" ? "up" : "down";
     const badge = STATUS_BADGE[o.status] || `<span class="badge-status">${esc(o.status)}</span>`;
+    const rejectTitle = o.rejectReason ? ` title="${esc(o.rejectReason)}"` : "";
+    const badgeWithReason = o.status === "rejeté"
+      ? `<span class="badge-status reject" style="cursor:help"${rejectTitle}>✗ rejeté ⓘ</span>`
+      : badge;
     const cancelBtn = o.status === "en_attente"
       ? `<button class="btn-sell" style="font-size:10px;padding:2px 7px" onclick="doCancelOrder(${o.id})">Annuler</button>`
       : `<span style="color:var(--muted);font-size:11px">—</span>`;
@@ -1608,7 +1612,7 @@ function renderHistorique() {
       <td>${o.qty}</td>
       <td>${fmtN(o.price,2)}</td>
       <td>${fmtN(o.total,2)}</td>
-      <td>${badge}</td>
+      <td>${badgeWithReason}</td>
       <td style="text-align:center">${cancelBtn}</td>
     </tr>`;
   }).join("");

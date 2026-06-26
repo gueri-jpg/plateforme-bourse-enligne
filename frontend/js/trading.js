@@ -114,21 +114,30 @@ export function placeOrder({ name, sector = "", direction, type, qty, price }) {
   const portfolio = getPortfolio();
   const total = Math.round(qty * price * 100) / 100;
 
-  // ── 1. Validation métier
-  if (direction === "achat") {
-    if (portfolio.balance < total)
-      return {
-        success: false, status: "rejeté",
-        message: `Solde insuffisant — disponible : ${fmt(portfolio.balance)} MAD, requis : ${fmt(total)} MAD.`,
-      };
-  } else {
+  // ── 1. Validation métier — rejet enregistré dans l'historique
+  let rejectMessage = null;
+  if (direction === "achat" && portfolio.balance < total) {
+    rejectMessage = `Solde insuffisant — disponible : ${fmt(portfolio.balance)} MAD, requis : ${fmt(total)} MAD.`;
+  } else if (direction === "vente") {
     const pos = portfolio.positions.find(p => p.name === name);
     const held = pos?.qty ?? 0;
     if (held < qty)
-      return {
-        success: false, status: "rejeté",
-        message: `Quantité insuffisante — détenu : ${held} titre(s), demandé : ${qty}.`,
-      };
+      rejectMessage = `Quantité insuffisante — détenu : ${held} titre(s), demandé : ${qty}.`;
+  }
+
+  if (rejectMessage) {
+    // Persister l'ordre rejeté pour qu'il apparaisse dans "Mon carnet"
+    const rejected = {
+      id: Date.now(), date: new Date().toISOString(),
+      executionDate: null, cancelDate: null,
+      name, sector, direction, type, qty, price, total,
+      status: "rejeté", marketWasOpen: isMarketOpen(),
+      rejectReason: rejectMessage,
+    };
+    const orders = getOrders();
+    orders.unshift(rejected);
+    saveOrders(orders);
+    return { success: false, status: "rejeté", message: rejectMessage };
   }
 
   // ── 2. Réservation immédiate (évite le sur-engagement)
