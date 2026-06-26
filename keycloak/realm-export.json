@@ -101,7 +101,8 @@
       "redirectUris": [
         "bourseenligne://*",
         "exp://*",
-        "https://auth.expo.io/@*"
+        "https://auth.expo.io/@*",
+        "http://localhost/mobile-callback"
       ],
       "webOrigins": ["*"],
       "attributes": {
