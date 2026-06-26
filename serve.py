@@ -18,12 +18,14 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.request import Request, urlopen
 from urllib.error   import HTTPError
 from pathlib        import Path
-import json, re, time, threading
+import json, re, ssl, time, threading
 
 PORT = 8765
 HOST = "https://www.casablanca-bourse.com"
 UA   = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 Chrome/124 Safari/537.36")
+
+SSL_CONTEXT = ssl._create_unverified_context()
 
 _state = {"buildId": None, "buildIdAt": 0}
 _lock  = threading.Lock()
@@ -35,7 +37,7 @@ def http_get(url: str, timeout: int = 15) -> str:
         "Accept":          "*/*",
         "Accept-Language": "fr-FR,fr;q=0.9",
     })
-    with urlopen(req, timeout=timeout) as r:
+    with urlopen(req, timeout=timeout, context=SSL_CONTEXT) as r:
         return r.read().decode("utf-8", errors="replace")
 
 
