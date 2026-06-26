@@ -17,7 +17,6 @@ Endpoints exposés :
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.request import Request, urlopen
 from urllib.error   import HTTPError
-from pathlib        import Path
 import json, re, ssl, time, threading
 
 PORT = 8765
@@ -108,7 +107,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"BVC relay -> http://localhost:{PORT}/  (Ctrl+C pour arrêter)")
     try:
         srv.serve_forever()

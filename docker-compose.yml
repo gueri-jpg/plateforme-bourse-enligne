@@ -243,6 +243,21 @@ services:
       - bourse-network
 
   # --------------------------------------------------------------------
+  # BVC Relay : relais HTTP pour le scraping BVC (serve.py).
+  # Exposé sur /api/ par le nginx du frontend via proxy_pass http://bvc-relay:8765.
+  # Remplace le lancement manuel de serve.py sur l'hôte.
+  # --------------------------------------------------------------------
+  bvc-relay:
+    image: python:3.12-slim
+    container_name: bourse-bvc-relay
+    restart: unless-stopped
+    command: python /app/serve.py
+    volumes:
+      - ./serve.py:/app/serve.py:ro
+    networks:
+      - bourse-network
+
+  # --------------------------------------------------------------------
   # Frontend Web (Nginx) : sert le squelette de SPA statique (HTML/CSS/JS
   # vanilla, sans etape de build) présent dans ./frontend.
   # Le frontend redirige vers Keycloak (Authorization Code + PKCE) pour

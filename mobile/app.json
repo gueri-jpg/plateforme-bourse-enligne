@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "BourseOnline",
+    "slug": "bourse-enligne-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "bourseenligne",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ma.ecentralecasa.bourseenligne"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#070b1c",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      },
+      "package": "ma.ecentralecasa.bourseenligne"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
