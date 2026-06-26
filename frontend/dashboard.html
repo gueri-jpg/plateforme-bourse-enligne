@@ -303,6 +303,15 @@
     .badge-status.cancel  { background:rgba(156,163,175,.12); color:var(--flat); }
     .badge-status.reject  { background:rgba(239,68,68,.12); color:var(--down); }
 
+    /* ── Filtres Mon carnet ── */
+    .carnet-filter {
+      padding:5px 14px; border-radius:8px; border:1px solid var(--line);
+      background:var(--panel); color:var(--muted); cursor:pointer;
+      font-size:12px; font-family:inherit; transition:all .12s;
+    }
+    .carnet-filter:hover  { border-color:var(--accent); color:var(--txt); }
+    .carnet-filter.active { background:rgba(96,165,250,.1); border-color:var(--accent); color:var(--accent); font-weight:600; }
+
     /* ── Badge marché ouvert/fermé ── */
     .market-badge { display:inline-flex; align-items:center; gap:5px;
       padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; border:1px solid; }
@@ -424,8 +433,8 @@
       <button class="nav-item" data-section="ordres" id="nav-ordres" style="display:none">
         <span class="nav-icon">🔄</span> Passer un ordre
       </button>
-      <button class="nav-item" data-section="historique" id="nav-historique" style="display:none">
-        <span class="nav-icon">📋</span> Historique
+      <button class="nav-item" data-section="carnet" id="nav-historique" style="display:none">
+        <span class="nav-icon">📓</span> Mon carnet
       </button>
       <!-- Support client uniquement -->
       <button class="nav-item" data-section="assistance" id="nav-assistance" style="display:none">
@@ -592,6 +601,21 @@
             </table>
           </div>
         </div>
+
+        <!-- Derniers mouvements intégrés au portefeuille -->
+        <div class="box" style="margin-top:14px">
+          <div class="box-head"><span>Derniers mouvements</span><span id="pf-hist-count" class="muted">—</span></div>
+          <div class="scroll-table" style="max-height:220px">
+            <table>
+              <thead><tr>
+                <th>Date</th><th>Valeur</th><th>Sens</th><th>Qté</th><th>Prix</th><th>Total MAD</th><th>Statut</th>
+              </tr></thead>
+              <tbody id="pf-hist-rows">
+                <tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted)">Aucun mouvement.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <!-- ── PASSER UN ORDRE ── -->
@@ -650,19 +674,32 @@
         </div>
       </div>
 
-      <!-- ── HISTORIQUE ── -->
-      <div class="dash-section" id="section-historique">
-        <div class="section-title">Historique des ordres <span class="badge" id="hist-count">0</span></div>
+      <!-- ── MON CARNET ── -->
+      <div class="dash-section" id="section-carnet">
+        <div class="section-title">
+          Mon carnet d'ordres
+          <span class="badge" id="hist-count">0</span>
+        </div>
+
+        <!-- Filtres statut -->
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+          <button class="carnet-filter active" data-filter="all">Tous</button>
+          <button class="carnet-filter" data-filter="en_attente">En attente</button>
+          <button class="carnet-filter" data-filter="exécuté">Exécutés</button>
+          <button class="carnet-filter" data-filter="annulé">Annulés</button>
+          <button class="carnet-filter" data-filter="rejeté">Rejetés</button>
+        </div>
+
         <div class="box">
           <div class="scroll-table">
             <table>
               <thead><tr>
-                <th>Date création</th><th>Valeur</th><th>Sens</th><th>Type</th>
-                <th>Qté</th><th>Prix</th><th>Total MAD</th><th>Exécution</th><th>Statut</th>
+                <th>Date</th><th>Valeur</th><th>Sens</th><th>Type</th>
+                <th>Qté</th><th>Prix</th><th>Total MAD</th><th>Statut</th><th style="text-align:center">Action</th>
               </tr></thead>
               <tbody id="hist-rows">
-                <tr><td colspan="8" style="padding:30px;text-align:center;color:var(--muted)">
-                  Aucun ordre passé.
+                <tr><td colspan="9" style="padding:30px;text-align:center;color:var(--muted)">
+                  Aucun ordre.
                 </td></tr>
               </tbody>
             </table>
@@ -917,7 +954,7 @@ document.querySelectorAll(".nav-item[data-section]").forEach(btn => {
     document.getElementById("section-" + btn.dataset.section).classList.add("active");
     if (btn.dataset.section === "portefeuille") renderPortfolio();
     if (btn.dataset.section === "watchlist")    renderWatchlist();
-    if (btn.dataset.section === "historique")   renderHistorique();
+    if (btn.dataset.section === "carnet")       renderHistorique();
     if (btn.dataset.section === "ordres")       renderOrdreForm();
   });
 });
@@ -1091,7 +1128,7 @@ function applySnapshot(donnees) {
       "success"
     );
   }
-  if (executed.length > 0) { renderHistorique(); renderPortfolioLive(); }
+  if (executed.length > 0) { renderHistorique(); renderPortfolioLive(); renderPfHistorique(); }
 }
 
 // ── Format helpers ─────────────────────────────────────────────────────────────
@@ -1300,7 +1337,7 @@ function renderWatchlistLive() {
 }
 
 // ── Portfolio ─────────────────────────────────────────────────────────────────
-function renderPortfolio() { renderPortfolioLive(); }
+function renderPortfolio() { renderPortfolioLive(); renderPfHistorique(); }
 
 function renderPortfolioLive() {
   const pf = getPortfolio();
@@ -1520,6 +1557,7 @@ document.getElementById("mc-btn-confirm").addEventListener("click", () => {
     renderPortfolioLive();
     renderWatchlistLive();
     renderHistorique();
+    renderPfHistorique();
   } else {
     showFormMsg(result.message, "err");
     showToast("Ordre rejeté ✕", result.message, "error");
@@ -1534,50 +1572,90 @@ function showFormMsg(msg, type) {
   el.style.color = type === "err" ? "var(--down)" : "var(--up)";
 }
 
-// ── Historique ────────────────────────────────────────────────────────────────
+// ── Mon carnet d'ordres ───────────────────────────────────────────────────────
+let _carnetFilter = "all";
+
+const STATUS_BADGE = {
+  "exécuté":    `<span class="badge-status exec">✓ exécuté</span>`,
+  "en_attente": `<span class="badge-status pending">⏳ en attente</span>`,
+  "annulé":     `<span class="badge-status cancel">✕ annulé</span>`,
+  "rejeté":     `<span class="badge-status reject">✗ rejeté</span>`,
+};
+
 function renderHistorique() {
-  const orders = getOrders();
-  document.getElementById("hist-count").textContent = orders.length;
+  const allOrders = getOrders();
+  const orders = _carnetFilter === "all"
+    ? allOrders
+    : allOrders.filter(o => o.status === _carnetFilter);
+  document.getElementById("hist-count").textContent = allOrders.length;
   const tb = document.getElementById("hist-rows");
   if (!orders.length) {
-    tb.innerHTML = `<tr><td colspan="9" style="padding:30px;text-align:center;color:var(--muted)">Aucun ordre.</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="9" style="padding:30px;text-align:center;color:var(--muted)">Aucun ordre${_carnetFilter !== "all" ? " pour ce filtre" : ""}.</td></tr>`;
     return;
   }
-
-  const statusBadge = {
-    "exécuté":    `<span class="badge-status exec">✓ exécuté</span>`,
-    "en_attente": `<span class="badge-status pending">⏳ en attente</span>`,
-    "annulé":     `<span class="badge-status cancel">✕ annulé</span>`,
-    "rejeté":     `<span class="badge-status reject">✗ rejeté</span>`,
-  };
-
   tb.innerHTML = orders.map(o => {
-    const d = new Date(o.date).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-    const execD = o.executionDate ? new Date(o.executionDate).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
-    const cDir = o.direction==="achat"?"up":"down";
-    const badge = statusBadge[o.status] || `<span class="badge-status">${esc(o.status)}</span>`;
+    const d    = new Date(o.date).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+    const cDir = o.direction === "achat" ? "up" : "down";
+    const badge = STATUS_BADGE[o.status] || `<span class="badge-status">${esc(o.status)}</span>`;
     const cancelBtn = o.status === "en_attente"
       ? `<button class="btn-sell" style="font-size:10px;padding:2px 7px" onclick="doCancelOrder(${o.id})">Annuler</button>`
-      : "";
+      : `<span style="color:var(--muted);font-size:11px">—</span>`;
     return `<tr>
-      <td style="font-size:11px">${d}</td>
-      <td style="font-weight:500">${esc(o.name)}</td>
+      <td style="font-size:11px;color:var(--muted)">${d}</td>
+      <td style="font-weight:600">${esc(o.name)}</td>
       <td class="${cDir}">${o.direction==="achat"?"▲ Achat":"▼ Vente"}</td>
       <td style="color:var(--muted)">${o.type==="marche"?"Marché":"Limité"}</td>
       <td>${o.qty}</td>
       <td>${fmtN(o.price,2)}</td>
       <td>${fmtN(o.total,2)}</td>
-      <td style="font-size:11px">${execD}</td>
-      <td>${badge} ${cancelBtn}</td>
+      <td>${badge}</td>
+      <td style="text-align:center">${cancelBtn}</td>
     </tr>`;
   }).join("");
 }
+
+// Historique court dans le portefeuille (5 derniers mouvements exécutés)
+function renderPfHistorique() {
+  const recents = getOrders().filter(o => o.status === "exécuté").slice(0, 8);
+  const el = document.getElementById("pf-hist-count");
+  if (el) el.textContent = recents.length + " mouvement(s)";
+  const tb = document.getElementById("pf-hist-rows");
+  if (!tb) return;
+  if (!recents.length) {
+    tb.innerHTML = `<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--muted)">Aucun mouvement.</td></tr>`;
+    return;
+  }
+  tb.innerHTML = recents.map(o => {
+    const d = new Date(o.executionDate || o.date).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+    const c = o.direction === "achat" ? "up" : "down";
+    return `<tr>
+      <td style="font-size:11px;color:var(--muted)">${d}</td>
+      <td style="font-weight:600">${esc(o.name)}</td>
+      <td class="${c}">${o.direction==="achat"?"▲":"▼"} ${o.direction}</td>
+      <td>${o.qty}</td>
+      <td>${fmtN(o.price,2)}</td>
+      <td>${fmtN(o.total,2)}</td>
+      <td><span class="badge-status exec">✓</span></td>
+    </tr>`;
+  }).join("");
+}
+
+// Filtres carnet
+document.querySelectorAll(".carnet-filter").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".carnet-filter").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    _carnetFilter = btn.dataset.filter;
+    renderHistorique();
+  });
+});
 
 window.doCancelOrder = function(orderId) {
   const result = cancelOrder(orderId);
   showToast(result.success ? "Ordre annulé" : "Erreur", result.message, result.success ? "" : "error");
   renderHistorique();
   renderPortfolioLive();
+  renderPfHistorique();
 };
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
