@@ -292,6 +292,41 @@
     }
     footer a { color: var(--accent); text-decoration: none; }
 
+    /* ── Badge marché ouvert/fermé ── */
+    .market-badge { display:inline-flex; align-items:center; gap:6px;
+      padding:4px 14px; border-radius:999px; font-size:12px; font-weight:600;
+      border:1px solid; transition:all .3s; }
+    .market-badge.open   { background:rgba(34,197,94,.1); color:#22c55e; border-color:rgba(34,197,94,.3); }
+    .market-badge.closed { background:rgba(245,158,11,.08); color:#f59e0b; border-color:rgba(245,158,11,.25); }
+
+    /* ── Bande déroulante (ticker) ── */
+    .ticker-outer {
+      overflow:hidden; background:#060a1a; border-bottom:1px solid var(--line);
+      height:34px; display:flex; align-items:center; position:relative;
+    }
+    .ticker-outer::before, .ticker-outer::after {
+      content:''; position:absolute; top:0; bottom:0; width:48px; z-index:2; pointer-events:none;
+    }
+    .ticker-outer::before { left:0; background:linear-gradient(90deg,#060a1a,transparent); }
+    .ticker-outer::after  { right:0; background:linear-gradient(-90deg,#060a1a,transparent); }
+    .ticker-inner {
+      display:flex; white-space:nowrap; width:max-content;
+      animation:ticker-scroll 80s linear infinite;
+    }
+    .ticker-inner:hover { animation-play-state:paused; }
+    @keyframes ticker-scroll {
+      0%   { transform:translateX(0); }
+      100% { transform:translateX(-50%); }
+    }
+    .t-item { display:inline-flex; align-items:center; gap:7px;
+      padding:0 22px; font-size:12px; border-right:1px solid var(--line); height:34px; }
+    .t-name  { color:var(--accent); font-weight:600; letter-spacing:.2px; }
+    .t-price { color:var(--txt); font-variant-numeric:tabular-nums; }
+    .t-var   { font-variant-numeric:tabular-nums; }
+    .t-var.up   { color:var(--up);   }
+    .t-var.down { color:var(--down); }
+    .t-var.flat { color:var(--flat); }
+
     /* ── Responsive ── */
     @media (max-width: 640px) {
       header { padding: 12px 16px; }
@@ -345,10 +380,20 @@
   </div>
 </header>
 
+<!-- ============================================================ TICKER -->
+<div class="ticker-outer">
+  <div class="ticker-inner" id="ticker-inner">
+    <span class="t-item"><span class="t-name">BVC</span><span class="t-price">Connexion…</span></span>
+  </div>
+</div>
+
 <!-- ============================================================ HERO -->
 <section class="hero">
   <div class="hero-badge">
     <span class="dot ok"></span> Données en direct &middot; Bourse de Casablanca
+  </div>
+  <div id="market-badge" class="market-badge closed" style="margin-bottom:8px">
+    ● Vérification horaires…
   </div>
   <h2>Votre plateforme de trading<br>en temps réel</h2>
   <p>
@@ -941,6 +986,8 @@ function applySnapshot(data) {
   if (!data.donnees) return;
   const ov = parseOverview(data.donnees.overview);
   const st = parseStocks(data.donnees.stocks);
+  renderTicker(st);
+  updateMarketBadge();
   const mv = computeMovers(st);
   renderIndices(ov, st);
   renderMovers("topUp",   mv.up,   "hcount");
@@ -1008,8 +1055,63 @@ if (sessionStorage.getItem("bourse_access_token")) {
   document.getElementById("btnLogin").style.display = "none";
 }
 
+// ── Marché ouvert / fermé ─────────────────────────────────────────────────────
+function isMarketOpen() {
+  try {
+    const casa = new Date(new Date().toLocaleString('en-US', {timeZone:'Africa/Casablanca'}));
+    const day = casa.getDay(), mins = casa.getHours() * 60 + casa.getMinutes();
+    return day >= 1 && day <= 5 && mins >= 540 && mins < 930;
+  } catch { return false; }
+}
+
+function nextMarketOpen() {
+  const casa = new Date(new Date().toLocaleString('en-US', {timeZone:'Africa/Casablanca'}));
+  const day = casa.getDay(), mins = casa.getHours() * 60 + casa.getMinutes();
+  const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  let delta = 0;
+  if (day === 6) delta = 2;
+  else if (day === 0) delta = 1;
+  else if (mins >= 930) delta = (day === 5) ? 3 : 1;
+  if (delta === 0 && mins < 540) return 'aujourd\'hui à 09:00';
+  if (delta === 1) return 'demain à 09:00';
+  return days[(day + delta) % 7] + ' à 09:00';
+}
+
+function updateMarketBadge() {
+  const el = document.getElementById('market-badge');
+  if (!el) return;
+  const open = isMarketOpen();
+  el.className = 'market-badge ' + (open ? 'open' : 'closed');
+  el.textContent = open
+    ? '● Marché ouvert · BVC 09:00 – 15:30'
+    : '● Marché fermé · Prochaine ouverture : ' + nextMarketOpen();
+}
+
+// ── Bande déroulante ─────────────────────────────────────────────────────────
+function renderTicker(stocks) {
+  const inner = document.getElementById('ticker-inner');
+  if (!inner || !stocks.length) return;
+  const items = stocks
+    .filter(s => !isNaN(s.price))
+    .map(s => {
+      const c = isNaN(s.pct) ? 'flat' : s.pct > 0 ? 'up' : s.pct < 0 ? 'down' : 'flat';
+      const sign = isNaN(s.pct) ? '' : s.pct > 0 ? '▲ ' : s.pct < 0 ? '▼ ' : '';
+      const varStr = isNaN(s.pct) ? '—' : sign + Math.abs(s.pct).toFixed(2) + '%';
+      return `<span class="t-item">
+        <span class="t-name">${esc(s.name)}</span>
+        <span class="t-price">${fmtNum(s.price, 2)} MAD</span>
+        <span class="t-var ${c}">${varStr}</span>
+      </span>`;
+    }).join('');
+  inner.innerHTML = items + items; // double pour boucle continue
+  const dur = Math.max(40, Math.round(stocks.length * 1.8));
+  inner.style.animationDuration = dur + 's';
+}
+
 // Démarrage : WebSocket en priorité.
 // Le tick HTTP n'est déclenché qu'en secours (onclose du WebSocket).
+updateMarketBadge();
+setInterval(updateMarketBadge, 60000); // mise à jour toutes les minutes
 connectWS();
 </script>
 
