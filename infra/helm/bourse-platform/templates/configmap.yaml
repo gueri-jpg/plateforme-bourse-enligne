@@ -1,0 +1,39 @@
+# ==============================================================================
+# configmap.yaml — ConfigMap "bourse-config"
+#
+# Regroupe toute la configuration NON sensible partagée par les composants
+# applicatifs (backend, bvc-producer, bvc-relay) via envFrom.configMapRef.
+#
+# Pour les valeurs sensibles (mots de passe, secrets clients), voir secrets.yaml.
+# ==============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bourse.fullname" . }}-config
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+data:
+  # ----------------------------------------------------------------------
+  # Connexion PostgreSQL (Azure Database for PostgreSQL Flexible Server)
+  # ----------------------------------------------------------------------
+  POSTGRES_HOST: {{ .Values.postgres.host | quote }}
+  POSTGRES_PORT: {{ .Values.postgres.port | quote }}
+  POSTGRES_DB: {{ .Values.postgres.dbName | quote }}
+  POSTGRES_USER: {{ .Values.postgres.username | quote }}
+
+  # ----------------------------------------------------------------------
+  # Kafka — bootstrap servers internes au cluster (service Bitnami Kafka)
+  # ----------------------------------------------------------------------
+  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.config.kafkaBootstrapServers | quote }}
+
+  # ----------------------------------------------------------------------
+  # Keycloak — endpoints OIDC internes au cluster (service ClusterIP)
+  # ----------------------------------------------------------------------
+  KEYCLOAK_BASE_URL: {{ .Values.config.keycloakBaseUrl | quote }}
+  KEYCLOAK_REALM: {{ .Values.config.keycloakRealm | quote }}
+  KEYCLOAK_BACKEND_CLIENT_ID: {{ .Values.config.keycloakBackendClientId | quote }}
+
+  # ----------------------------------------------------------------------
+  # Intervalle de scraping du producer BVC (secondes)
+  # ----------------------------------------------------------------------
+  BVC_INTERVAL_SECONDS: {{ .Values.config.bvcIntervalSeconds | quote }}

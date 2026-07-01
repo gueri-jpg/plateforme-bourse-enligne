@@ -1,0 +1,20 @@
+# ==============================================================================
+# bvc-relay/service.yaml — Service ClusterIP pour le relais HTTP BVC
+# ==============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bourse.fullname" . }}-bvc-relay
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: bvc-relay
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8765
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "bourse.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: bvc-relay

@@ -1,0 +1,107 @@
+{{- if not .Values.keycloak.enabled }}
+# Déploiement Keycloak natif (fallback quand keycloak.enabled=false)
+# Utilise quay.io/keycloak/keycloak:26.0, identique au docker-compose
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bourse.fullname" . }}-keycloak
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "bourse.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: keycloak
+  template:
+    metadata:
+      labels:
+        {{- include "bourse.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.0
+          imagePullPolicy: IfNotPresent
+          args: ["start-dev", "--import-realm"]
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              value: "admin"
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bourse.fullname" . }}-secrets
+                  key: KC_ADMIN_PASSWORD
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: "jdbc:postgresql://{{ .Values.postgres.host }}:{{ .Values.postgres.port }}/keycloak_db"
+            - name: KC_DB_USERNAME
+              value: {{ .Values.postgres.username }}
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bourse.fullname" . }}-secrets
+                  key: POSTGRES_PASSWORD
+            # En local : hostname interne K8s
+            # Sur Azure : https://auth.<domain> (injecté via values.global.domain)
+            - name: KC_HOSTNAME
+              value: "http://auth.{{ .Values.global.domain }}"
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+          volumeMounts:
+            - name: realm-imports
+              mountPath: /opt/keycloak/data/import
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            periodSeconds: 15
+            failureThreshold: 5
+      volumes:
+        - name: realm-imports
+          configMap:
+            name: {{ include "bourse.fullname" . }}-keycloak-realms
+{{- end }}
+---
+{{- if not .Values.keycloak.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bourse.fullname" . }}-keycloak
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+spec:
+  selector:
+    {{- include "bourse.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+{{- end }}

@@ -25,7 +25,7 @@ import re
 import sys
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import requests
 
@@ -108,6 +108,47 @@ def on_delivery(err, msg):
         )
 
 
+_BVC_API = "https://api.casablanca-bourse.com/fr/api/bourse_data/index_watch"
+_MASI_FIELDS = "fields[index_watch]=indexValue,transactTime"
+_MASI_FILTER = (
+    "filter[index][condition][path]=indexCode.field_code"
+    "&filter[index][condition][value]=MASI"
+    "&filter[indexValue][condition][path]=indexValue"
+    "&filter[indexValue][condition][operator]=IS NOT NULL"
+)
+
+def _last_trading_day(ref: date) -> date:
+    """Retourne le dernier jour ouvré avant ref (exclut sam/dim)."""
+    d = ref - timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d
+
+def fetch_masi_tick(for_date: date) -> dict | None:
+    """
+    Appelle directement l'API BVC (api.casablanca-bourse.com) pour obtenir
+    le dernier tick MASI d'une journée donnée.
+    Retourne {"value": float, "time": str} ou None en cas d'erreur.
+    """
+    url = (
+        f"{_BVC_API}?{_MASI_FIELDS}&{_MASI_FILTER}"
+        f"&filter[seance][condition][path]=transactTime"
+        f"&filter[seance][condition][operator]=STARTS_WITH"
+        f"&filter[seance][condition][value]={for_date.isoformat()}"
+        f"&sort=-transactTime&page[limit]=1"
+    )
+    try:
+        r = _session.get(url, timeout=10)
+        r.raise_for_status()
+        data = r.json().get("data", [])
+        if not data:
+            return None
+        attr = data[0].get("attributes", {})
+        return {"value": float(attr["indexValue"]), "time": attr["transactTime"]}
+    except Exception:
+        return None
+
+
 def _extract_masi_last_tick(overview: dict) -> str | None:
     """
     Extrait le transactTime du dernier tick MASI dans le JSON BVC.
@@ -160,16 +201,22 @@ def main():
                 _stale_count = 0
                 _last_masi_tick = masi_tick
 
+            # Récupération directe du vrai tick MASI via l'API BVC (évite le cache Next.js)
+            today = date.today()
+            masi_live = fetch_masi_tick(today)
+            masi_ref  = fetch_masi_tick(_last_trading_day(today))
+
             payload = json.dumps(
                 {
                     "evenement": "bvc_snapshot",
                     "horodatage": datetime.now(timezone.utc).isoformat(),
-                    # _stale=True signifie que l'endpoint BVC overview n'a pas changé
-                    # depuis le dernier snapshot : les données MASI/vol/capi sont gelées.
-                    # Les cours des actions (stocks) peuvent quant à eux être plus récents.
                     "_stale": stale,
                     "_stale_since": _last_masi_tick,
                     "_stale_count": _stale_count,
+                    # Valeur MASI temps réel (API directe, non paginée)
+                    "masi_live": masi_live,
+                    # Clôture du dernier jour ouvré (pour calcul variation vs veille)
+                    "masi_ref": masi_ref,
                     "donnees": {"overview": overview, "stocks": stocks},
                 },
                 ensure_ascii=False,

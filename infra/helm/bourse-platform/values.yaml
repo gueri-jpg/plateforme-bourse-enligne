@@ -1,0 +1,234 @@
+# ==============================================================================
+# values.yaml — Valeurs par défaut du chart "bourse-platform"
+#
+# Toutes les valeurs sensibles (mots de passe, secrets) doivent être
+# surchargées au moment du déploiement via :
+#   helm install ... --set postgres.password=*** --set keycloak.auth.adminPassword=***
+# ou via un fichier values-prod.yaml (non committé, ajouté au .gitignore).
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Configuration globale, partagée par tous les sous-charts (kafka, keycloak)
+# et les templates de ce chart.
+# ------------------------------------------------------------------------------
+global:
+  # URL de l'Azure Container Registry — remplie avec la sortie Terraform
+  # `acr_login_server` au moment du déploiement :
+  #   --set global.imageRegistry=acrboursprod.azurecr.io
+  imageRegistry: ""
+
+  # Domaine racine de la plateforme, utilisé pour générer les hosts Ingress
+  domain: "bourse-enligne.ma"
+
+# ------------------------------------------------------------------------------
+# Images Docker des composants applicatifs (build maison, poussées vers l'ACR)
+# ------------------------------------------------------------------------------
+image:
+  backend:
+    repository: "backend"
+    tag: "latest"
+    pullPolicy: Always
+
+  bvcProducer:
+    repository: "bvc-producer"
+    tag: "latest"
+    pullPolicy: Always
+
+  bvcRelay:
+    # bvc-relay utilise l'image officielle python:3.12-slim avec serve.py
+    # monté/copié dans l'image — voir infra/README.md pour le build
+    repository: "bvc-relay"
+    tag: "latest"
+    pullPolicy: Always
+
+  frontend:
+    repository: "frontend"
+    tag: "latest"
+    pullPolicy: Always
+
+  adminFrontend:
+    repository: "admin-frontend"
+    tag: "latest"
+    pullPolicy: Always
+
+# ------------------------------------------------------------------------------
+# PostgreSQL — Azure Database for PostgreSQL Flexible Server (managé, externe)
+# host et password sont injectés au déploiement depuis les outputs Terraform :
+#   --set postgres.host=$(terraform output -raw postgres_fqdn)
+#   --set postgres.password=$TF_VAR_postgres_admin_password
+# ------------------------------------------------------------------------------
+postgres:
+  host: ""               # rempli par terraform output postgres_fqdn
+  port: 5432
+  dbName: "bourse_db"
+  username: "bourse_admin"
+  password: ""           # secret, jamais en clair dans ce fichier versionné
+
+# ------------------------------------------------------------------------------
+# Keycloak — sous-chart Bitnami, configuré pour utiliser la base externe
+# keycloak_db sur le même serveur PostgreSQL Azure (pas de base interne).
+# ------------------------------------------------------------------------------
+keycloak:
+  enabled: true
+
+  auth:
+    adminUser: "admin"
+    adminPassword: ""    # secret — cf. bourse-secrets / KC_ADMIN_PASSWORD
+
+  # Désactive le sous-chart PostgreSQL embarqué du chart Bitonami Keycloak :
+  # on utilise la base Azure externe (cf. postgres.tf / keycloak_db)
+  postgresql:
+    enabled: false
+
+  externalDatabase:
+    host: ""              # rempli par terraform output postgres_fqdn
+    port: 5432
+    database: "keycloak_db"
+    user: "bourse_admin"
+    username: "bourse_admin"
+    password: ""          # secret — cf. bourse-secrets / POSTGRES_PASSWORD
+
+  hostname:
+    default: "auth.bourse-enligne.ma"
+
+  # Mode production : HTTPS géré par l'Ingress (TLS termination), Keycloak
+  # écoute en HTTP en interne derrière le reverse-proxy NGINX
+  proxy: edge
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+# ------------------------------------------------------------------------------
+# Kafka — sous-chart Bitnami en mode KRaft (sans Zookeeper), cohérent avec
+# le docker-compose local. Topic market.prices pré-provisionné.
+# ------------------------------------------------------------------------------
+kafka:
+  enabled: true
+
+  # Mode KRaft : pas de Zookeeper, un seul process controller+broker
+  kraft:
+    enabled: true
+
+  controller:
+    replicaCount: 1
+
+  # Pas de broker dédié séparé : le controller assure aussi le rôle broker
+  # (topologie combinée, adaptée à un cluster de taille modeste)
+  listeners:
+    client:
+      protocol: PLAINTEXT
+
+  # Provisioning automatique des topics au démarrage du chart
+  provisioning:
+    enabled: true
+    topics:
+      - name: market.prices
+        partitions: 3
+        replicationFactor: 1
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+  persistence:
+    enabled: true
+    size: 8Gi
+
+# ------------------------------------------------------------------------------
+# Ingress NGINX — expose les 4 services HTTP de la plateforme avec TLS
+# automatique via cert-manager (ClusterIssuer letsencrypt-prod)
+# ------------------------------------------------------------------------------
+ingress:
+  enabled: true
+  className: nginx
+  tls: true
+  certIssuer: letsencrypt-prod
+
+  hosts:
+    frontend: "bourse-enligne.ma"
+    backend: "api.bourse-enligne.ma"
+    adminFrontend: "admin.bourse-enligne.ma"
+    bvcRelay: "relay.bourse-enligne.ma"
+
+# ------------------------------------------------------------------------------
+# Nombre de réplicas par composant applicatif
+# ------------------------------------------------------------------------------
+replicaCount:
+  backend: 2
+  frontend: 2
+  adminFrontend: 1
+  bvcRelay: 1
+  bvcProducer: 1
+
+# ------------------------------------------------------------------------------
+# Requêtes / limites de ressources Kubernetes par composant
+# ------------------------------------------------------------------------------
+resources:
+  backend:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  frontend:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
+  adminFrontend:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
+  bvcProducer:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+  bvcRelay:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+# ------------------------------------------------------------------------------
+# Configuration applicative non sensible (ConfigMap bourse-config)
+# ------------------------------------------------------------------------------
+config:
+  kafkaBootstrapServers: "bourse-platform-kafka:9092"
+  keycloakBaseUrl: "http://bourse-platform-keycloak:80"
+  keycloakRealm: "bourse-en-ligne"
+  keycloakBackendClientId: "backend-api"
+  bvcIntervalSeconds: "30"
+
+# ------------------------------------------------------------------------------
+# Secrets applicatifs (valeurs vides par défaut — à fournir au déploiement
+# via --set ou --set-file, JAMAIS committées en clair dans ce fichier)
+# ------------------------------------------------------------------------------
+secrets:
+  postgresPassword: ""
+  kcAdminPassword: ""
+  keycloakAdminClientSecret: ""
+  resendApiKey: ""

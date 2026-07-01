@@ -1,0 +1,51 @@
+# ==============================================================================
+# frontend/deployment.yaml — Déploiement du frontend investisseur (SPA Nginx)
+#
+# Sert les fichiers statiques HTML/CSS/JS (sans étape de build) via Nginx,
+# avec authentification déléguée à Keycloak (Authorization Code + PKCE).
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bourse.fullname" . }}-frontend
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  replicas: {{ .Values.replicaCount.frontend }}
+  selector:
+    matchLabels:
+      {{- include "bourse.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        {{- include "bourse.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: {{ include "bourse.image" (dict "registry" .Values.global.imageRegistry "repository" .Values.image.frontend.repository "tag" .Values.image.frontend.tag) }}
+          imagePullPolicy: {{ .Values.image.frontend.pullPolicy }}
+
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+
+          resources:
+            {{- toYaml .Values.resources.frontend | nindent 12 }}

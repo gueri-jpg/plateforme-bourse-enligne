@@ -1,0 +1,50 @@
+# ==============================================================================
+# bvc-relay/deployment.yaml — Déploiement du relais HTTP BVC (serve.py)
+#
+# Proxy HTTP simple contournant les restrictions CORS/scraping pour les
+# appels directs au site casablanca-bourse.com depuis le frontend.
+# Image basée sur python:3.12-slim (voir infra/README.md pour le Dockerfile).
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bourse.fullname" . }}-bvc-relay
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: bvc-relay
+spec:
+  replicas: {{ .Values.replicaCount.bvcRelay }}
+  selector:
+    matchLabels:
+      {{- include "bourse.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: bvc-relay
+  template:
+    metadata:
+      labels:
+        {{- include "bourse.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: bvc-relay
+    spec:
+      containers:
+        - name: bvc-relay
+          image: {{ include "bourse.image" (dict "registry" .Values.global.imageRegistry "repository" .Values.image.bvcRelay.repository "tag" .Values.image.bvcRelay.tag) }}
+          imagePullPolicy: {{ .Values.image.bvcRelay.pullPolicy }}
+
+          ports:
+            - name: http
+              containerPort: 8765
+              protocol: TCP
+
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+
+          resources:
+            {{- toYaml .Values.resources.bvcRelay | nindent 12 }}

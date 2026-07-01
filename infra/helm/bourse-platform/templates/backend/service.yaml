@@ -1,0 +1,23 @@
+# ==============================================================================
+# backend/service.yaml — Service ClusterIP pour l'API backend
+#
+# Exposition interne uniquement (ClusterIP) : l'accès externe se fait via
+# l'Ingress NGINX (api.bourse-enligne.ma) défini dans templates/ingress.yaml
+# ==============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bourse.fullname" . }}-backend
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "bourse.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backend

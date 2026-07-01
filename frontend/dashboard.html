@@ -1109,6 +1109,19 @@ function parseStocks(doc) {
 function applySnapshot(donnees) {
   const ov = parseOverview(donnees.overview);
   const st = parseStocks(donnees.stocks);
+
+  // Écrase la valeur MASI par le tick temps réel (API directe BVC, non paginée)
+  if (donnees.masi_live && donnees.masi_live.value) {
+    const liveVal = donnees.masi_live.value;
+    const refVal  = donnees.masi_ref  && donnees.masi_ref.value ? donnees.masi_ref.value : null;
+    ov.masi = {
+      value: liveVal,
+      open:  refVal ?? liveVal,
+      varJ:  refVal ? (liveVal - refVal) / refVal * 100 : NaN,
+      ts:    donnees.masi_live.time,
+    };
+  }
+
   mkt.overview = ov;
   mkt.rows = st;
   renderTicker(st);
@@ -1156,8 +1169,8 @@ function renderMarket() {
     cMasi.querySelector(".val").textContent = fmtN(ov.masi.value, 2);
     const d = cMasi.querySelector(".delta");
     d.className = "delta " + cls(ov.masi.varJ);
-    d.textContent = isNaN(ov.masi.varJ) ? "—" : `${sgn(ov.masi.varJ)}${fmtN(Math.abs(ov.masi.varJ),2)} %`;
-    document.getElementById("mkt-ts").textContent = "Tick : " + timeStr(ov.ts);
+    d.textContent = isNaN(ov.masi.varJ) ? "—" : `${sgn(ov.masi.varJ)}${fmtN(Math.abs(ov.masi.varJ),2)} % vs clôture veille`;
+    document.getElementById("mkt-ts").textContent = "Tick : " + timeStr(ov.masi.ts);
   }
   const cVol = document.querySelector('#mkt-cards [data-k="vol"]');
   cVol.querySelector(".val").textContent = fmtN(ov.vol, 2);

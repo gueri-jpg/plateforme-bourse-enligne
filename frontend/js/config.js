@@ -9,7 +9,13 @@
 // client "frontend-spa", flow Authorization Code + PKCE).
 // ============================================================================
 
-export const KEYCLOAK_BASE_URL = "http://localhost:9090";
+// Détection automatique local vs production K8s/Azure
+// En local : Keycloak sur localhost:9090
+// Sur K8s  : Keycloak sur auth.<host-actuel> (ex: auth.bourse.172.x.x.x.nip.io)
+const _isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+export const KEYCLOAK_BASE_URL = _isLocal
+  ? "http://localhost:9090"
+  : `${window.location.protocol}//auth.${window.location.host}`;
 
 export const KEYCLOAK_REALM = "bourse-en-ligne";
 export const KEYCLOAK_CLIENT_ID = "frontend-spa";
@@ -38,7 +44,10 @@ export const REDIRECT_URI = `${FRONTEND_BASE_URL}/callback.html`;
 export const POST_LOGOUT_REDIRECT_URI = `${FRONTEND_BASE_URL}/index.html`;
 
 // URL de base du backend "Module Admin" (FastAPI, port 8000)
-export const BACKEND_API_BASE_URL = "http://localhost:8002";
+// Local → localhost:8000 | K8s → api.<host-actuel>
+export const BACKEND_API_BASE_URL = _isLocal
+  ? "http://localhost:8000"
+  : `${window.location.protocol}//api.${window.location.host}`;
 
 // Cles utilisees pour stocker les donnees dans sessionStorage
 export const STORAGE_KEYS = {

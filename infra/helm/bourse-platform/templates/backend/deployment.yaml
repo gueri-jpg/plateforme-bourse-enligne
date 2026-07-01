@@ -1,0 +1,77 @@
+# ==============================================================================
+# backend/deployment.yaml — Déploiement de l'API FastAPI (backend)
+#
+# Expose le WebSocket /ws/market (diffusion des cours BVC depuis Kafka) et
+# l'API REST d'administration. 2 réplicas par défaut pour la haute
+# disponibilité derrière le Service ClusterIP.
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bourse.fullname" . }}-backend
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.replicaCount.backend }}
+  selector:
+    matchLabels:
+      {{- include "bourse.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "bourse.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      containers:
+        - name: backend
+          image: {{ include "bourse.image" (dict "registry" .Values.global.imageRegistry "repository" .Values.image.backend.repository "tag" .Values.image.backend.tag) }}
+          imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
+
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+
+          # Variables d'environnement non sensibles (ConfigMap) + sensibles (Secret)
+          envFrom:
+            - configMapRef:
+                name: {{ include "bourse.fullname" . }}-config
+            - secretRef:
+                name: {{ include "bourse.fullname" . }}-secrets
+
+          # Variables propres au backend, non partagées avec les autres composants
+          env:
+            - name: KEYCLOAK_ADMIN_CLIENT_ID
+              value: "admin-tools"
+            - name: ROLE_ADMINISTRATEUR
+              value: "administrateur"
+            - name: ROLE_INVESTISSEUR
+              value: "investisseur"
+
+          # --------------------------------------------------------------
+          # Sondes de santé : /health doit être exposé par l'API FastAPI
+          # readiness : retire le pod du Service tant qu'il n'est pas prêt
+          # liveness  : redémarre le pod s'il devient indisponible
+          # --------------------------------------------------------------
+          readinessProbe:
+            httpGet:
+              path: /docs
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /docs
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          resources:
+            {{- toYaml .Values.resources.backend | nindent 12 }}

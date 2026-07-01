@@ -1,0 +1,47 @@
+# ==============================================================================
+# bvc-producer/deployment.yaml — Déploiement du scraper BVC -> Kafka
+#
+# Composant "producer only" : pas de port exposé, pas de Service associé.
+# Scrape casablanca-bourse.com toutes les BVC_INTERVAL_SECONDS et publie un
+# snapshot JSON sur le topic Kafka "market.prices".
+#
+# 1 seul réplica : plusieurs instances dupliqueraient les publications sur
+# le topic (pas de coordination de leader entre producers).
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bourse.fullname" . }}-bvc-producer
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: bvc-producer
+spec:
+  replicas: {{ .Values.replicaCount.bvcProducer }}
+  strategy:
+    # Recreate plutôt que RollingUpdate : évite d'avoir transitoirement deux
+    # producers actifs en parallèle pendant un déploiement (1 seul réplica)
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "bourse.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: bvc-producer
+  template:
+    metadata:
+      labels:
+        {{- include "bourse.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: bvc-producer
+    spec:
+      containers:
+        - name: bvc-producer
+          image: {{ include "bourse.image" (dict "registry" .Values.global.imageRegistry "repository" .Values.image.bvcProducer.repository "tag" .Values.image.bvcProducer.tag) }}
+          imagePullPolicy: {{ .Values.image.bvcProducer.pullPolicy }}
+
+          # Pas de port exposé : ce composant ne fait que publier vers Kafka
+          envFrom:
+            - configMapRef:
+                name: {{ include "bourse.fullname" . }}-config
+            - secretRef:
+                name: {{ include "bourse.fullname" . }}-secrets
+
+          resources:
+            {{- toYaml .Values.resources.bvcProducer | nindent 12 }}

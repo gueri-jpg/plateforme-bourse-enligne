@@ -1,0 +1,79 @@
+{{- if not .Values.kafka.enabled }}
+# Déploiement Kafka natif (fallback quand kafka.enabled=false)
+# Utilise confluentinc/cp-kafka, identique au docker-compose
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bourse.fullname" . }}-kafka
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "bourse.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: kafka
+  template:
+    metadata:
+      labels:
+        {{- include "bourse.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: confluentinc/cp-kafka:7.7.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: internal
+              containerPort: 29092
+            - name: controller
+              containerPort: 9093
+          env:
+            - name: KAFKA_NODE_ID
+              value: "1"
+            - name: KAFKA_PROCESS_ROLES
+              value: "broker,controller"
+            - name: CLUSTER_ID
+              value: "Mk3OEYBSD34fcwNTJENDM2Qk"
+            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+              value: "1@localhost:9093"
+            - name: KAFKA_LISTENERS
+              value: "PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093"
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://{{ include "bourse.fullname" . }}-kafka:29092"
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: "PLAINTEXT"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
+              value: "true"
+          readinessProbe:
+            tcpSocket:
+              port: 29092
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 6
+{{- end }}
+---
+{{- if not .Values.kafka.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bourse.fullname" . }}-kafka
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: kafka
+spec:
+  selector:
+    {{- include "bourse.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: kafka
+  ports:
+    - name: internal
+      port: 29092
+      targetPort: 29092
+{{- end }}

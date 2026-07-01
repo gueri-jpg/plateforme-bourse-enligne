@@ -1,0 +1,121 @@
+# ==============================================================================
+# ingress.yaml — Ingress NGINX unique pour les 4 domaines de la plateforme
+#
+# Routes :
+#   - bourse-enligne.ma         -> frontend:80          (SPA investisseur)
+#   - api.bourse-enligne.ma     -> backend:8000          (API REST + WebSocket)
+#   - admin.bourse-enligne.ma   -> admin-frontend:80      (back-office admin)
+#   - relay.bourse-enligne.ma   -> bvc-relay:8765         (proxy HTTP BVC)
+#
+# TLS automatique via cert-manager : l'annotation cluster-issuer déclenche
+# la génération/renouvellement des certificats Let's Encrypt pour chaque host.
+# Pré-requis cluster : ingress-nginx + cert-manager installés (cf. README).
+# ==============================================================================
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "bourse.fullname" . }}-ingress
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.ingress.className }}
+    {{- if .Values.ingress.tls }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.certIssuer }}
+    {{- end }}
+    # Augmente la taille max du corps de requête (utile pour l'admin REST API)
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    # Support WebSocket pour le endpoint /ws/market du backend
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.hosts.frontend }}
+      secretName: {{ include "bourse.fullname" . }}-tls-frontend
+    - hosts:
+        - {{ .Values.ingress.hosts.backend }}
+      secretName: {{ include "bourse.fullname" . }}-tls-backend
+    - hosts:
+        - {{ .Values.ingress.hosts.adminFrontend }}
+      secretName: {{ include "bourse.fullname" . }}-tls-admin
+    - hosts:
+        - {{ .Values.ingress.hosts.bvcRelay }}
+      secretName: {{ include "bourse.fullname" . }}-tls-relay
+  {{- end }}
+
+  rules:
+    # ------------------------------------------------------------------
+    # Frontend investisseur : SPA statique servie par Nginx
+    # ------------------------------------------------------------------
+    - host: {{ .Values.ingress.hosts.frontend }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "bourse.fullname" . }}-frontend
+                port:
+                  number: 80
+
+    # ------------------------------------------------------------------
+    # API backend : REST + WebSocket /ws/market
+    # ------------------------------------------------------------------
+    - host: {{ .Values.ingress.hosts.backend }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "bourse.fullname" . }}-backend
+                port:
+                  number: 8000
+
+    # ------------------------------------------------------------------
+    # Back-office admin : SPA statique dédiée aux administrateurs
+    # ------------------------------------------------------------------
+    - host: {{ .Values.ingress.hosts.adminFrontend }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "bourse.fullname" . }}-admin-frontend
+                port:
+                  number: 80
+
+    # ------------------------------------------------------------------
+    # Relais HTTP BVC : proxy de scraping casablanca-bourse.com
+    # ------------------------------------------------------------------
+    - host: {{ .Values.ingress.hosts.bvcRelay }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "bourse.fullname" . }}-bvc-relay
+                port:
+                  number: 8765
+
+    # ------------------------------------------------------------------
+    # Keycloak : SSO / OIDC — accessible depuis le navigateur pour le
+    # flow Authorization Code + PKCE
+    # ------------------------------------------------------------------
+    - host: {{ .Values.ingress.hosts.keycloak }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "bourse.fullname" . }}-keycloak
+                port:
+                  number: 8080
+{{- end }}

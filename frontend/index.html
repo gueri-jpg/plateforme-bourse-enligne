@@ -788,7 +788,7 @@ function renderIndices(ov, stocks) {
     d.className = "delta " + cls(ov.masi.varJ);
     d.textContent = isNaN(ov.masi.varJ)
       ? "—"
-      : `${sgn(ov.masi.varJ)}${fmtNum(ov.masi.varJ, 2)} % depuis l'ouverture`;
+      : `${sgn(ov.masi.varJ)}${fmtNum(ov.masi.varJ, 2)} % vs clôture veille`;
     cMasi.querySelector(".ts").textContent = "Tick : " + timeStr(ov.masi.ts);
     flashIfChanged(cMasi, "vmasi", ov.masi.value);
   }
@@ -981,6 +981,18 @@ function applySnapshot(data) {
   if (!data.donnees) return;
   const ov = parseOverview(data.donnees.overview);
   const st = parseStocks(data.donnees.stocks);
+
+  // Écrase MASI par le tick temps réel (API directe BVC, non paginée/cachée)
+  if (data.masi_live && data.masi_live.value && ov.masi) {
+    const liveVal = data.masi_live.value;
+    const refVal  = data.masi_ref && data.masi_ref.value ? data.masi_ref.value : null;
+    ov.masi = {
+      ...ov.masi,                     // conserve high, low, open, masiSeries
+      value: liveVal,
+      varJ:  refVal ? (liveVal - refVal) / refVal * 100 : NaN,
+      ts:    data.masi_live.time,
+    };
+  }
   renderTicker(st);
   updateMarketBadge();
   const mv = computeMovers(st);

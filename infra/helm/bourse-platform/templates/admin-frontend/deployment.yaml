@@ -1,0 +1,52 @@
+# ==============================================================================
+# admin-frontend/deployment.yaml — Déploiement du back-office admin (SPA Nginx)
+#
+# Interface dédiée aux administrateurs, isolée du frontend investisseur.
+# Authentification via le realm Keycloak dédié "bourse-admin".
+# 1 seul réplica par défaut (trafic interne, faible volumétrie).
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bourse.fullname" . }}-admin-frontend
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: admin-frontend
+spec:
+  replicas: {{ .Values.replicaCount.adminFrontend }}
+  selector:
+    matchLabels:
+      {{- include "bourse.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: admin-frontend
+  template:
+    metadata:
+      labels:
+        {{- include "bourse.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: admin-frontend
+    spec:
+      containers:
+        - name: admin-frontend
+          image: {{ include "bourse.image" (dict "registry" .Values.global.imageRegistry "repository" .Values.image.adminFrontend.repository "tag" .Values.image.adminFrontend.tag) }}
+          imagePullPolicy: {{ .Values.image.adminFrontend.pullPolicy }}
+
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+
+          resources:
+            {{- toYaml .Values.resources.adminFrontend | nindent 12 }}

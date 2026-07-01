@@ -1,0 +1,44 @@
+# ==============================================================================
+# Chart.yaml — Métadonnées du chart Helm "bourse-platform"
+#
+# Ce chart déploie l'ensemble de la plateforme de bourse en ligne sur AKS :
+#   - backend (FastAPI), frontend, admin-frontend (Nginx)
+#   - bvc-producer (scraper Kafka), bvc-relay (proxy HTTP)
+#   - Dépendances tierces : Kafka et Keycloak (charts Bitnami officiels)
+#
+# PostgreSQL n'est PAS inclus comme dépendance : on utilise Azure Database
+# for PostgreSQL Flexible Server (managé, provisionné via Terraform).
+# ==============================================================================
+apiVersion: v2
+name: bourse-platform
+description: Plateforme de bourse en ligne — backend, frontends, streaming Kafka et SSO Keycloak sur AKS
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+icon: https://raw.githubusercontent.com/cncf/artwork/master/projects/kubernetes/icon/color/kubernetes-icon-color.png
+
+keywords:
+  - bourse
+  - fintech
+  - kafka
+  - keycloak
+  - fastapi
+
+maintainers:
+  - name: Plateforme Bourse en Ligne
+
+# ------------------------------------------------------------------------------
+# Dépendances : sous-charts tiers installés automatiquement via
+# `helm dependency update`. Activables/désactivables via values.yaml
+# (kafka.enabled / keycloak.enabled).
+# ------------------------------------------------------------------------------
+dependencies:
+  - name: kafka
+    version: "31.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: kafka.enabled
+
+  - name: keycloak
+    version: "24.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: keycloak.enabled

@@ -1,0 +1,22 @@
+# ==============================================================================
+# Dockerfile.bvc-relay — Relais HTTP BVC (serve.py)
+#
+# En local (docker-compose), serve.py est monté en volume sur l'image
+# python:3.12-slim de base. En Kubernetes, l'image doit être autonome
+# (pas de volumes hôte disponibles) : ce Dockerfile copie serve.py dans
+# l'image, à builder/pousser vers l'ACR sous le nom "bvc-relay".
+#
+# Build (depuis la racine du projet) :
+#   docker build -f Dockerfile.bvc-relay -t bvc-relay:latest .
+# ==============================================================================
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# serve.py n'utilise que la bibliothèque standard Python (http.server,
+# urllib) : aucune dépendance tierce à installer.
+COPY serve.py /app/serve.py
+
+EXPOSE 8765
+
+CMD ["python", "/app/serve.py"]
