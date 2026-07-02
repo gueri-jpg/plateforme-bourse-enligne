@@ -84,17 +84,36 @@ async function traiterRetourKeycloak() {
     sessionStorage.removeItem(STORAGE_KEYS.CODE_VERIFIER);
     sessionStorage.removeItem("bourse_oauth_state");
 
-    const isRegistration = sessionStorage.getItem("bourse_is_registration") === "true";
+    const isRegistration       = sessionStorage.getItem("bourse_is_registration") === "true";
+    const inscriptionComplete  = sessionStorage.getItem("bourse_inscription_complete") === "true";
     sessionStorage.removeItem("bourse_is_registration");
+    sessionStorage.removeItem("bourse_inscription_complete");
+
+    // Décoder le sub pour la clé localStorage
+    let sub = "";
+    try {
+      sub = JSON.parse(atob(donneesToken.access_token.split(".")[1])).sub || "";
+    } catch { /* token malformé - continuer */ }
 
     if (isRegistration) {
-      // Inscription : on efface les tokens pour forcer une vraie connexion
-      // à la fin du formulaire de profil
+      // Inscription directe : effacer les tokens, l'utilisateur se reconnectera après le wizard
       effacerTokens();
-      messageStatut.textContent = "Compte créé, redirection vers le formulaire de profil...";
+      window.location.href = "inscription.html";
+      return;
+    }
+
+    if (inscriptionComplete) {
+      // Retour du wizard inscription (non-SSO) : marquer profil complet + dashboard
+      if (sub) localStorage.setItem("bourse_profil_" + sub, "1");
+      window.location.href = "dashboard.html";
+      return;
+    }
+
+    // Login normal : vérifier si le profil bourse a déjà été complété
+    if (sub && !localStorage.getItem("bourse_profil_" + sub)) {
+      // Premier login (SSO ou direct) → wizard d'inscription
       window.location.href = "inscription.html";
     } else {
-      messageStatut.textContent = "Connexion reussie, redirection vers le tableau de bord...";
       window.location.href = "dashboard.html";
     }
   } catch (erreur) {
@@ -104,6 +123,7 @@ async function traiterRetourKeycloak() {
 }
 
 function redirigerVersLoginAvecErreur(texteErreur) {
+  document.documentElement.style.visibility = "";
   messageStatut.hidden = true;
   messageErreur.textContent = texteErreur;
   messageErreur.hidden = false;

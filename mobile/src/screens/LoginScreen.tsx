@@ -99,10 +99,11 @@ export function LoginScreen() {
   const authUrlRef      = useRef('');
   const handledRef      = useRef(false);
   const lastUrlRef      = useRef('');
+  const isRegisterRef   = useRef(false);   // true quand le flow vient de "Ouvrir un compte"
   const webviewRef      = useRef<WebView>(null);
 
   // ── Démarrer le flow PKCE ─────────────────────────────────────────────────
-  const openWebView = useCallback((builder: () => { url: string; codeVerifier: string; state: string }) => {
+  const openWebView = useCallback((builder: () => { url: string; codeVerifier: string; state: string }, isRegister: boolean) => {
     setLoading(true);
     try {
       const { url, codeVerifier, state } = builder();
@@ -110,6 +111,7 @@ export function LoginScreen() {
       stateRef.current        = state;
       authUrlRef.current      = url;
       handledRef.current      = false;
+      isRegisterRef.current   = isRegister;
       setWebError(null);
       setErrorMsg(null);
       setWebLoading(true);
@@ -122,8 +124,8 @@ export function LoginScreen() {
     }
   }, []);
 
-  const startLogin    = useCallback(() => openWebView(buildPkceAuthUrl),    [openWebView]);
-  const startRegister = useCallback(() => openWebView(buildPkceRegisterUrl), [openWebView]);
+  const startLogin    = useCallback(() => openWebView(buildPkceAuthUrl,    false), [openWebView]);
+  const startRegister = useCallback(() => openWebView(buildPkceRegisterUrl, true),  [openWebView]);
 
   // ── Traiter le callback OAuth2 ────────────────────────────────────────────
   const processCallback = useCallback((url: string) => {
@@ -163,8 +165,8 @@ export function LoginScreen() {
 
     exchangeCodeForTokens(code, codeVerifierRef.current)
       .then(async (tokens) => {
-        await setTokens(tokens);
-        // RootNavigator bascule vers MainTabs — WebView unmounted automatiquement
+        await setTokens(tokens, isRegisterRef.current);
+        // RootNavigator bascule vers Onboarding (inscription) ou MainTabs (login)
       })
       .catch((e: unknown) => {
         setExchanging(false);

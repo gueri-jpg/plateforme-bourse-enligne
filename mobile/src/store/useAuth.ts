@@ -40,15 +40,18 @@ interface AuthState {
   refreshToken: string | null;
   idToken:      string | null;
   user:         AuthUser | null;
+  isNewUser:    boolean;   // true après inscription → affiche l'onboarding
 
   // Hydrate l'état depuis SecureStore au démarrage de l'app
-  hydrate:    () => Promise<void>;
+  hydrate:            () => Promise<void>;
   // Persiste les tokens reçus après échange PKCE
-  setTokens:  (tokens: KeycloakTokens) => Promise<void>;
+  setTokens:          (tokens: KeycloakTokens, isNew?: boolean) => Promise<void>;
   // Tente un refresh manuel (utilisé par l'intercepteur 401)
-  tryRefresh: () => Promise<boolean>;
+  tryRefresh:         () => Promise<boolean>;
   // Déconnexion : vide les tokens du store et de SecureStore
-  logout:     () => Promise<void>;
+  logout:             () => Promise<void>;
+  // Marque l'onboarding comme terminé → RootNavigator bascule vers MainTabs
+  completeOnboarding: () => void;
 }
 
 // ── Création du store ─────────────────────────────────────────────────────────
@@ -58,6 +61,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   refreshToken: null,
   idToken:      null,
   user:         null,
+  isNewUser:    false,
 
   // ── Hydratation au démarrage ─────────────────────────────────────────────
   hydrate: async () => {
@@ -105,8 +109,8 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
   },
 
-  // ── Persistance des tokens après login ───────────────────────────────────
-  setTokens: async (tokens) => {
+  // ── Persistance des tokens après login / inscription ────────────────────
+  setTokens: async (tokens, isNew = false) => {
     await storage.set(KEYS.accessToken, tokens.access_token);
     if (tokens.id_token)      await storage.set(KEYS.idToken,      tokens.id_token);
     if (tokens.refresh_token) await storage.set(KEYS.refreshToken, tokens.refresh_token);
@@ -116,6 +120,7 @@ export const useAuth = create<AuthState>((set, get) => ({
 
     set({
       status:       'authenticated',
+      isNewUser:    isNew,
       accessToken:  tokens.access_token,
       idToken:      tokens.id_token      ?? null,
       refreshToken: tokens.refresh_token ?? null,
@@ -153,8 +158,12 @@ export const useAuth = create<AuthState>((set, get) => ({
       idToken:      null,
       refreshToken: null,
       user:         null,
+      isNewUser:    false,
     });
   },
+
+  // ── Fin de l'onboarding → bascule vers MainTabs ───────────────────────────
+  completeOnboarding: () => set({ isNewUser: false }),
 }));
 
 // Enregistre le callback de logout pour l'intercepteur 401 d'Axios

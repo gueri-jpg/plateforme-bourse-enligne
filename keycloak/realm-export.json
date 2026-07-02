@@ -1205,6 +1205,40 @@
                                                      "offline_access",
                                                      "microprofile-jwt"
                                                  ]
+                    },
+                    {
+                        "standardFlowEnabled":  true,
+                        "enabled":  true,
+                        "directAccessGrantsEnabled":  false,
+                        "protocol":  "openid-connect",
+                        "redirectUris":  [
+                                             "http://localhost:8080/realms/cfc-banque-digitale/broker/bourse-en-ligne/endpoint",
+                                             "http://localhost:8080/realms/cfc-banque-digitale/broker/bourse-en-ligne/endpoint*"
+                                         ],
+                        "serviceAccountsEnabled":  false,
+                        "optionalClientScopes":  [
+
+                                                 ],
+                        "defaultClientScopes":  [
+                                                    "openid",
+                                                    "profile",
+                                                    "email"
+                                                ],
+                        "attributes":  {
+                                           "backchannel.logout.revoke.offline.tokens":  "true",
+                                           "pkce.code.challenge.method":  "S256",
+                                           "backchannel.logout.session.required":  "true"
+                                       },
+                        "implicitFlowEnabled":  false,
+                        "clientAuthenticatorType":  "client-secret",
+                        "description":  "Client confidentiel pour la federation SSO vers la banque digitale CFC",
+                        "clientId":  "banque-broker",
+                        "secret":  "BanqueDevSecret2026!",
+                        "publicClient":  false,
+                        "name":  "Broker vers realm cfc-banque-digitale",
+                        "webOrigins":  [
+
+                                       ]
                     }
                 ],
     "clientScopes":  [

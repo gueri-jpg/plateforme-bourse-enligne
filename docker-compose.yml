@@ -167,6 +167,8 @@ services:
       - ./keycloak/realm-admin-export.json:/opt/keycloak/data/import/realm-admin-export.json:ro
       # Thème personnalisé BourseOnline (dark theme aux couleurs de la plateforme)
       - ./keycloak/themes/bourse:/opt/keycloak/themes/bourse:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       postgres:
         condition: service_healthy

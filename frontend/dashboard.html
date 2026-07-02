@@ -405,6 +405,11 @@
         <span id="user-role-badge" style="margin-left:6px;display:none;
           border-radius:999px;padding:1px 8px;font-size:10px;"></span>
       </div>
+      <button class="btn-sm" id="btn-banque" title="Retour à la banque digitale CFC"
+        style="border-color:rgba(211,47,47,.4);color:#f87171"
+        onclick="window.open(window.location.hostname==='localhost'?'http://localhost:8010/?action=login':'https://banquedigitale.cfconsulting.ma/?action=login','_blank')">
+        ← Banque CFC
+      </button>
       <button class="btn-sm btn-danger" id="btn-logout">Déconnecter</button>
     </div>
   </header>

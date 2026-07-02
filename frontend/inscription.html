@@ -504,6 +504,20 @@
   } from "./js/config.js";
 
   window.lancerConnexion = async function () {
+    // Marquer le profil comme complété pour cet utilisateur
+    const token = sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    if (token) {
+      // Utilisateur déjà authentifié (SSO) : marquer profil et aller au dashboard
+      try {
+        const sub = JSON.parse(atob(token.split(".")[1])).sub;
+        if (sub) localStorage.setItem("bourse_profil_" + sub, "1");
+      } catch { /* token malformé */ }
+      window.location.href = "dashboard.html";
+      return;
+    }
+
+    // Utilisateur non authentifié (inscription directe) : PKCE login
+    sessionStorage.setItem("bourse_inscription_complete", "true");
     const codeVerifier  = genererCodeVerifier();
     const codeChallenge = await genererCodeChallenge(codeVerifier);
     const etat          = genererEtatAleatoire();

@@ -5,8 +5,9 @@
 
 // ── Stack racine ──────────────────────────────────────────────────────────────
 export type RootStackParamList = {
-  Login: undefined;
-  Main:  undefined;
+  Login:      undefined;
+  Onboarding: undefined;
+  Main:       undefined;
 };
 
 // ── Bottom Tabs principaux ────────────────────────────────────────────────────

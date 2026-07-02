@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>(function(){if(new URLSearchParams(location.search).get("kc_idp_hint"))document.documentElement.style.visibility="hidden";})()</script>
   <title>BourseOnline &middot; Marché en Direct</title>
   <style>
     :root {
@@ -586,7 +587,11 @@ if (params.has("erreur")) {
   messageErreur.textContent = params.get("erreur");
 }
 
-async function demarrerLoginKeycloak() {
+// kc_idp_hint dans l'URL → déclencher le SSO sans afficher la modal
+// Utilisé par l'app mobile banque : ouvre bourse/?kc_idp_hint=cfc-banque
+const idpHint = params.get("kc_idp_hint");
+
+async function demarrerLoginKeycloak(idpHintOverride) {
   try {
     const codeVerifier  = genererCodeVerifier();
     const codeChallenge = await genererCodeChallenge(codeVerifier);
@@ -605,8 +610,12 @@ async function demarrerLoginKeycloak() {
       state:                 etat,
     });
 
+    const hint = idpHintOverride || idpHint;
+    if (hint) p.set("kc_idp_hint", hint);
+
     window.location.href = `${KEYCLOAK_AUTH_ENDPOINT}?${p.toString()}`;
   } catch (e) {
+    document.body.style.visibility = "";
     console.error(e);
     messageErreur.textContent = "Impossible de démarrer la connexion. Voir la console.";
   }
@@ -644,9 +653,17 @@ async function ouvrirInscription() {
   }
 }
 
-document.getElementById("bouton-login").addEventListener("click", demarrerLoginKeycloak);
-document.getElementById("btnLogin").addEventListener("click", ouvrirModal);
-document.getElementById("btnHeroLogin").addEventListener("click", ouvrirModal);
+// Si l'URL contient kc_idp_hint (SSO depuis l'app mobile banque),
+// déclencher immédiatement le login sans afficher la modal.
+if (idpHint) {
+  document.body.style.visibility = "hidden";
+  demarrerLoginKeycloak(idpHint);
+} else {
+  document.getElementById("bouton-login").addEventListener("click", () => demarrerLoginKeycloak());
+  document.getElementById("btnLogin").addEventListener("click", ouvrirModal);
+  document.getElementById("btnHeroLogin").addEventListener("click", ouvrirModal);
+}
+
 document.getElementById("btnHeroRegister").addEventListener("click", ouvrirInscription);
 document.getElementById("linkRegister").addEventListener("click", e => { e.preventDefault(); fermerModal(); ouvrirInscription(); });
 document.getElementById("btnModalClose").addEventListener("click", fermerModal);

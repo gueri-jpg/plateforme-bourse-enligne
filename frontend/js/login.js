@@ -22,31 +22,35 @@ import { genererCodeVerifier, genererCodeChallenge, genererEtatAleatoire } from 
 const boutonLogin = document.getElementById("bouton-login");
 const messageErreur = document.getElementById("message-erreur");
 
-// Si Keycloak nous renvoie une erreur sur la page d'accueil (ex: l'utilisateur
-// a annule le login depuis la page de callback), on l'affiche.
 const parametresUrl = new URLSearchParams(window.location.search);
 if (parametresUrl.has("erreur")) {
   afficherErreur(parametresUrl.get("erreur"));
 }
 
-boutonLogin.addEventListener("click", demarrerLoginKeycloak);
+// kc_idp_hint : SSO automatique depuis l'app mobile banque
+const idpHint = parametresUrl.get("kc_idp_hint");
+
+boutonLogin.addEventListener("click", () => demarrerLoginKeycloak());
+
+// Déclenchement automatique si kc_idp_hint present dans l'URL
+if (idpHint) {
+  document.body.style.visibility = "hidden";
+  demarrerLoginKeycloak(idpHint);
+}
 
 /**
  * Construit l'URL /auth avec les parametres PKCE et redirige le navigateur.
+ * @param {string} [hint] - kc_idp_hint optionnel (SSO via IDP externe)
  */
-async function demarrerLoginKeycloak() {
+async function demarrerLoginKeycloak(hint) {
   try {
-    // 1. Generation PKCE
     const codeVerifier = genererCodeVerifier();
     const codeChallenge = await genererCodeChallenge(codeVerifier);
     const etat = genererEtatAleatoire();
 
-    // 2. Stockage temporaire du code_verifier et du state (PKCE + anti-CSRF),
-    // releves par callback.js apres redirection de Keycloak.
     sessionStorage.setItem(STORAGE_KEYS.CODE_VERIFIER, codeVerifier);
     sessionStorage.setItem("bourse_oauth_state", etat);
 
-    // 3. Construction de l'URL d'autorisation Keycloak
     const parametres = new URLSearchParams({
       client_id: KEYCLOAK_CLIENT_ID,
       response_type: "code",
@@ -57,8 +61,11 @@ async function demarrerLoginKeycloak() {
       state: etat,
     });
 
+    if (hint) parametres.set("kc_idp_hint", hint);
+
     window.location.href = `${KEYCLOAK_AUTH_ENDPOINT}?${parametres.toString()}`;
   } catch (erreur) {
+    document.body.style.visibility = "";
     console.error(erreur);
     afficherErreur("Impossible de demarrer la connexion (PKCE). Voir la console.");
   }

@@ -18,9 +18,10 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator }          from '@react-navigation/native-stack';
 import { StatusBar }                           from 'expo-status-bar';
 
-import { useAuth }    from '../store/useAuth';
-import { LoginScreen } from '../screens/LoginScreen';
-import { MainTabs }   from './MainTabs';
+import { useAuth }           from '../store/useAuth';
+import { LoginScreen }       from '../screens/LoginScreen';
+import { OnboardingScreen }  from '../screens/OnboardingScreen';
+import { MainTabs }          from './MainTabs';
 import type { RootStackParamList } from './types';
 
 const C = {
@@ -64,8 +65,9 @@ function SplashScreen() {
 
 // ── Navigateur racine ─────────────────────────────────────────────────────────
 export function RootNavigator() {
-  const status  = useAuth((s) => s.status);
-  const hydrate = useAuth((s) => s.hydrate);
+  const status     = useAuth((s) => s.status);
+  const isNewUser  = useAuth((s) => s.isNewUser);
+  const hydrate    = useAuth((s) => s.hydrate);
 
   // Hydrater le store depuis SecureStore au premier montage
   useEffect(() => {
@@ -88,17 +90,18 @@ export function RootNavigator() {
         }}
       >
         {status === 'unauthenticated' ? (
-          // ── Flow non authentifié : LoginScreen uniquement ──────────────────
           <Stack.Screen
             name="Login"
             component={LoginScreen}
-            options={{
-              headerShown:    false,
-              gestureEnabled: false,  // empêche de swiper pour revenir en arrière
-            }}
+            options={{ headerShown: false, gestureEnabled: false }}
+          />
+        ) : isNewUser ? (
+          <Stack.Screen
+            name="Onboarding"
+            component={OnboardingScreen}
+            options={{ headerShown: false, gestureEnabled: false }}
           />
         ) : (
-          // ── Flow authentifié : 6 onglets ──────────────────────────────────
           <Stack.Screen
             name="Main"
             component={MainTabs}
