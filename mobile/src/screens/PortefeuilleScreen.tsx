@@ -1,8 +1,16 @@
-import { useState, useCallback } from 'react';
+// ============================================================================
+// screens/PortefeuilleScreen.tsx — Portefeuille et valorisation temps réel
+// Adapté de app/(tabs)/portefeuille.tsx pour React Navigation
+// Remplacement : useFocusEffect + useRouter expo-router → @react-navigation/native
+// ============================================================================
+
+import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { getPortfolio, getOrders, Portfolio, Order, resetPortfolio } from '../../services/trading';
 import { useMarketData } from '../../hooks/useMarketData';
-import { useFocusEffect, useRouter } from 'expo-router';
+import type { MainTabParamList } from '../navigation/types';
 
 const C = {
   bg: '#070b1c', panel: '#111733', panel2: '#0e1430',
@@ -20,12 +28,13 @@ function fmtDate(iso: string) {
          d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function PortefeuilleScreen() {
+export function PortefeuilleScreen() {
   const [portfolio, setPortfolio] = useState<Portfolio>({ balance: 0, positions: [] });
   const [history,   setHistory]   = useState<Order[]>([]);
   const { stocks } = useMarketData();
-  const router = useRouter();
+  const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
 
+  // Recharger à chaque focus
   useFocusEffect(useCallback(() => {
     getPortfolio().then(setPortfolio);
     getOrders().then(orders =>
@@ -33,6 +42,7 @@ export default function PortefeuilleScreen() {
     );
   }, []));
 
+  // Calcul de la valorisation totale aux cours actuels
   const totalValue = portfolio.positions.reduce((acc, pos) => {
     const cur = stocks.find(s => s.name === pos.name)?.price ?? pos.avgPrice;
     return acc + pos.qty * cur;
@@ -41,20 +51,29 @@ export default function PortefeuilleScreen() {
   const totalPl   = totalValue - totalCost;
   const plPct     = totalCost ? totalPl / totalCost * 100 : 0;
 
+  // Réinitialisation du portefeuille (remet 100k MAD, efface toutes les positions)
   const handleReset = () => {
-    Alert.alert('Réinitialiser', 'Supprimer toutes les positions et remettre 100 000 MAD ?', [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Confirmer', style: 'destructive', onPress: async () => {
-        await resetPortfolio();
-        setPortfolio({ balance: 100_000, positions: [] });
-        setHistory([]);
-      }},
-    ]);
+    Alert.alert(
+      'Réinitialiser',
+      'Supprimer toutes les positions et remettre 100 000 MAD ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Confirmer',
+          style: 'destructive',
+          onPress: async () => {
+            await resetPortfolio();
+            setPortfolio({ balance: 100_000, positions: [] });
+            setHistory([]);
+          },
+        },
+      ]
+    );
   };
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={{ paddingBottom: 32 }}>
-      {/* KPI */}
+    <ScrollView style={s.container} contentContainerStyle={{ paddingTop: 16, paddingBottom: 32 }}>
+      {/* KPIs en haut */}
       <View style={s.kpiRow}>
         <View style={s.kpi}>
           <Text style={s.kpiLabel}>Solde</Text>
@@ -77,59 +96,68 @@ export default function PortefeuilleScreen() {
         </View>
       </View>
 
-      {/* Positions */}
+      {/* Positions ouvertes */}
       <View style={s.section}>
         <Text style={s.sectionTitle}>Mes positions</Text>
         {portfolio.positions.length === 0 ? (
           <View style={s.emptyBox}>
             <Text style={s.emptyTxt}>Aucune position ouverte.</Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/ordres' as any)} style={s.emptyBtn}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Ordre', {})}
+              style={s.emptyBtn}
+            >
               <Text style={{ color: C.accent, fontWeight: '600' }}>Passer un premier ordre →</Text>
             </TouchableOpacity>
           </View>
-        ) : portfolio.positions.map(pos => {
-          const cur   = stocks.find(s => s.name === pos.name)?.price ?? pos.avgPrice;
-          const val   = pos.qty * cur;
-          const cost  = pos.qty * pos.avgPrice;
-          const pl    = val - cost;
-          const pp    = cost ? pl / cost * 100 : 0;
-          return (
-            <View key={pos.name} style={s.posCard}>
-              <View style={s.posHeader}>
-                <Text style={s.posName}>{pos.name}</Text>
-                <Text style={[s.posPl, { color: pl >= 0 ? C.up : C.down }]}>
-                  {pl >= 0 ? '+' : ''}{fmtN(pl, 0)} ({fmtN(pp)}%)
-                </Text>
+        ) : (
+          portfolio.positions.map(pos => {
+            const cur  = stocks.find(s => s.name === pos.name)?.price ?? pos.avgPrice;
+            const val  = pos.qty * cur;
+            const cost = pos.qty * pos.avgPrice;
+            const pl   = val - cost;
+            const pp   = cost ? pl / cost * 100 : 0;
+            return (
+              <View key={pos.name} style={s.posCard}>
+                <View style={s.posHeader}>
+                  <Text style={s.posName}>{pos.name}</Text>
+                  <Text style={[s.posPl, { color: pl >= 0 ? C.up : C.down }]}>
+                    {pl >= 0 ? '+' : ''}{fmtN(pl, 0)} ({fmtN(pp)}%)
+                  </Text>
+                </View>
+                <View style={s.posGrid}>
+                  {[
+                    ['Quantité',     `${pos.qty} titres`],
+                    ['Prix moyen',   `${fmtN(pos.avgPrice)} MAD`],
+                    ['Cours actuel', `${fmtN(cur)} MAD`],
+                    ['Valorisation', `${fmtN(val, 0)} MAD`],
+                  ].map(([lbl, v]) => (
+                    <View key={lbl} style={s.posCell}>
+                      <Text style={s.posCellLabel}>{lbl}</Text>
+                      <Text style={s.posCellVal}>{v}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={s.posActions}>
+                  <TouchableOpacity
+                    style={[s.posBtn, { borderColor: C.up }]}
+                    onPress={() => navigation.navigate('Ordre', { stock: pos.name, direction: 'achat' })}
+                  >
+                    <Text style={{ color: C.up, fontSize: 12, fontWeight: '600' }}>📈 Acheter +</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[s.posBtn, { borderColor: C.down }]}
+                    onPress={() => navigation.navigate('Ordre', { stock: pos.name, direction: 'vente' })}
+                  >
+                    <Text style={{ color: C.down, fontSize: 12, fontWeight: '600' }}>📉 Vendre</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={s.posGrid}>
-                {[
-                  ['Quantité',    `${pos.qty} titres`],
-                  ['Prix moyen',  `${fmtN(pos.avgPrice)} MAD`],
-                  ['Cours actuel',`${fmtN(cur)} MAD`],
-                  ['Valorisation',`${fmtN(val, 0)} MAD`],
-                ].map(([lbl, val]) => (
-                  <View key={lbl} style={s.posCell}>
-                    <Text style={s.posCellLabel}>{lbl}</Text>
-                    <Text style={s.posCellVal}>{val}</Text>
-                  </View>
-                ))}
-              </View>
-              <View style={s.posActions}>
-                <TouchableOpacity style={[s.posBtn, { borderColor: C.up }]}
-                  onPress={() => router.push({ pathname: '/(tabs)/ordres' as any, params: { stock: pos.name, direction: 'achat' } })}>
-                  <Text style={{ color: C.up, fontSize: 12, fontWeight: '600' }}>📈 Acheter +</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[s.posBtn, { borderColor: C.down }]}
-                  onPress={() => router.push({ pathname: '/(tabs)/ordres' as any, params: { stock: pos.name, direction: 'vente' } })}>
-                  <Text style={{ color: C.down, fontSize: 12, fontWeight: '600' }}>📉 Vendre</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
-        })}
+            );
+          })
+        )}
       </View>
 
-      {/* Historique */}
+      {/* Derniers mouvements */}
       {history.length > 0 && (
         <View style={s.section}>
           <Text style={s.sectionTitle}>Derniers mouvements</Text>
@@ -147,12 +175,16 @@ export default function PortefeuilleScreen() {
               </View>
             </View>
           ))}
-          <TouchableOpacity style={s.seeAll} onPress={() => router.push('/(tabs)/carnet' as any)}>
+          <TouchableOpacity
+            style={s.seeAll}
+            onPress={() => navigation.navigate('Carnet')}
+          >
             <Text style={{ color: C.accent, fontSize: 13 }}>Voir tout le carnet →</Text>
           </TouchableOpacity>
         </View>
       )}
 
+      {/* Bouton reset */}
       <TouchableOpacity style={s.resetBtn} onPress={handleReset}>
         <Text style={s.resetTxt}>Réinitialiser le portefeuille</Text>
       </TouchableOpacity>

@@ -67,13 +67,8 @@ export default function LoginScreen({ navigation }: any) {
 
       <View style={s.card}>
         <Text style={s.cardTitle}>Connexion</Text>
-        <Text style={s.cardDesc}>
-          Authentification sécurisée via Keycloak{'\n'}OAuth2 PKCE · realm bourse-en-ligne
-        </Text>
-        <View style={s.hint}>
-          <Text style={s.hintText}>investisseur1 / Investisseur123!</Text>
-          <Text style={s.hintText}>support1 / Support123!</Text>
-        </View>
+        
+        
         <TouchableOpacity
           style={[s.btn, (!request || loading) && s.btnDisabled]}
           onPress={handleLogin}
@@ -81,12 +76,12 @@ export default function LoginScreen({ navigation }: any) {
         >
           {loading
             ? <ActivityIndicator color="#000" />
-            : <Text style={s.btnText}>🔑 Se connecter avec Keycloak</Text>
+            : <Text style={s.btnText}>🔑 Se connecter </Text>
           }
         </TouchableOpacity>
       </View>
 
-      <Text style={s.footer}>Données BVC · Usage pédagogique uniquement</Text>
+      <Text style={s.footer}>© 2024 BourseOnline. Tous droits réservés.</Text>
     </View>
   );
 }

@@ -17,13 +17,15 @@ export default function TabsLayout() {
         tabBarInactiveTintColor:'#8a93b8',
         headerStyle:            HEADER,
         headerTintColor:        '#e7ecff',
+        tabBarLabelStyle:       { fontSize: 10 },
       }}
     >
       <Tabs.Screen name="marche"       options={{ title: 'Marché',      tabBarIcon: ({ focused }) => <Icon emoji="📊" focused={focused} /> }} />
-      <Tabs.Screen name="portefeuille" options={{ title: 'Portefeuille', tabBarIcon: ({ focused }) => <Icon emoji="💼" focused={focused} /> }} />
-      <Tabs.Screen name="ordres"       options={{ title: 'Ordres',       tabBarIcon: ({ focused }) => <Icon emoji="🔄" focused={focused} /> }} />
-      <Tabs.Screen name="historique"   options={{ title: 'Historique',   tabBarIcon: ({ focused }) => <Icon emoji="📋" focused={focused} /> }} />
-      <Tabs.Screen name="profil"       options={{ title: 'Profil',       tabBarIcon: ({ focused }) => <Icon emoji="👤" focused={focused} /> }} />
+      <Tabs.Screen name="watchlist"    options={{ title: 'Favoris',     tabBarIcon: ({ focused }) => <Icon emoji="⭐" focused={focused} /> }} />
+      <Tabs.Screen name="ordres"       options={{ title: 'Ordre',       tabBarIcon: ({ focused }) => <Icon emoji="🔄" focused={focused} /> }} />
+      <Tabs.Screen name="carnet"       options={{ title: 'Carnet',      tabBarIcon: ({ focused }) => <Icon emoji="📓" focused={focused} /> }} />
+      <Tabs.Screen name="portefeuille" options={{ title: 'Wallet',      tabBarIcon: ({ focused }) => <Icon emoji="💼" focused={focused} /> }} />
+      <Tabs.Screen name="profil"       options={{ title: 'Profil',      tabBarIcon: ({ focused }) => <Icon emoji="👤" focused={focused} /> }} />
     </Tabs>
   );
 }

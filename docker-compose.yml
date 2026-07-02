@@ -153,6 +153,10 @@ services:
       KC_SMTP_STARTTLS: "true"
       KC_SMTP_SSL: "false"
       KC_SMTP_AUTH: "true"
+      # Désactive le cache des thèmes en dev pour voir les modifs CSS sans restart
+      KC_SPI_THEME_CACHE_THEMES: "false"
+      KC_SPI_THEME_CACHE_TEMPLATES: "false"
+      KC_SPI_THEME_STATIC_MAX_AGE: "-1"
     ports:
       # Console d'administration et endpoints OIDC du realm
       - "9090:8080"  # (hote)9090 -> conteneur:8080
@@ -161,6 +165,8 @@ services:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
       # Realm administrateurs (bourse-admin) — séparé pour isoler les comptes admin
       - ./keycloak/realm-admin-export.json:/opt/keycloak/data/import/realm-admin-export.json:ro
+      # Thème personnalisé BourseOnline (dark theme aux couleurs de la plateforme)
+      - ./keycloak/themes/bourse:/opt/keycloak/themes/bourse:ro
     depends_on:
       postgres:
         condition: service_healthy

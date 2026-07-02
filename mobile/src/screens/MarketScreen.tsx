@@ -1,15 +1,22 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+// ============================================================================
+// screens/MarketScreen.tsx — Liste des valeurs BVC en temps réel
+// Adapté de app/(tabs)/marche.tsx pour React Navigation
+// Remplacement : useRouter → useNavigation + navigation.navigate
+// ============================================================================
+
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View, Text, TextInput, StyleSheet,
-  TouchableOpacity, Modal, ScrollView, Alert,
+  TouchableOpacity, Modal, ScrollView, Alert, FlatList,
 } from 'react-native';
-// @ts-ignore — route créée dans la même session
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useMarketData, Stock } from '../../hooks/useMarketData';
 import {
   isMarketOpen, toggleWatchlist, getWatchlist,
   checkPendingOrders,
 } from '../../services/trading';
+import type { MainTabParamList } from '../navigation/types';
 
 const C = {
   bg: '#070b1c', panel: '#111733', panel2: '#0e1430',
@@ -41,11 +48,12 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: 'name',     label: 'Nom' },
 ];
 
+// ── Modal de détail d'une action ─────────────────────────────────────────────
 function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: {
-  stock: Stock;
-  onClose: () => void;
-  onOrder: (s: Stock, dir: 'achat' | 'vente') => void;
-  isStarred: boolean;
+  stock:        Stock;
+  onClose:      () => void;
+  onOrder:      (s: Stock, dir: 'achat' | 'vente') => void;
+  isStarred:    boolean;
   onToggleStar: () => void;
 }) {
   return (
@@ -58,7 +66,9 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
               <Text style={modal.sector}>{stock.sector}</Text>
             </View>
             <TouchableOpacity onPress={onToggleStar} style={modal.star}>
-              <Text style={{ fontSize: 24, color: isStarred ? C.gold : C.muted }}>{isStarred ? '★' : '☆'}</Text>
+              <Text style={{ fontSize: 24, color: isStarred ? C.gold : C.muted }}>
+                {isStarred ? '★' : '☆'}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={onClose} style={modal.close}>
               <Text style={{ color: C.muted, fontSize: 20 }}>✕</Text>
@@ -106,9 +116,11 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
   );
 }
 
-export default function MarcheScreen() {
+// ── Écran principal ──────────────────────────────────────────────────────────
+export function MarketScreen() {
   const { stocks, overview, status, lastUpdate } = useMarketData();
-  const router = useRouter();
+  const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
+
   const [query,     setQuery]     = useState('');
   const [sort,      setSort]      = useState<SortKey>('sector');
   const [showSort,  setShowSort]  = useState(false);
@@ -116,31 +128,39 @@ export default function MarcheScreen() {
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const open = isMarketOpen();
 
+  // Charger la watchlist au montage
   useEffect(() => {
     getWatchlist().then(setWatchlist);
   }, []);
 
+  // Vérifier les ordres en attente à chaque mise à jour des cours
   useEffect(() => {
     if (stocks.length > 0) {
       checkPendingOrders(stocks).then(executed => {
         if (executed.length > 0) {
-          Alert.alert('Ordres exécutés ✓',
-            executed.map(o => `${o.direction === 'achat' ? 'Achat' : 'Vente'} ${o.qty}×${o.name} @ ${fmtN(o.price)} MAD`).join('\n')
+          Alert.alert(
+            'Ordres exécutés',
+            executed.map(o =>
+              `${o.direction === 'achat' ? 'Achat' : 'Vente'} ${o.qty}×${o.name} @ ${fmtN(o.price)} MAD`
+            ).join('\n')
           );
         }
       });
     }
   }, [stocks]);
 
+  // Filtrage et tri de la liste
   const filtered = useMemo(() => {
     let arr = stocks.slice();
     if (query) {
       const q = query.toLowerCase();
-      arr = arr.filter(s => s.name.toLowerCase().includes(q) || s.sector.toLowerCase().includes(q));
+      arr = arr.filter(s =>
+        s.name.toLowerCase().includes(q) || s.sector.toLowerCase().includes(q)
+      );
     }
     switch (sort) {
       case 'var_desc': return arr.sort((a, b) => (isNaN(b.pct) ? -99 : b.pct) - (isNaN(a.pct) ? -99 : a.pct));
-      case 'var_asc':  return arr.sort((a, b) => (isNaN(a.pct) ? 99 : a.pct) - (isNaN(b.pct) ? 99 : b.pct));
+      case 'var_asc':  return arr.sort((a, b) => (isNaN(a.pct) ? 99 : a.pct)  - (isNaN(b.pct) ? 99 : b.pct));
       case 'vol_desc': return arr.sort((a, b) => (isNaN(b.volMAD) ? -1 : b.volMAD) - (isNaN(a.volMAD) ? -1 : a.volMAD));
       case 'name':     return arr.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
       default:         return arr.sort((a, b) => a.sector.localeCompare(b.sector, 'fr') || a.name.localeCompare(b.name, 'fr'));
@@ -150,9 +170,9 @@ export default function MarcheScreen() {
   const topUp   = useMemo(() => [...stocks].filter(s => !isNaN(s.pct)).sort((a, b) => b.pct - a.pct).slice(0, 3), [stocks]);
   const topDown = useMemo(() => [...stocks].filter(s => !isNaN(s.pct)).sort((a, b) => a.pct - b.pct).slice(0, 3), [stocks]);
 
-  const up  = stocks.filter(s => s.pct > 0).length;
-  const dn  = stocks.filter(s => s.pct < 0).length;
-  const fl  = stocks.filter(s => !isNaN(s.pct) && s.pct === 0).length;
+  const up = stocks.filter(s => s.pct > 0).length;
+  const dn = stocks.filter(s => s.pct < 0).length;
+  const fl = stocks.filter(s => !isNaN(s.pct) && s.pct === 0).length;
 
   const statusColor = status === 'connected' ? C.up : status === 'connecting' ? C.gold : C.down;
 
@@ -161,15 +181,21 @@ export default function MarcheScreen() {
     setWatchlist(prev => added ? [...prev, name] : prev.filter(n => n !== name));
   }, []);
 
+  // Navigation vers l'onglet Ordre avec les paramètres pré-remplis
   const handleOrder = useCallback((s: Stock, dir: 'achat' | 'vente') => {
     setSelected(null);
-    router.push({ pathname: '/(tabs)/ordres' as any, params: { stock: s.name, direction: dir } });
-  }, [router]);
+    // Naviguer vers l'onglet Ordre en passant les paramètres via setParams
+    navigation.navigate('Ordre', { stock: s.name, direction: dir });
+  }, [navigation]);
 
-  const renderStock = ({ item }: { item: Stock }) => (
+  const renderStock = useCallback(({ item }: { item: Stock }) => (
     <TouchableOpacity style={s.row} onPress={() => setSelected(item)}>
       <TouchableOpacity style={s.starBtn} onPress={() => handleToggleStar(item.name)}>
-        <Text style={{ fontSize: 16, color: watchlist.includes(item.name) ? C.gold : C.muted, opacity: watchlist.includes(item.name) ? 1 : 0.4 }}>
+        <Text style={{
+          fontSize: 16,
+          color: watchlist.includes(item.name) ? C.gold : C.muted,
+          opacity: watchlist.includes(item.name) ? 1 : 0.4,
+        }}>
           {watchlist.includes(item.name) ? '★' : '☆'}
         </Text>
       </TouchableOpacity>
@@ -182,21 +208,23 @@ export default function MarcheScreen() {
         <Text style={[s.var, { color: varColor(item.pct) }]}>{varLabel(item.pct)}</Text>
       </View>
     </TouchableOpacity>
-  );
+  ), [watchlist, handleToggleStar]);
 
   return (
     <View style={s.container}>
-      <ScrollView stickyHeaderIndices={[]} showsVerticalScrollIndicator={false}>
-        {/* Status */}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Barre de statut connexion */}
         <View style={s.statusBar}>
           <View style={[s.dot, { backgroundColor: statusColor }]} />
-          <Text style={s.statusTxt}>{status === 'connected' ? 'En direct' : status === 'connecting' ? 'Connexion…' : 'Déconnecté'}</Text>
+          <Text style={s.statusTxt}>
+            {status === 'connected' ? 'En direct' : status === 'connecting' ? 'Connexion…' : 'Déconnecté'}
+          </Text>
           <Text style={[s.mktBadge, { color: open ? C.up : C.gold }]}>
             {open ? '● Marché ouvert' : '● Marché fermé'}
           </Text>
         </View>
 
-        {/* MASI */}
+        {/* Indice MASI */}
         {overview.masi !== null && (
           <View style={s.masiCard}>
             <Text style={s.masiLabel}>MASI</Text>
@@ -204,11 +232,13 @@ export default function MarcheScreen() {
             <Text style={[s.masiVar, { color: varColor(overview.masiVarJ ?? NaN) }]}>
               {varLabel(overview.masiVarJ ?? NaN)}
             </Text>
-            {lastUpdate && <Text style={s.masiTs}>Maj : {lastUpdate.toLocaleTimeString('fr-FR')}</Text>}
+            {lastUpdate && (
+              <Text style={s.masiTs}>Maj : {lastUpdate.toLocaleTimeString('fr-FR')}</Text>
+            )}
           </View>
         )}
 
-        {/* KPI row */}
+        {/* KPIs marché */}
         <View style={s.cardsRow}>
           <View style={s.card}>
             <Text style={s.cardLabel}>Volume MAD</Text>
@@ -216,7 +246,9 @@ export default function MarcheScreen() {
           </View>
           <View style={s.card}>
             <Text style={s.cardLabel}>Capitalisation</Text>
-            <Text style={s.cardValue} numberOfLines={1}>{fmtN((overview.capi ?? 0) / 1e9, 1)} Mds</Text>
+            <Text style={s.cardValue} numberOfLines={1}>
+              {fmtN((overview.capi ?? 0) / 1e9, 1)} Mds
+            </Text>
           </View>
           <View style={s.card}>
             <Text style={s.cardLabel}>Largeur</Text>
@@ -230,7 +262,7 @@ export default function MarcheScreen() {
           </View>
         </View>
 
-        {/* Top movers */}
+        {/* Tops et flops */}
         {stocks.length > 0 && (
           <View style={s.moversRow}>
             <View style={[s.movers, { flex: 1 }]}>
@@ -255,7 +287,7 @@ export default function MarcheScreen() {
           </View>
         )}
 
-        {/* Search + sort */}
+        {/* Recherche + tri */}
         <View style={s.searchRow}>
           <TextInput
             style={s.search}
@@ -274,15 +306,20 @@ export default function MarcheScreen() {
         {showSort && (
           <View style={s.sortMenu}>
             {SORTS.map(opt => (
-              <TouchableOpacity key={opt.key} style={s.sortOption}
-                onPress={() => { setSort(opt.key); setShowSort(false); }}>
-                <Text style={{ color: sort === opt.key ? C.accent : C.txt, fontSize: 13 }}>{opt.label}</Text>
+              <TouchableOpacity
+                key={opt.key}
+                style={s.sortOption}
+                onPress={() => { setSort(opt.key); setShowSort(false); }}
+              >
+                <Text style={{ color: sort === opt.key ? C.accent : C.txt, fontSize: 13 }}>
+                  {opt.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         )}
 
-        {/* Stock list */}
+        {/* Liste des valeurs */}
         {filtered.map((item, idx) => (
           <View key={item.name}>
             {renderStock({ item })}
@@ -297,6 +334,7 @@ export default function MarcheScreen() {
         )}
       </ScrollView>
 
+      {/* Modal détail action */}
       {selected && (
         <StockDetailModal
           stock={selected}

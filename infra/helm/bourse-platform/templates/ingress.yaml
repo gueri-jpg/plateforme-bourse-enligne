@@ -45,6 +45,9 @@ spec:
     - hosts:
         - {{ .Values.ingress.hosts.bvcRelay }}
       secretName: {{ include "bourse.fullname" . }}-tls-relay
+    - hosts:
+        - {{ .Values.ingress.hosts.keycloak }}
+      secretName: {{ include "bourse.fullname" . }}-tls-keycloak
   {{- end }}
 
   rules:
@@ -61,6 +64,18 @@ spec:
                 name: {{ include "bourse.fullname" . }}-frontend
                 port:
                   number: 80
+    {{- if .Values.ingress.hosts.frontendFallback }}
+    - host: {{ .Values.ingress.hosts.frontendFallback }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "bourse.fullname" . }}-frontend
+                port:
+                  number: 80
+    {{- end }}
 
     # ------------------------------------------------------------------
     # API backend : REST + WebSocket /ws/market

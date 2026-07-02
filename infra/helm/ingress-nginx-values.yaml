@@ -1,0 +1,8 @@
+# Valeurs persistantes pour ingress-nginx sur AKS
+# Fixe définitivement la probe Azure LB vers /healthz
+# (nginx-ingress répond 200 sur /healthz, mais 404 sur / → le LB marque le backend DOWN)
+controller:
+  service:
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/healthz"
+  replicaCount: 1

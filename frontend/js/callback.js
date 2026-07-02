@@ -11,7 +11,7 @@ import {
   REDIRECT_URI,
   STORAGE_KEYS,
 } from "./config.js";
-import { enregistrerTokens } from "./auth.js";
+import { enregistrerTokens, effacerTokens } from "./auth.js";
 
 const messageStatut = document.getElementById("message-statut");
 const messageErreur = document.getElementById("message-erreur");
@@ -84,8 +84,19 @@ async function traiterRetourKeycloak() {
     sessionStorage.removeItem(STORAGE_KEYS.CODE_VERIFIER);
     sessionStorage.removeItem("bourse_oauth_state");
 
-    messageStatut.textContent = "Connexion reussie, redirection vers le tableau de bord...";
-    window.location.href = "dashboard.html";
+    const isRegistration = sessionStorage.getItem("bourse_is_registration") === "true";
+    sessionStorage.removeItem("bourse_is_registration");
+
+    if (isRegistration) {
+      // Inscription : on efface les tokens pour forcer une vraie connexion
+      // à la fin du formulaire de profil
+      effacerTokens();
+      messageStatut.textContent = "Compte créé, redirection vers le formulaire de profil...";
+      window.location.href = "inscription.html";
+    } else {
+      messageStatut.textContent = "Connexion reussie, redirection vers le tableau de bord...";
+      window.location.href = "dashboard.html";
+    }
   } catch (erreur) {
     console.error(erreur);
     redirigerVersLoginAvecErreur("Erreur lors de l'echange du code avec Keycloak. Voir la console.");

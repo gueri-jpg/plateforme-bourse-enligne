@@ -140,6 +140,15 @@
       transition: border-color .15s;
     }
     .btn-ghost:hover { border-color: var(--accent); }
+    .btn-register {
+      padding: 12px 24px; font-size: 14px; font-weight: 600;
+      background: linear-gradient(135deg, #059669, #10b981);
+      border: none; border-radius: 10px; color: #fff;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 4px 20px rgba(16,185,129,.35);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-register:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(16,185,129,.55); }
 
     /* ── Main content ── */
     main { max-width: 1500px; margin: 0 auto; padding: 0 24px 80px; }
@@ -402,7 +411,8 @@
     tout depuis une interface unifiée et sécurisée.
   </p>
   <div class="hero-cta">
-    <button class="btn-hero" id="btnHeroLogin">Ouvrir un compte / Se connecter</button>
+    <button class="btn-hero"     id="btnHeroLogin">&#128274; Se connecter</button>
+    <button class="btn-register" id="btnHeroRegister">&#43; Ouvrir un compte</button>
     <button class="btn-ghost" onclick="document.getElementById('section-cotations').scrollIntoView({behavior:'smooth'})">
       Voir les cotations &#8595;
     </button>
@@ -542,6 +552,12 @@
       Se connecter
     </button>
     <p id="message-erreur"></p>
+    <p style="margin-top:20px;font-size:12px;color:var(--muted)">
+      Pas encore de compte ?
+      <a id="linkRegister" href="#" style="color:var(--accent);text-decoration:none;font-weight:500">
+        Ouvrir un compte &rarr;
+      </a>
+    </p>
   </div>
 </div>
 
@@ -551,6 +567,7 @@
 <script type="module">
 import {
   KEYCLOAK_AUTH_ENDPOINT,
+  KEYCLOAK_REALM_URL,
   KEYCLOAK_CLIENT_ID,
   REDIRECT_URI,
   STORAGE_KEYS,
@@ -602,9 +619,36 @@ function fermerModal() {
   document.getElementById("modal-overlay").classList.remove("open");
 }
 
+async function ouvrirInscription() {
+  try {
+    const codeVerifier  = genererCodeVerifier();
+    const codeChallenge = await genererCodeChallenge(codeVerifier);
+    const etat          = genererEtatAleatoire();
+
+    sessionStorage.setItem(STORAGE_KEYS.CODE_VERIFIER, codeVerifier);
+    sessionStorage.setItem("bourse_oauth_state", etat);
+    sessionStorage.setItem("bourse_is_registration", "true");
+
+    const p = new URLSearchParams({
+      client_id:             KEYCLOAK_CLIENT_ID,
+      redirect_uri:          REDIRECT_URI,
+      response_type:         "code",
+      scope:                 "openid profile email",
+      code_challenge:        codeChallenge,
+      code_challenge_method: "S256",
+      state:                 etat,
+    });
+    window.location.href = `${KEYCLOAK_REALM_URL}/protocol/openid-connect/registrations?${p.toString()}`;
+  } catch (e) {
+    console.error("Inscription PKCE :", e);
+  }
+}
+
 document.getElementById("bouton-login").addEventListener("click", demarrerLoginKeycloak);
 document.getElementById("btnLogin").addEventListener("click", ouvrirModal);
 document.getElementById("btnHeroLogin").addEventListener("click", ouvrirModal);
+document.getElementById("btnHeroRegister").addEventListener("click", ouvrirInscription);
+document.getElementById("linkRegister").addEventListener("click", e => { e.preventDefault(); fermerModal(); ouvrirInscription(); });
 document.getElementById("btnModalClose").addEventListener("click", fermerModal);
 document.getElementById("modal-overlay").addEventListener("click", e => {
   if (e.target === document.getElementById("modal-overlay")) fermerModal();

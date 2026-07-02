@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BourseOnline &middot; Compléter mon profil</title>
+  <style>
+    :root {
+      --bg:      #070b1c;
+      --panel:   #111733;
+      --panel2:  #0e1430;
+      --txt:     #e7ecff;
+      --muted:   #8a93b8;
+      --line:    #1f2a52;
+      --accent:  #60a5fa;
+      --accent2: #818cf8;
+      --up:      #22c55e;
+      --down:    #ef4444;
+      --gold:    #f59e0b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100vh;
+      background: linear-gradient(170deg, #050812 0%, #0b1020 50%, #070b1c 100%);
+      color: var(--txt);
+      font-family: -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      display: flex; flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 32px;
+      background: rgba(7,11,28,.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+    header svg { width: 28px; height: 28px; flex-shrink: 0; }
+    header h1  { font-size: 15px; font-weight: 700; }
+    header h1 span { color: var(--accent); }
+
+    /* ── Wrapper ── */
+    .wrapper {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; padding: 48px 24px 80px;
+    }
+
+    /* ── Stepper ── */
+    .stepper {
+      display: flex; align-items: center; gap: 0;
+      margin-bottom: 40px; width: 100%; max-width: 680px;
+    }
+    .step {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      flex: 1; position: relative; cursor: default;
+    }
+    .step-circle {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid var(--line);
+      background: var(--panel2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      transition: all .3s; position: relative; z-index: 1;
+    }
+    .step.active   .step-circle { border-color: var(--accent); background: rgba(96,165,250,.15); color: var(--accent); }
+    .step.done     .step-circle { border-color: var(--up);     background: rgba(34,197,94,.15);  color: var(--up); }
+    .step-label { font-size: 10px; color: var(--muted); text-align: center; white-space: nowrap; }
+    .step.active .step-label { color: var(--accent); }
+    .step.done   .step-label { color: var(--up); }
+
+    .step-line {
+      flex: 1; height: 2px; background: var(--line);
+      margin-top: -22px; position: relative; z-index: 0;
+      transition: background .3s;
+    }
+    .step-line.done { background: var(--up); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 20px; padding: 36px 40px;
+      width: 100%; max-width: 680px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.4);
+    }
+
+    .card-title {
+      font-size: 20px; font-weight: 700; margin-bottom: 4px;
+    }
+    .card-subtitle {
+      font-size: 13px; color: var(--muted); margin-bottom: 32px;
+    }
+
+    /* ── Form grid ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    @media (max-width: 560px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+      .card { padding: 24px 20px; }
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .4px; }
+    .field input,
+    .field select,
+    .field textarea {
+      background: var(--panel2); color: var(--txt);
+      border: 1px solid var(--line); border-radius: 10px;
+      padding: 11px 14px; font-size: 14px; font-family: inherit;
+      outline: none; transition: border-color .2s;
+      width: 100%;
+    }
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus { border-color: var(--accent); }
+    .field input::placeholder,
+    .field textarea::placeholder { color: #3a4570; }
+    .field select option { background: var(--panel2); }
+    .field textarea { resize: vertical; min-height: 90px; }
+
+    /* ── Radio group ── */
+    .radio-group { display: flex; flex-direction: column; gap: 10px; margin-top: 2px; }
+    .radio-option {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--panel2); border: 1px solid var(--line);
+      border-radius: 10px; padding: 12px 16px; cursor: pointer;
+      transition: border-color .2s;
+    }
+    .radio-option:has(input:checked) { border-color: var(--accent); background: rgba(96,165,250,.08); }
+    .radio-option input[type="radio"] { accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0; }
+    .radio-option .ro-label { font-size: 14px; font-weight: 500; }
+    .radio-option .ro-desc  { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    /* ── Navigation ── */
+    .nav {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 36px; gap: 12px;
+    }
+    .btn-prev {
+      padding: 11px 22px; border-radius: 10px; font-size: 14px;
+      font-weight: 500; font-family: inherit; cursor: pointer;
+      background: transparent; border: 1px solid var(--line); color: var(--muted);
+      transition: border-color .15s, color .15s;
+    }
+    .btn-prev:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-next {
+      padding: 11px 28px; border-radius: 10px; font-size: 14px;
+      font-weight: 600; font-family: inherit; cursor: pointer;
+      background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+      border: none; color: #fff;
+      box-shadow: 0 4px 20px rgba(59,130,246,.35);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(59,130,246,.5); }
+    .btn-finish {
+      padding: 11px 28px; border-radius: 10px; font-size: 14px;
+      font-weight: 600; font-family: inherit; cursor: pointer;
+      background: linear-gradient(135deg, #059669, #10b981);
+      border: none; color: #fff;
+      box-shadow: 0 4px 20px rgba(16,185,129,.35);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-finish:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(16,185,129,.5); }
+
+    .skip-link {
+      font-size: 12px; color: var(--muted); cursor: pointer;
+      text-decoration: underline; text-underline-offset: 2px;
+      transition: color .15s;
+    }
+    .skip-link:hover { color: var(--accent); }
+
+    /* ── Section finale ── */
+    .final-card {
+      text-align: center; padding: 56px 40px;
+    }
+    .final-icon { font-size: 56px; margin-bottom: 20px; }
+    .final-card h2 { font-size: 24px; font-weight: 700; margin-bottom: 10px; }
+    .final-card p  { color: var(--muted); font-size: 14px; line-height: 1.7; max-width: 420px; margin: 0 auto 32px; }
+    .btn-dashboard {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 32px; border-radius: 12px; font-size: 15px;
+      font-weight: 700; font-family: inherit; cursor: pointer;
+      background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+      border: none; color: #fff;
+      box-shadow: 0 4px 24px rgba(59,130,246,.4);
+      transition: transform .15s, box-shadow .15s;
+      text-decoration: none;
+    }
+    .btn-dashboard:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(59,130,246,.55); }
+
+    /* ── Étape masquée ── */
+    .step-content { display: none; }
+    .step-content.active { display: block; }
+
+    /* ── Separator section ── */
+    .section-sep {
+      font-size: 11px; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .6px; margin: 24px 0 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-sep::before, .section-sep::after {
+      content: ''; flex: 1; height: 1px; background: var(--line);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6"  y="10" width="5" height="12" rx="1" fill="#22c55e"/>
+    <line x1="8.5"  y1="6"  x2="8.5"  y2="10" stroke="#22c55e" stroke-width="1.5"/>
+    <line x1="8.5"  y1="22" x2="8.5"  y2="26" stroke="#22c55e" stroke-width="1.5"/>
+    <rect x="14" y="14" width="5" height="8"  rx="1" fill="#ef4444"/>
+    <line x1="16.5" y1="10" x2="16.5" y2="14" stroke="#ef4444" stroke-width="1.5"/>
+    <line x1="16.5" y1="22" x2="16.5" y2="27" stroke="#ef4444" stroke-width="1.5"/>
+    <rect x="22" y="8"  width="5" height="14" rx="1" fill="#22c55e"/>
+    <line x1="24.5" y1="4"  x2="24.5" y2="8"  stroke="#22c55e" stroke-width="1.5"/>
+    <line x1="24.5" y1="22" x2="24.5" y2="26" stroke="#22c55e" stroke-width="1.5"/>
+  </svg>
+  <h1>BourseOnline <span>&middot; Compléter mon profil</span></h1>
+</header>
+
+<!-- ── Wrapper ── -->
+<div class="wrapper">
+
+  <!-- Stepper -->
+  <div class="stepper" id="stepper">
+    <div class="step active" id="s1">
+      <div class="step-circle">1</div>
+      <div class="step-label">Identité</div>
+    </div>
+    <div class="step-line" id="l1"></div>
+    <div class="step" id="s2">
+      <div class="step-circle">2</div>
+      <div class="step-label">Pièce d'identité</div>
+    </div>
+    <div class="step-line" id="l2"></div>
+    <div class="step" id="s3">
+      <div class="step-circle">3</div>
+      <div class="step-label">Profil investisseur</div>
+    </div>
+    <div class="step-line" id="l3"></div>
+    <div class="step" id="s4">
+      <div class="step-circle">4</div>
+      <div class="step-label">Compte bancaire</div>
+    </div>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+
+    <!-- ── Étape 1 : Informations personnelles ── -->
+    <div class="step-content active" id="step1">
+      <div class="card-title">Informations personnelles</div>
+      <div class="card-subtitle">Renseignez vos coordonnées personnelles</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Date de naissance</label>
+          <input type="date" id="dateNaissance" />
+        </div>
+        <div class="field">
+          <label>Nationalité</label>
+          <select id="nationalite">
+            <option value="">Sélectionner…</option>
+            <option value="MA">Marocaine</option>
+            <option value="FR">Française</option>
+            <option value="DZ">Algérienne</option>
+            <option value="TN">Tunisienne</option>
+            <option value="SN">Sénégalaise</option>
+            <option value="CI">Ivoirienne</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Téléphone</label>
+          <input type="tel" id="telephone" placeholder="+212 6 XX XX XX XX" />
+        </div>
+        <div class="field">
+          <label>Pays de résidence</label>
+          <select id="paysResidence">
+            <option value="">Sélectionner…</option>
+            <option value="MA">Maroc</option>
+            <option value="FR">France</option>
+            <option value="BE">Belgique</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Adresse complète</label>
+          <textarea id="adresse" placeholder="Numéro, rue, quartier, ville, code postal…"></textarea>
+        </div>
+      </div>
+      <div class="nav">
+        <span></span>
+        <div style="display:flex;align-items:center;gap:20px">
+          <span class="skip-link" onclick="goTo(2)">Passer cette étape</span>
+          <button class="btn-next" onclick="goTo(2)">Suivant &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Étape 2 : Pièce d'identité ── -->
+    <div class="step-content" id="step2">
+      <div class="card-title">Pièce d'identité</div>
+      <div class="card-subtitle">Pour la vérification KYC réglementaire</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Type de pièce</label>
+          <select id="typePiece">
+            <option value="">Sélectionner…</option>
+            <option value="cin">Carte Nationale d'Identité (CIN)</option>
+            <option value="passport">Passeport</option>
+            <option value="sejour">Carte de séjour</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Numéro de la pièce</label>
+          <input type="text" id="numeroPiece" placeholder="Ex : AB123456" />
+        </div>
+        <div class="field">
+          <label>Date de délivrance</label>
+          <input type="date" id="dateDelivrance" />
+        </div>
+        <div class="field">
+          <label>Date d'expiration</label>
+          <input type="date" id="dateExpiration" />
+        </div>
+        <div class="field full">
+          <label>Pays émetteur</label>
+          <select id="paysEmetteur">
+            <option value="">Sélectionner…</option>
+            <option value="MA">Maroc</option>
+            <option value="FR">France</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn-prev" onclick="goTo(1)">&larr; Retour</button>
+        <div style="display:flex;align-items:center;gap:20px">
+          <span class="skip-link" onclick="goTo(3)">Passer cette étape</span>
+          <button class="btn-next" onclick="goTo(3)">Suivant &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Étape 3 : Profil investisseur ── -->
+    <div class="step-content" id="step3">
+      <div class="card-title">Profil investisseur</div>
+      <div class="card-subtitle">Ces informations permettent d'adapter nos recommandations</div>
+
+      <div class="section-sep">Expérience en bourse</div>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="experience" value="debutant" />
+          <div>
+            <div class="ro-label">Débutant</div>
+            <div class="ro-desc">Je découvre les marchés financiers</div>
+          </div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="experience" value="intermediaire" />
+          <div>
+            <div class="ro-label">Intermédiaire</div>
+            <div class="ro-desc">J'ai déjà investi, je connais les bases</div>
+          </div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="experience" value="expert" />
+          <div>
+            <div class="ro-label">Expert</div>
+            <div class="ro-desc">Je maîtrise l'analyse technique et fondamentale</div>
+          </div>
+        </label>
+      </div>
+
+      <div class="section-sep">Objectif d'investissement</div>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="objectif" value="epargne" />
+          <div>
+            <div class="ro-label">Épargne long terme</div>
+            <div class="ro-desc">Constituer un capital sur plusieurs années</div>
+          </div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="objectif" value="revenu" />
+          <div>
+            <div class="ro-label">Revenus réguliers</div>
+            <div class="ro-desc">Dividendes et coupons</div>
+          </div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="objectif" value="speculation" />
+          <div>
+            <div class="ro-label">Spéculation court terme</div>
+            <div class="ro-desc">Profiter des fluctuations du marché</div>
+          </div>
+        </label>
+      </div>
+
+      <div class="section-sep">Tolérance au risque</div>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="risque" value="faible" />
+          <div>
+            <div class="ro-label">Faible</div>
+            <div class="ro-desc">Je préfère la sécurité à la performance</div>
+          </div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="risque" value="moderee" />
+          <div>
+            <div class="ro-label">Modérée</div>
+            <div class="ro-desc">Un équilibre entre risque et rendement</div>
+          </div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="risque" value="elevee" />
+          <div>
+            <div class="ro-label">Élevée</div>
+            <div class="ro-desc">Je vise la performance maximale</div>
+          </div>
+        </label>
+      </div>
+
+      <div class="nav">
+        <button class="btn-prev" onclick="goTo(2)">&larr; Retour</button>
+        <div style="display:flex;align-items:center;gap:20px">
+          <span class="skip-link" onclick="goTo(4)">Passer cette étape</span>
+          <button class="btn-next" onclick="goTo(4)">Suivant &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Étape 4 : Compte bancaire ── -->
+    <div class="step-content" id="step4">
+      <div class="card-title">Compte bancaire</div>
+      <div class="card-subtitle">Pour vos dépôts et retraits de fonds</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Nom de la banque</label>
+          <select id="banque">
+            <option value="">Sélectionner…</option>
+            <option value="attijariwafa">Attijariwafa Bank</option>
+            <option value="bmce">Bank of Africa (BMCE)</option>
+            <option value="bcp">Banque Populaire (BCP)</option>
+            <option value="cih">CIH Bank</option>
+            <option value="sgma">Société Générale Maroc</option>
+            <option value="bmci">BMCI</option>
+            <option value="cfg">CFG Bank</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Titulaire du compte</label>
+          <input type="text" id="titulaireCompte" placeholder="Nom complet du titulaire" />
+        </div>
+        <div class="field full">
+          <label>RIB (Relevé d'Identité Bancaire)</label>
+          <input type="text" id="rib" placeholder="Ex : 001 810 0000123456789012 34" maxlength="30" />
+        </div>
+        <div class="field full">
+          <label>IBAN (optionnel)</label>
+          <input type="text" id="iban" placeholder="Ex : MA64 0011 1000 0012 3456 7890 1234" />
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn-prev" onclick="goTo(3)">&larr; Retour</button>
+        <div style="display:flex;align-items:center;gap:20px">
+          <span class="skip-link" onclick="goTo(5)">Passer cette étape</span>
+          <button class="btn-finish" onclick="goTo(5)">Terminer &#10003;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Étape finale : Confirmation ── -->
+    <div class="step-content final-card" id="step5">
+      <div class="final-icon">🎉</div>
+      <h2>Bienvenue sur BourseOnline&nbsp;!</h2>
+      <p>
+        Votre compte a été créé avec succès. Connectez-vous maintenant
+        pour accéder à votre espace investisseur.
+      </p>
+      <button class="btn-dashboard" onclick="lancerConnexion()">
+        &#128274; Se connecter
+      </button>
+    </div>
+
+  </div><!-- /card -->
+</div><!-- /wrapper -->
+
+<script type="module">
+  import { genererCodeVerifier, genererCodeChallenge, genererEtatAleatoire } from "./js/pkce.js";
+  import {
+    KEYCLOAK_AUTH_ENDPOINT, KEYCLOAK_CLIENT_ID, REDIRECT_URI, STORAGE_KEYS
+  } from "./js/config.js";
+
+  window.lancerConnexion = async function () {
+    const codeVerifier  = genererCodeVerifier();
+    const codeChallenge = await genererCodeChallenge(codeVerifier);
+    const etat          = genererEtatAleatoire();
+    sessionStorage.setItem(STORAGE_KEYS.CODE_VERIFIER, codeVerifier);
+    sessionStorage.setItem("bourse_oauth_state", etat);
+    const p = new URLSearchParams({
+      client_id: KEYCLOAK_CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      response_type: "code",
+      scope: "openid profile email",
+      code_challenge: codeChallenge,
+      code_challenge_method: "S256",
+      state: etat,
+    });
+    window.location.href = `${KEYCLOAK_AUTH_ENDPOINT}?${p.toString()}`;
+  };
+</script>
+
+<script>
+  let current = 1;
+  const TOTAL = 4;
+
+  function goTo(n) {
+    // Masquer étape actuelle
+    document.getElementById("step" + current).classList.remove("active");
+
+    // Mettre à jour stepper
+    const prev = current;
+    current = n;
+
+    for (let i = 1; i <= TOTAL; i++) {
+      const s = document.getElementById("s" + i);
+      s.classList.remove("active", "done");
+      if (i < current)      s.classList.add("done");
+      else if (i === current && current <= TOTAL) s.classList.add("active");
+      if (i < TOTAL) {
+        const l = document.getElementById("l" + i);
+        l.classList.toggle("done", i < current);
+      }
+    }
+
+    // Afficher nouvelle étape
+    document.getElementById("step" + current).classList.add("active");
+
+    // Masquer le stepper sur la page finale
+    document.getElementById("stepper").style.display = current > TOTAL ? "none" : "flex";
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+</script>
+
+</body>
+</html>

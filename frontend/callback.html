@@ -18,6 +18,17 @@
     </section>
   </main>
 
+  <script>
+    // Cacher immédiatement la page si on revient d'une inscription
+    // (l'utilisateur ne doit pas voir "Connexion en cours..." — il sera
+    // redirigé vers inscription.html sans interaction visible)
+    if (sessionStorage.getItem("bourse_is_registration") === "true") {
+      document.addEventListener("DOMContentLoaded", function () {
+        var main = document.querySelector("main");
+        if (main) main.style.visibility = "hidden";
+      });
+    }
+  </script>
   <script type="module" src="js/callback.js"></script>
 </body>
 </html>

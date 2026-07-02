@@ -205,3 +205,52 @@ export async function toggleWatchlist(name: string): Promise<boolean> {
   await AsyncStorage.setItem(keys().WATCHLIST, JSON.stringify(list));
   return idx === -1;
 }
+
+export async function isInWatchlist(name: string): Promise<boolean> {
+  const list = await getWatchlist();
+  return list.includes(name);
+}
+
+// ── Déclenchement automatique des ordres en attente ──────────────────────────
+
+export async function checkPendingOrders(stocks: Stock[]): Promise<Order[]> {
+  const orders    = await getOrders();
+  const portfolio = await getPortfolio();
+  const executed: Order[] = [];
+  const open = isMarketOpen();
+
+  for (const order of orders) {
+    if (order.status !== 'en_attente') continue;
+    const stock = stocks.find(s => s.name === order.name);
+    if (!stock || isNaN(stock.price)) continue;
+
+    let shouldExecute = false;
+    if (order.type === 'marche' && open) {
+      shouldExecute = true;
+    } else if (order.type === 'limite') {
+      if (order.direction === 'achat' && stock.price <= order.price) shouldExecute = true;
+      if (order.direction === 'vente' && stock.price >= order.price) shouldExecute = true;
+    }
+
+    if (shouldExecute) {
+      const execPrice = stock.price;
+      const total     = Math.round(order.qty * execPrice * 100) / 100;
+      if (order.direction === 'achat') {
+        addPosition(portfolio, order.name, order.sector, order.qty, execPrice);
+      } else {
+        portfolio.balance += total;
+      }
+      order.status        = 'exécuté';
+      order.executionDate = new Date().toISOString();
+      order.price         = execPrice;
+      order.total         = total;
+      executed.push(order);
+    }
+  }
+
+  if (executed.length > 0) {
+    await savePortfolio(portfolio);
+    await saveOrders(orders);
+  }
+  return executed;
+}

@@ -1,78 +1,38 @@
-import 'react-native-gesture-handler';
-import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text, View, ActivityIndicator } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { getValidAccessToken } from './services/auth';
+// ============================================================================
+// App.tsx — Point d'entrée de l'application BourseOnline
+//
+// Fournisseurs (du plus externe au plus interne) :
+//  1. GestureHandlerRootView — requis par react-native-gesture-handler
+//  2. SafeAreaProvider       — gestion des zones sécurisées (notch, Dynamic Island)
+//  3. PaperProvider          — thème react-native-paper (sombre, palette BVC)
+//  4. RootNavigator          — NavigationContainer + logique auth conditionnelle
+//
+// NOTE : main dans package.json pointe vers node_modules/expo/AppEntry.js
+// qui charge ce fichier comme export default.
+// ============================================================================
 
-import LoginScreen  from './screens/LoginScreen';
-import MarcheScreen from './screens/MarcheScreen';
-import ProfilScreen from './screens/ProfilScreen';
+import 'react-native-gesture-handler'; // doit être le PREMIER import (requis par la doc)
+import React from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider }       from 'react-native-safe-area-context';
+import { Provider as PaperProvider } from 'react-native-paper';
 
-const Tab   = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
-
-function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
-  return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>{emoji}</Text>;
-}
-
-function MainTabs() {
-  return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarStyle:             { backgroundColor: '#111733', borderTopColor: '#1f2a52' },
-        tabBarActiveTintColor:   '#60a5fa',
-        tabBarInactiveTintColor: '#8a93b8',
-        headerStyle:             { backgroundColor: '#070b1c' },
-        headerTintColor:         '#e7ecff',
-        headerTitleStyle:        { fontWeight: '600' },
-      }}
-    >
-      <Tab.Screen
-        name="Marché"
-        component={MarcheScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📊" focused={focused} /> }}
-      />
-      <Tab.Screen
-        name="Profil"
-        component={ProfilScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} /> }}
-      />
-    </Tab.Navigator>
-  );
-}
+import { RootNavigator }  from './src/navigation/RootNavigator';
+import { buildPaperTheme } from './src/theme';
 
 export default function App() {
-  const [loading,  setLoading]  = useState(true);
-  const [loggedIn, setLoggedIn] = useState(false);
-
-  useEffect(() => {
-    getValidAccessToken().then(token => {
-      setLoggedIn(!!token);
-      setLoading(false);
-    });
-  }, []);
-
-  if (loading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#070b1c', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color="#60a5fa" size="large" />
-        <StatusBar style="light" />
-      </View>
-    );
-  }
+  // Construire le thème Paper à partir de la palette BVC (sombre)
+  const paperTheme = buildPaperTheme();
 
   return (
-    <NavigationContainer>
-      <StatusBar style="light" />
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {loggedIn
-          ? <Stack.Screen name="Main"  component={MainTabs}    />
-          : <Stack.Screen name="Login" component={LoginScreen} options={{ gestureEnabled: false }} />
-        }
-      </Stack.Navigator>
-    </NavigationContainer>
+    // GestureHandlerRootView doit couvrir tout l'arbre de composants
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <PaperProvider theme={paperTheme}>
+          {/* RootNavigator contient le NavigationContainer + logique d'auth */}
+          <RootNavigator />
+        </PaperProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
