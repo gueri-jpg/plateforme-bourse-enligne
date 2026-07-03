@@ -10,6 +10,7 @@ import {
   KEYCLOAK_CLIENT_ID,
   REDIRECT_URI,
   STORAGE_KEYS,
+  BACKEND_API_BASE_URL,
 } from "./config.js";
 import { enregistrerTokens, effacerTokens } from "./auth.js";
 
@@ -103,8 +104,18 @@ async function traiterRetourKeycloak() {
     }
 
     if (inscriptionComplete) {
-      // Retour du wizard inscription (non-SSO) : marquer profil complet + dashboard
+      // Retour du wizard inscription (non-SSO) : marquer profil complet
       if (sub) localStorage.setItem("bourse_profil_" + sub, "1");
+      // Créer le portefeuille en base
+      try {
+        const token = sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+        if (token) {
+          await fetch(`${BACKEND_API_BASE_URL}/api/portefeuille/creer`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+      } catch { /* non bloquant */ }
       window.location.href = "dashboard.html";
       return;
     }

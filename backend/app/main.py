@@ -14,7 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import ws_market
-from app.routers import otp_utilisateur, parametres_devise, parametres_otp, parametres_securite
+from app.routers import otp_utilisateur, parametres_devise, parametres_otp, parametres_securite, portefeuille, ordres_bourse
 
 
 @asynccontextmanager
@@ -39,7 +39,13 @@ app = FastAPI(
 # ----------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:8010",
+        # nip.io AKS — autorise toutes les origines *.nip.io pour les déploiements K8s
+    ],
+    allow_origin_regex=r"https?://.*\.nip\.io(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -53,6 +59,8 @@ app.include_router(parametres_otp.router)
 app.include_router(parametres_devise.router)
 app.include_router(otp_utilisateur.router)
 app.include_router(ws_market.router)
+app.include_router(portefeuille.router)
+app.include_router(ordres_bourse.router)
 
 
 @app.get("/api/health", tags=["Supervision"])

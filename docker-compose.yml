@@ -194,12 +194,14 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_ISSUER_BASE_URL: http://localhost:9090
       KEYCLOAK_REALM: bourse-en-ligne
       KEYCLOAK_BACKEND_CLIENT_ID: backend-api
       KEYCLOAK_ADMIN_CLIENT_ID: admin-tools
       KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET:-admin-tools-secret-a-changer}
       ROLE_ADMINISTRATEUR: administrateur
       ROLE_INVESTISSEUR: investisseur
+      BANQUE_API_URL: http://host.docker.internal:8010
     ports:
       - "8000:8000"
     depends_on:

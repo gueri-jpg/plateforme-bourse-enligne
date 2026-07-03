@@ -18,8 +18,8 @@
       font-size: 13px; overflow: hidden; }
 
     /* ── Layout ── */
-    .app { display: grid; grid-template-rows: 52px 1fr; height: 100vh; }
-    .app-body { display: grid; grid-template-columns: var(--sidebar) 1fr; overflow: hidden; }
+    .app { display: grid; grid-template-rows: 52px auto 1fr; height: 100vh; overflow: hidden; }
+    .app-body { display: grid; grid-template-columns: var(--sidebar) 1fr; overflow: hidden; height: 100%; }
 
     /* ── Header ── */
     .dash-header {
@@ -51,7 +51,7 @@
     .dash-sidebar {
       background: var(--panel); border-right: 1px solid var(--line);
       padding: 12px 0; display: flex; flex-direction: column; gap: 2px;
-      overflow-y: auto;
+      overflow-y: auto; min-height: 0;
     }
     .nav-item {
       display: flex; align-items: center; gap: 10px;
@@ -67,7 +67,7 @@
     .nav-divider { height: 1px; background: var(--line); margin: 8px 12px; }
 
     /* ── Content area ── */
-    .dash-content { overflow: auto; position: relative; }
+    .dash-content { overflow: auto; position: relative; min-height: 0; }
     .dash-section { display: none; padding: 20px; animation: fadeIn .15s ease; }
     .dash-section.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
@@ -562,13 +562,39 @@
 
       <!-- ── PORTEFEUILLE ── -->
       <div class="dash-section" id="section-portefeuille">
-        <div class="section-title">Mon Portefeuille</div>
+        <div class="section-title">
+          Mon Portefeuille
+          <button id="btn-alimenter-bourse" class="btn-sm"
+            style="margin-left:auto;border-color:rgba(34,197,94,.4);color:#22c55e;font-size:11px"
+            onclick="ouvrirAlimenterBourse()">
+            + Alimenter depuis la banque CFC
+          </button>
+        </div>
+
+        <!-- Modal dépôt depuis la banque -->
+        <div id="modal-depot-overlay" style="display:none;position:fixed;inset:0;z-index:300;
+          background:rgba(5,8,20,.8);align-items:center;justify-content:center">
+          <div style="background:var(--panel);border:1px solid var(--line);border-radius:16px;
+            padding:28px;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.5)">
+            <div style="font-size:16px;font-weight:700;margin-bottom:16px" id="modal-depot-titre">
+              Alimenter le compte espèces
+            </div>
+            <div id="modal-depot-body" style="font-size:13px;color:var(--muted);line-height:1.8"></div>
+            <div id="modal-depot-actions" style="display:flex;gap:10px;margin-top:20px">
+              <button class="mc-btn-cancel" onclick="fermerModalDepot()">Fermer</button>
+              <button id="btn-depot-confirm" class="mc-btn-confirm achat"
+                style="flex:2;padding:10px;border-radius:8px;border:none;font-size:13px;
+                  font-weight:700;cursor:pointer;font-family:inherit"
+                onclick="confirmerDepot()">✓ Confirmer le dépôt</button>
+            </div>
+          </div>
+        </div>
 
         <div class="portfolio-grid">
           <div class="kpi-card">
             <h3>Solde disponible</h3>
             <div class="val" id="pf-balance">—</div>
-            <div class="delta muted">MAD</div>
+            <div class="delta muted" id="pf-devise">MAD</div>
           </div>
           <div class="kpi-card">
             <h3>Valeur portefeuille</h3>
@@ -690,9 +716,9 @@
         <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
           <button class="carnet-filter active" data-filter="all">Tous</button>
           <button class="carnet-filter" data-filter="en_attente">En attente</button>
-          <button class="carnet-filter" data-filter="exécuté">Exécutés</button>
-          <button class="carnet-filter" data-filter="annulé">Annulés</button>
-          <button class="carnet-filter" data-filter="rejeté">Rejetés</button>
+          <button class="carnet-filter" data-filter="execute">Exécutés</button>
+          <button class="carnet-filter" data-filter="annule">Annulés</button>
+          <button class="carnet-filter" data-filter="rejete">Rejetés</button>
         </div>
 
         <div class="box">
@@ -763,7 +789,7 @@
       <div class="dash-section" id="section-profil">
         <div class="section-title">Mon profil</div>
         <div class="box" style="max-width:480px">
-          <div class="box-head"><span>Informations Keycloak</span></div>
+          <div class="box-head"><span>Informations personnelles</span></div>
           <div style="padding:20px" id="profil-content">Chargement…</div>
         </div>
       </div>
@@ -889,9 +915,9 @@
 
 <!-- ══════════════════════════════════════ SCRIPTS ═══════════════════════════ -->
 <script type="module">
-import { obtenirAccessTokenValide, obtenirIdToken, decoderJwt, recupererUserInfo, seDeconnecter } from "./js/auth.js";
+import { obtenirAccessTokenValide, rafraichirToken, obtenirAccessToken, effacerTokens, obtenirIdToken, decoderJwt, recupererUserInfo, seDeconnecter } from "./js/auth.js";
 import { BACKEND_API_BASE_URL, STORAGE_KEYS } from "./js/config.js";
-import { getPortfolio, getOrders, getWatchlist, isInWatchlist, toggleWatchlist, placeOrder, cancelOrder, checkPendingOrders, isMarketOpen, marketStatusLabel, resetPortfolio, setUserId } from "./js/trading.js";
+import { getWatchlist, isInWatchlist, toggleWatchlist, checkPendingOrders, isMarketOpen, marketStatusLabel, setUserId } from "./js/trading.js";
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 const accessToken = await obtenirAccessTokenValide();
@@ -916,6 +942,84 @@ const displayName = userInfo.name || userInfo.preferred_username || "—";
 
 // Isolation des données par utilisateur (localStorage préfixé par sub)
 setUserId(userInfo.sub || accessClaims?.sub || "default");
+
+// ── État portefeuille (chargé depuis l'API) ───────────────────────────────────
+let _pfState  = { balance: 0, positions: [], devise: "MAD", mouvements: [] };
+let _ordresState = [];
+
+async function _apiCall(path, options = {}) {
+  let token = await obtenirAccessTokenValide();
+  if (!token) throw new Error("Session expirée");
+  const buildHeaders = (t) => {
+    const h = { ...(options.headers || {}), Authorization: `Bearer ${t}` };
+    if (options.body && !h["Content-Type"]) h["Content-Type"] = "application/json";
+    return h;
+  };
+  let r = await fetch(`${BACKEND_API_BASE_URL}${path}`, { ...options, headers: buildHeaders(token) });
+  // 403 : le token ne contient pas le rôle requis → forcer un refresh
+  if (r.status === 403) {
+    const ok = await rafraichirToken();
+    if (ok) {
+      token = obtenirAccessToken();
+      r = await fetch(`${BACKEND_API_BASE_URL}${path}`, { ...options, headers: buildHeaders(token) });
+    } else {
+      // Refresh token invalide → session expirée, re-login complet
+      effacerTokens();
+      window.location.href = "index.html?erreur=Session expirée, veuillez vous reconnecter.";
+      throw new Error("Session invalide");
+    }
+  }
+  if (!r.ok) {
+    let msg = `Erreur ${r.status}`;
+    try { const j = await r.json(); msg = j.detail || msg; } catch {}
+    throw new Error(msg);
+  }
+  return r.status === 204 ? null : r.json();
+}
+
+async function chargerPortefeuille() {
+  try {
+    const data = await _apiCall("/api/portefeuille");
+    _pfState = {
+      balance: parseFloat(data.solde_especes) || 0,
+      iban: data.iban || "",
+      positions: (data.positions || []).map(p => ({
+        name: p.instrument_code,
+        nom: p.instrument_nom || p.instrument_code,
+        qty: parseFloat(p.quantite) || 0,
+        avgPrice: parseFloat(p.prix_revient_moyen) || 0,
+        sector: "—",
+      })),
+      devise: data.devise || "MAD",
+      mouvements: data.mouvements || [],
+    };
+  } catch (e) {
+    console.warn("Portefeuille API non disponible:", e.message);
+  }
+}
+
+async function chargerOrdres() {
+  try {
+    _ordresState = await _apiCall("/api/ordres");
+  } catch {
+    _ordresState = [];
+  }
+}
+
+function getPortfolio() { return _pfState; }
+
+// ── Chargement initial du portefeuille ────────────────────────────────────────
+if (isInvestor) {
+  await chargerPortefeuille();
+  await chargerOrdres();
+  // Gérer le retour depuis la banque avec un dépôt à confirmer
+  // Priorité : ?depot_ref= dans l'URL, sinon localStorage.depot_ref_pending (si auth avait redirigé)
+  const depotRef = new URLSearchParams(location.search).get("depot_ref")
+    || localStorage.getItem("depot_ref_pending");
+  if (depotRef) {
+    setTimeout(() => ouvrirModalDepot(depotRef), 800);
+  }
+}
 
 document.getElementById("user-displayname").textContent = displayName;
 
@@ -946,8 +1050,6 @@ document.getElementById("profil-content").innerHTML = `
     <dt style="color:var(--muted)">Nom d'utilisateur</dt><dd>${esc(userInfo.preferred_username||"—")}</dd>
     <dt style="color:var(--muted)">Nom complet</dt><dd>${esc(userInfo.name||"—")}</dd>
     <dt style="color:var(--muted)">Email</dt><dd>${esc(userInfo.email||"—")}</dd>
-    <dt style="color:var(--muted)">Rôles</dt><dd><code>${esc(roles.join(", ")||"(aucun)")}</code></dd>
-    <dt style="color:var(--muted)">Keycloak sub</dt><dd style="font-size:11px;color:var(--muted)">${esc(userInfo.sub||"—")}</dd>
   </dl>`;
 
 // ── Navigation ────────────────────────────────────────────────────────────────
@@ -957,6 +1059,8 @@ document.querySelectorAll(".nav-item[data-section]").forEach(btn => {
     document.querySelectorAll(".dash-section").forEach(s => s.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById("section-" + btn.dataset.section).classList.add("active");
+    const dc = document.querySelector(".dash-content");
+    if (dc) dc.scrollTop = 0;
     if (btn.dataset.section === "portefeuille") renderPortfolio();
     if (btn.dataset.section === "watchlist")    renderWatchlist();
     if (btn.dataset.section === "carnet")       renderHistorique();
@@ -1137,16 +1241,7 @@ function applySnapshot(donnees) {
   updateOrderPrice();
   document.getElementById("mkt-count").textContent = st.length + " valeurs";
 
-  // Déclenchement automatique des ordres en_attente (limités + marché hors horaires)
-  const executed = checkPendingOrders(st);
-  for (const o of executed) {
-    showToast(
-      `Ordre exécuté ✓`,
-      `${o.direction === "achat" ? "Achat" : "Vente"} ${o.qty} × ${o.name} à ${fmtN(o.price, 2)} MAD`,
-      "success"
-    );
-  }
-  if (executed.length > 0) { renderHistorique(); renderPortfolioLive(); renderPfHistorique(); }
+  // Les ordres en attente sont gérés par le backend (pas de traitement client-side)
 }
 
 // ── Format helpers ─────────────────────────────────────────────────────────────
@@ -1363,7 +1458,13 @@ function renderPortfolioLive() {
 
   const tb = document.getElementById("pf-rows");
   if (!pf.positions.length) {
-    tb.innerHTML = `<tr><td colspan="8" style="padding:30px;text-align:center;color:var(--muted)">Aucune position ouverte. Passez votre premier ordre.</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="8" style="padding:30px;text-align:center;color:var(--muted)">
+      Aucune position ouverte. Passez votre premier ordre.<br>
+      <span style="font-size:11px;margin-top:8px;display:block">
+        Solde disponible : <strong>${fmtN(pf.balance, 2)} ${pf.devise}</strong>
+        ${pf.balance === 0 ? '— <a href="#" onclick="ouvrirAlimenterBourse();return false" style="color:var(--up)">Alimenter depuis la banque CFC</a>' : ''}
+      </span>
+    </td></tr>`;
   } else {
     tb.innerHTML = pf.positions.map(pos => {
       const live = mkt.rows.find(r=>r.name===pos.name);
@@ -1390,6 +1491,8 @@ function renderPortfolioLive() {
   }
 
   document.getElementById("pf-balance").textContent = fmtN(pf.balance, 2);
+  const deviseEl = document.getElementById("pf-devise");
+  if (deviseEl) deviseEl.textContent = pf.devise || "MAD";
   document.getElementById("pf-value").textContent   = fmtN(totalValue, 2);
   const totalPl = totalValue - totalCost;
   const totalPct = totalCost ? totalPl/totalCost*100 : 0;
@@ -1401,11 +1504,12 @@ function renderPortfolioLive() {
   plPctEl.className = "delta " + (totalPl >= 0 ? "pl-positive" : "pl-negative");
 }
 
-document.getElementById("btn-reset-portfolio").addEventListener("click", () => {
-  if (!confirm("Réinitialiser le portefeuille (100 000 MAD, aucune position) ?")) return;
-  resetPortfolio();
+document.getElementById("btn-reset-portfolio").addEventListener("click", async () => {
+  if (!confirm("Recharger le portefeuille depuis le serveur ?")) return;
+  await chargerPortefeuille();
+  await chargerOrdres();
   renderPortfolio();
-  showToast("Portefeuille réinitialisé", "Capital : 100 000 MAD", "success");
+  showToast("Portefeuille actualisé", `Solde : ${fmtN(_pfState.balance, 2)} ${_pfState.devise}`, "success");
 });
 
 // ── Order form ────────────────────────────────────────────────────────────────
@@ -1468,7 +1572,7 @@ function updateOrderSummary() {
   const qty   = parseInt(document.getElementById("ord-qty").value) || 0;
   const price = getOrderPrice();
   const total = qty * price;
-  const pf    = getPortfolio();
+  const pf    = getPortfolio();  // retourne _pfState
   const name  = document.getElementById("ord-instrument").value;
 
   document.getElementById("sum-price").textContent = isNaN(price) ? "— MAD" : fmtN(price,2)+" MAD";
@@ -1559,29 +1663,52 @@ document.getElementById("order-confirm-overlay").addEventListener("click", e => 
   if (e.target === document.getElementById("order-confirm-overlay")) closeOrderModal();
 });
 
-document.getElementById("mc-btn-confirm").addEventListener("click", () => {
+document.getElementById("mc-btn-confirm").addEventListener("click", async () => {
   if (!_pendingOrder) return;
   const btn = document.getElementById("mc-btn-confirm");
-  btn.disabled = true; // Protection double-clic
+  btn.disabled = true;
 
-  const result = placeOrder(_pendingOrder);
-  closeOrderModal();
+  try {
+    const payload = {
+      instrument_code: _pendingOrder.name,
+      sens: _pendingOrder.direction,
+      type_ordre: _pendingOrder.type,
+      quantite: _pendingOrder.qty,
+    };
+    if (_pendingOrder.type === "marche") {
+      payload.prix_marche = _pendingOrder.price;
+    } else {
+      payload.prix_limite = _pendingOrder.price;
+    }
 
-  if (result.success) {
-    showFormMsg(result.message, "ok");
-    const toastType = result.status === "exécuté" ? "success" : "";
-    const toastTitle = { "exécuté": "Ordre exécuté ✓", "en_attente": "Ordre transmis ⏳" }[result.status] || "Ordre";
-    showToast(toastTitle, result.message, toastType);
+    const result = await _apiCall("/api/ordres", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    closeOrderModal();
+
+    const estExecute = result.statut === "execute";
+    const msg = result.message || (estExecute ? "Ordre exécuté." : "Ordre transmis.");
+    showFormMsg(msg, "ok");
+    showToast(estExecute ? "Ordre exécuté ✓" : "Ordre transmis ⏳", msg, estExecute ? "success" : "");
+
+    // Rafraîchir l'état depuis l'API
+    await chargerPortefeuille();
+    await chargerOrdres();
     renderPortfolioLive();
     renderWatchlistLive();
     renderHistorique();
     renderPfHistorique();
-  } else {
-    showFormMsg(result.message, "err");
-    showToast("Ordre rejeté ✕", result.message, "error");
-  }
+    updateOrderSummary();
 
-  setTimeout(() => { btn.disabled = false; }, 500);
+  } catch (err) {
+    closeOrderModal();
+    showFormMsg(err.message, "err");
+    showToast("Ordre rejeté ✕", err.message, "error");
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 function showFormMsg(msg, type) {
@@ -1593,18 +1720,20 @@ function showFormMsg(msg, type) {
 // ── Mon carnet d'ordres ───────────────────────────────────────────────────────
 let _carnetFilter = "all";
 
-const STATUS_BADGE = {
-  "exécuté":    `<span class="badge-status exec">✓ exécuté</span>`,
+// STATUS_BADGE remplacé par _STATUS_API_BADGE (défini plus bas)
+
+const _STATUS_API_BADGE = {
+  "execute":    `<span class="badge-status exec">✓ exécuté</span>`,
   "en_attente": `<span class="badge-status pending">⏳ en attente</span>`,
-  "annulé":     `<span class="badge-status cancel">✕ annulé</span>`,
-  "rejeté":     `<span class="badge-status reject">✗ rejeté</span>`,
+  "annule":     `<span class="badge-status cancel">✕ annulé</span>`,
+  "rejete":     `<span class="badge-status reject">✗ rejeté</span>`,
 };
 
 function renderHistorique() {
-  const allOrders = getOrders();
+  const allOrders = _ordresState;
   const orders = _carnetFilter === "all"
     ? allOrders
-    : allOrders.filter(o => o.status === _carnetFilter);
+    : allOrders.filter(o => o.statut === _carnetFilter);
   document.getElementById("hist-count").textContent = allOrders.length;
   const tb = document.getElementById("hist-rows");
   if (!orders.length) {
@@ -1613,32 +1742,30 @@ function renderHistorique() {
   }
   tb.innerHTML = orders.map(o => {
     const d    = new Date(o.date).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-    const cDir = o.direction === "achat" ? "up" : "down";
-    const badge = STATUS_BADGE[o.status] || `<span class="badge-status">${esc(o.status)}</span>`;
-    const rejectTitle = o.rejectReason ? ` title="${esc(o.rejectReason)}"` : "";
-    const badgeWithReason = o.status === "rejeté"
-      ? `<span class="badge-status reject" style="cursor:help"${rejectTitle}>✗ rejeté ⓘ</span>`
-      : badge;
-    const cancelBtn = o.status === "en_attente"
-      ? `<button class="btn-sell" style="font-size:10px;padding:2px 7px" onclick="doCancelOrder(${o.id})">Annuler</button>`
+    const cDir = o.sens === "achat" ? "up" : "down";
+    const badge = _STATUS_API_BADGE[o.statut] || `<span class="badge-status">${esc(o.statut)}</span>`;
+    const prix = o.prix_execution ?? o.prix_limite ?? "—";
+    const total = o.montant_total ?? (o.prix_limite && o.quantite ? o.prix_limite * o.quantite : null);
+    const cancelBtn = o.statut === "en_attente"
+      ? `<button class="btn-sell" style="font-size:10px;padding:2px 7px" onclick="doCancelOrder('${o.id}')">Annuler</button>`
       : `<span style="color:var(--muted);font-size:11px">—</span>`;
     return `<tr>
       <td style="font-size:11px;color:var(--muted)">${d}</td>
-      <td style="font-weight:600">${esc(o.name)}</td>
-      <td class="${cDir}">${o.direction==="achat"?"▲ Achat":"▼ Vente"}</td>
+      <td style="font-weight:600">${esc(o.instrument)}</td>
+      <td class="${cDir}">${o.sens==="achat"?"▲ Achat":"▼ Vente"}</td>
       <td style="color:var(--muted)">${o.type==="marche"?"Marché":"Limité"}</td>
-      <td>${o.qty}</td>
-      <td>${fmtN(o.price,2)}</td>
-      <td>${fmtN(o.total,2)}</td>
-      <td>${badgeWithReason}</td>
+      <td>${o.quantite}</td>
+      <td>${fmtN(typeof prix === 'number' ? prix : NaN, 2)}</td>
+      <td>${fmtN(typeof total === 'number' ? total : NaN, 2)}</td>
+      <td>${badge}</td>
       <td style="text-align:center">${cancelBtn}</td>
     </tr>`;
   }).join("");
 }
 
-// Historique court dans le portefeuille (5 derniers mouvements exécutés)
+// Historique court dans le portefeuille (8 derniers mouvements exécutés)
 function renderPfHistorique() {
-  const recents = getOrders().filter(o => o.status === "exécuté").slice(0, 8);
+  const recents = (_pfState.mouvements || []).slice(0, 8);
   const el = document.getElementById("pf-hist-count");
   if (el) el.textContent = recents.length + " mouvement(s)";
   const tb = document.getElementById("pf-hist-rows");
@@ -1647,16 +1774,22 @@ function renderPfHistorique() {
     tb.innerHTML = `<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--muted)">Aucun mouvement.</td></tr>`;
     return;
   }
-  tb.innerHTML = recents.map(o => {
-    const d = new Date(o.executionDate || o.date).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-    const c = o.direction === "achat" ? "up" : "down";
+  const typeLabel = {
+    "execution_achat":  "▲ Achat",
+    "execution_vente":  "▼ Vente",
+    "depot":            "⬆ Dépôt",
+    "retrait":          "⬇ Retrait",
+  };
+  tb.innerHTML = recents.map(m => {
+    const d = new Date(m.date).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+    const isAchat = m.type === "execution_achat" || m.type === "depot";
+    const c = isAchat ? "up" : "down";
     return `<tr>
       <td style="font-size:11px;color:var(--muted)">${d}</td>
-      <td style="font-weight:600">${esc(o.name)}</td>
-      <td class="${c}">${o.direction==="achat"?"▲":"▼"} ${o.direction}</td>
-      <td>${o.qty}</td>
-      <td>${fmtN(o.price,2)}</td>
-      <td>${fmtN(o.total,2)}</td>
+      <td style="font-weight:600">${esc(m.instrument || "—")}</td>
+      <td class="${c}">${typeLabel[m.type] || m.type}</td>
+      <td>—</td><td>—</td>
+      <td>${fmtN(m.montant, 2)}</td>
       <td><span class="badge-status exec">✓</span></td>
     </tr>`;
   }).join("");
@@ -1672,12 +1805,121 @@ document.querySelectorAll(".carnet-filter").forEach(btn => {
   });
 });
 
-window.doCancelOrder = function(orderId) {
-  const result = cancelOrder(orderId);
-  showToast(result.success ? "Ordre annulé" : "Erreur", result.message, result.success ? "" : "error");
-  renderHistorique();
-  renderPortfolioLive();
-  renderPfHistorique();
+window.doCancelOrder = async function(orderId) {
+  try {
+    await _apiCall(`/api/ordres/${orderId}/annuler`, { method: "PUT" });
+    showToast("Ordre annulé", "Fonds restitués à votre solde.", "success");
+    await chargerPortefeuille();
+    await chargerOrdres();
+    renderHistorique();
+    renderPortfolioLive();
+    renderPfHistorique();
+  } catch (err) {
+    showToast("Erreur", err.message, "error");
+  }
+};
+
+// ── Dépôt depuis la banque CFC ────────────────────────────────────────────────
+let _depotRefEnCours = null;
+
+window.ouvrirAlimenterBourse = async function() {
+  if (!_pfState.iban) {
+    try { await chargerPortefeuille(); } catch {}
+  }
+  const bourseIban = _pfState.iban || "";
+  if (!bourseIban) {
+    showToast("IBAN bourse indisponible", "Reconnectez-vous à la plateforme bourse et réessayez.", "error");
+    return;
+  }
+  const sub = userInfo.sub || accessClaims?.sub || "0";
+  const ts  = Date.now();
+  // Référence ≤15 car. pour compatibilité Plaid : BRS + 6 hex du sub + 6 derniers chiffres du timestamp
+  const subHex = sub.replace(/-/g, "").substring(0, 6).padEnd(6, "0");
+  const tsSufx = String(ts).slice(-6);
+  const ref = `BRS${subHex}${tsSufx}`;
+
+  // Toujours utiliser l'URL K8s ingress de la banque (cookies liés à cfc.127.0.0.1.nip.io)
+  const banqueUrl = window.location.hostname.includes(".nip.io")
+    ? `https://cfc.${window.location.hostname.match(/(\d+\.\d+\.\d+\.\d+)/)?.[1]}.nip.io`
+    : "http://cfc.127.0.0.1.nip.io";
+
+  const retourUrl = encodeURIComponent(
+    `${window.location.origin}${window.location.pathname}?depot_ref=${ref}`
+  );
+  const virementUrl = `${banqueUrl}/dashboard.html?action=alimenter-bourse&ref=${encodeURIComponent(ref)}&iban=${encodeURIComponent(bourseIban)}&retour=${retourUrl}`;
+
+  const overlay = document.getElementById("modal-depot-overlay");
+  document.getElementById("modal-depot-titre").textContent = "Alimenter depuis la banque CFC";
+  document.getElementById("modal-depot-body").innerHTML = `
+    <p>Pour alimenter votre compte espèces bourse, vous allez effectuer un virement depuis votre compte bancaire CFC.</p>
+    <p style="margin-top:10px"><strong>Référence de virement :</strong><br>
+      <code style="font-size:12px;word-break:break-all">${esc(ref)}</code>
+    </p>
+    <p style="margin-top:10px;color:var(--gold)">Conservez cette référence — elle identifie votre dépôt.</p>`;
+  document.getElementById("btn-depot-confirm").style.display = "none";
+  document.getElementById("modal-depot-actions").innerHTML = `
+    <button class="mc-btn-cancel" onclick="fermerModalDepot()">Annuler</button>
+    <a href="${virementUrl}" target="_blank"
+      style="flex:2;padding:10px;border-radius:8px;border:none;font-size:13px;
+        font-weight:700;cursor:pointer;font-family:inherit;background:var(--up);
+        color:#fff;text-align:center;text-decoration:none;display:flex;
+        align-items:center;justify-content:center"
+      onclick="localStorage.setItem('depot_ref_pending','${ref}')">
+      Aller à la banque CFC →
+    </a>`;
+  overlay.style.display = "flex";
+};
+
+window.ouvrirModalDepot = async function(ref) {
+  _depotRefEnCours = ref;
+  const overlay = document.getElementById("modal-depot-overlay");
+  document.getElementById("modal-depot-titre").textContent = "Confirmer le dépôt";
+  document.getElementById("modal-depot-body").innerHTML = `
+    <p>Référence de paiement détectée :</p>
+    <p><code style="font-size:12px;word-break:break-all">${esc(ref)}</code></p>
+    <p style="margin-top:10px">Cliquez sur <strong>Confirmer</strong> pour créditer votre compte bourse.</p>`;
+  document.getElementById("modal-depot-actions").innerHTML = `
+    <button class="mc-btn-cancel" onclick="fermerModalDepot()">Plus tard</button>
+    <button id="btn-depot-confirm" class="mc-btn-confirm achat"
+      style="flex:2;padding:10px;border-radius:8px;border:none;font-size:13px;
+        font-weight:700;cursor:pointer;font-family:inherit;background:var(--up);color:#fff"
+      onclick="confirmerDepot()">✓ Confirmer le dépôt</button>`;
+  overlay.style.display = "flex";
+};
+
+window.fermerModalDepot = function() {
+  document.getElementById("modal-depot-overlay").style.display = "none";
+  _depotRefEnCours = null;
+  // Nettoyer l'URL
+  if (location.search.includes("depot_ref")) {
+    history.replaceState({}, "", location.pathname);
+  }
+};
+
+window.confirmerDepot = async function() {
+  const ref = _depotRefEnCours || localStorage.getItem("depot_ref_pending");
+  if (!ref) { fermerModalDepot(); return; }
+  const btn = document.getElementById("btn-depot-confirm");
+  if (btn) btn.disabled = true;
+  try {
+    const res = await _apiCall("/api/portefeuille/depot", {
+      method: "POST",
+      body: JSON.stringify({ iban_bourse: _pfState.iban }),
+    });
+    localStorage.removeItem("depot_ref_pending");
+    fermerModalDepot();
+    await chargerPortefeuille();
+    renderPortfolioLive();
+    renderPfHistorique();
+    showToast(
+      "Dépôt crédité ✓",
+      `${fmtN(res.montant_credite, 2)} ${res.devise} — nouveau solde : ${fmtN(res.nouveau_solde, 2)} ${res.devise}`,
+      "success"
+    );
+  } catch (err) {
+    showToast("Erreur dépôt", err.message, "error");
+    if (btn) btn.disabled = false;
+  }
 };
 
 // ── Toast ─────────────────────────────────────────────────────────────────────

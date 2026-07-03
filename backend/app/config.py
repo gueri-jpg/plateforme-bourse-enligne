@@ -38,11 +38,20 @@ class Settings(BaseSettings):
     KEYCLOAK_BASE_URL: str = "http://localhost:9090"
     KEYCLOAK_REALM: str = "bourse-en-ligne"
 
+    # URL externe Keycloak telle qu'elle apparaît dans le claim "iss" des JWT.
+    # En Docker, KEYCLOAK_BASE_URL est l'URL interne (keycloak:8080) pour le JWKS,
+    # mais les tokens sont émis avec l'URL publique (KC_HOSTNAME = localhost:9090).
+    # Laisser vide pour utiliser KEYCLOAK_BASE_URL (environnements sans Docker).
+    KEYCLOAK_ISSUER_BASE_URL: str = ""
+
     # ------------------------------------------------------------------
     # Keycloak - realm "bourse-admin" (administrateurs uniquement)
     # Realm separe pour isoler les comptes admin des comptes investisseurs.
     # ------------------------------------------------------------------
     KEYCLOAK_ADMIN_REALM: str = "bourse-admin"
+
+    # URL de base de l'API banque CFC (pour la vérification des paiements inter-service)
+    BANQUE_API_URL: str = "http://localhost:8010"
 
     # Client utilise pour VALIDER les tokens JWT presentes par le frontend
     # (resource server / bearer-only - cf. realm-export.json "backend-api").
@@ -86,9 +95,14 @@ class Settings(BaseSettings):
         return f"{self.KEYCLOAK_BASE_URL}/admin/realms/{self.KEYCLOAK_REALM}"
 
     @property
+    def _issuer_base(self) -> str:
+        """URL de base pour la validation de l'issuer (peut différer de KEYCLOAK_BASE_URL en Docker)."""
+        return self.KEYCLOAK_ISSUER_BASE_URL or self.KEYCLOAK_BASE_URL
+
+    @property
     def keycloak_issuer(self) -> str:
-        """Issuer du realm investisseurs (bourse-en-ligne)."""
-        return self.keycloak_realm_url
+        """Issuer du realm investisseurs (bourse-en-ligne), tel qu'il apparaît dans le token."""
+        return f"{self._issuer_base}/realms/{self.KEYCLOAK_REALM}"
 
     @property
     def keycloak_admin_realm_jwks_url(self) -> str:
@@ -97,8 +111,8 @@ class Settings(BaseSettings):
 
     @property
     def keycloak_admin_issuer(self) -> str:
-        """Issuer du realm administrateurs (bourse-admin)."""
-        return f"{self.KEYCLOAK_BASE_URL}/realms/{self.KEYCLOAK_ADMIN_REALM}"
+        """Issuer du realm administrateurs (bourse-admin), tel qu'il apparaît dans le token."""
+        return f"{self._issuer_base}/realms/{self.KEYCLOAK_ADMIN_REALM}"
 
 
 # Instance unique de configuration, importee par les autres modules
