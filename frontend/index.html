@@ -384,7 +384,6 @@
       </select>
     </label>
     <button id="btnRefresh" class="btn">&#8635; Actualiser</button>
-    <button id="btnPause"   class="btn">Pause</button>
     <button id="btnDashboard" class="btn btn-login" style="display:none" onclick="window.location.href='dashboard.html'">📊 Mon espace</button>
     <button id="btnLogin"   class="btn btn-login">&#128274; Se connecter</button>
   </div>
@@ -533,15 +532,6 @@
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer>
-    Données&nbsp;: <a href="https://www.casablanca-bourse.com" target="_blank" rel="noopener">casablanca-bourse.com</a>
-    &middot; Relais local Python (<code>serve.py</code> sur <code>:8765</code>)
-    &middot; Données différées, usage pédagogique uniquement.<br>
-    &copy; 2026 BourseOnline &middot; Authentification via
-    <a href="https://www.keycloak.org" target="_blank" rel="noopener">Keycloak</a>
-    (OAuth2 / OIDC)
-  </footer>
 </main>
 
 <!-- ============================================================ MODAL LOGIN -->
@@ -689,7 +679,6 @@ const API = {
 
 const mkt = {
   intervalMs: 10000,
-  paused: false,
   busy:   false,
   timer:  null,
   prev:   { indices: {}, rows: new Map() },
@@ -983,7 +972,7 @@ function setProgress(start) {
 }
 
 async function tick() {
-  if (mkt.busy || mkt.paused) return;
+  if (mkt.busy) return;
   mkt.busy = true;
   setStatus("warn", "récupération HTTP…");
   setProgress(true);
@@ -1080,7 +1069,6 @@ function connectWS() {
   };
 
   wsState.socket.onmessage = evt => {
-    if (mkt.paused) return;
     try {
       const data = JSON.parse(evt.data);
       if (data.evenement === "bvc_snapshot") applySnapshot(data);
@@ -1106,14 +1094,6 @@ $("interval").addEventListener("change", e => {
   if (!wsState.active) schedule();
 });
 $("btnRefresh").addEventListener("click", tick);
-$("btnPause").addEventListener("click", e => {
-  mkt.paused = !mkt.paused;
-  e.target.textContent = mkt.paused ? "Reprendre" : "Pause";
-  setStatus(
-    mkt.paused ? "warn" : "ok",
-    mkt.paused ? "en pause" : (wsState.active ? "WebSocket · en direct" : "HTTP · en direct")
-  );
-});
 $("q").addEventListener("input", renderRows);
 $("sort").addEventListener("change", renderRows);
 

@@ -370,6 +370,55 @@
     .mc-btn-confirm.vente { background:var(--down); color:#fff; }
     .mc-btn-confirm:hover:not(:disabled) { opacity:.85; }
     .mc-btn-confirm:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* ── Hamburger (mobile only) ── */
+    .hamburger {
+      display: none; background: none; border: none;
+      color: var(--txt); cursor: pointer; font-size: 22px;
+      padding: 4px 6px; flex-shrink: 0; line-height: 1;
+    }
+
+    /* ── Sidebar overlay backdrop (mobile) ── */
+    #sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.6); z-index: 99;
+    }
+    #sidebar-overlay.open { display: block; }
+
+    /* ── Responsive — small screens ── */
+    @media (max-width: 768px) {
+      .hamburger { display: block; }
+      .dash-status { display: none; }
+      .user-chip { display: none; }
+
+      /* Sidebar → off-canvas drawer */
+      .app-body { grid-template-columns: 1fr; }
+      .dash-sidebar {
+        position: fixed;
+        top: 82px; left: 0; bottom: 0;
+        width: 220px; z-index: 100;
+        transform: translateX(-100%);
+        transition: transform .25s ease;
+        border-right: 1px solid var(--line);
+      }
+      .dash-sidebar.open { transform: none; box-shadow: 4px 0 24px rgba(0,0,0,.5); }
+
+      /* Tables scroll horizontally */
+      .box { overflow-x: auto; }
+      table { min-width: 480px; }
+
+      /* Cards stack vertically */
+      .cards-row { flex-direction: column; }
+      .kpi-card { min-width: 0; }
+
+      /* Tighter section padding */
+      .dash-section { padding: 12px; }
+      .order-form-wrap { padding: 16px; max-width: 100%; }
+      .admin-form-row { flex-direction: column; }
+
+      /* Stock detail panel full width */
+      .stock-panel { width: 100%; }
+    }
   </style>
 </head>
 <body>
@@ -378,6 +427,7 @@
 
   <!-- ══════════════════════════════════════ HEADER ══════════════════════════ -->
   <header class="dash-header">
+    <button class="hamburger" id="btn-hamburger" aria-label="Menu">☰</button>
     <div class="dash-logo">
       <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="6"  y="10" width="5" height="12" rx="1" fill="#22c55e"/>
@@ -921,6 +971,7 @@
 
     </div><!-- /dash-content -->
   </div><!-- /app-body -->
+  <div id="sidebar-overlay"></div>
 </div><!-- /app -->
 
 <!-- ══════════════════════════════════════ MODAL CONFIRMATION ORDRE ══════════ -->
@@ -1120,9 +1171,6 @@ if (isAdmin) {
 } else if (isSupport) {
   badge.textContent = "support client";
   badge.style.cssText += "display:inline;background:rgba(129,140,248,.12);color:#818cf8";
-} else if (isInvestor) {
-  badge.textContent = "investisseur";
-  badge.style.cssText += "display:inline;background:rgba(34,197,94,.12);color:#22c55e";
 }
 
 // Affichage conditionnel des sections selon le rôle
@@ -2274,6 +2322,25 @@ window.supportSearch = function() {
 updateMarketBadge();
 setInterval(updateMarketBadge, 60000);
 renderOrdreForm();
+
+// ── Hamburger / mobile sidebar ──
+(function () {
+  const hamburger = document.getElementById('btn-hamburger');
+  const sidebar   = document.querySelector('.dash-sidebar');
+  const overlay   = document.getElementById('sidebar-overlay');
+
+  function openSidebar()  { sidebar.classList.add('open');    overlay.classList.add('open'); }
+  function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+
+  hamburger.addEventListener('click', () =>
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar()
+  );
+  overlay.addEventListener('click', closeSidebar);
+
+  sidebar.querySelectorAll('.nav-item').forEach(btn =>
+    btn.addEventListener('click', () => { if (window.innerWidth <= 768) closeSidebar(); })
+  );
+})();
 </script>
 </body>
 </html>
