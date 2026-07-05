@@ -18,7 +18,7 @@ global:
   imageRegistry: ""
 
   # Domaine racine de la plateforme, utilisé pour générer les hosts Ingress
-  domain: "bourse-enligne.ma"
+  domain: "cfconsultancy.org"
 
 # ------------------------------------------------------------------------------
 # Images Docker des composants applicatifs (build maison, poussées vers l'ACR)
@@ -58,7 +58,9 @@ image:
 #   --set postgres.password=$TF_VAR_postgres_admin_password
 # ------------------------------------------------------------------------------
 postgres:
-  host: ""               # rempli par terraform output postgres_fqdn
+  # En prod : rempli par --set postgres.host=$(terraform output -raw postgres_fqdn)
+  # En dev (AKS sans Azure PostgreSQL) : pointe vers le StatefulSet in-cluster
+  host: "bourse-platform-postgres-0.bourse-platform-postgres.bourse.svc.cluster.local"
   port: 5432
   dbName: "bourse_db"
   username: "bourse_admin"
@@ -88,11 +90,17 @@ keycloak:
     username: "bourse_admin"
     password: ""          # secret — cf. bourse-secrets / POSTGRES_PASSWORD
 
-  hostname:
-    default: "auth.bourse-enligne.ma"
+  # Keycloak 26 : KC_HOSTNAME doit être le nom de domaine seul (sans http://)
+  # Le chart Bitnami préfixe hostname.default avec http://, on force via extraEnvVars.
+  extraEnvVars:
+    - name: KC_HOSTNAME
+      value: "auth.cfconsultancy.org"
+    - name: KC_PROXY_HEADERS
+      value: "xforwarded"
+    - name: KC_HTTP_ENABLED
+      value: "true"
 
-  # Mode production : HTTPS géré par l'Ingress (TLS termination), Keycloak
-  # écoute en HTTP en interne derrière le reverse-proxy NGINX
+  # Cloudflare Flexible : HTTPS Cloudflare → HTTP AKS. Keycloak lit X-Forwarded-Proto.
   proxy: edge
 
   resources:
@@ -144,20 +152,21 @@ kafka:
     size: 8Gi
 
 # ------------------------------------------------------------------------------
-# Ingress NGINX — expose les 4 services HTTP de la plateforme avec TLS
-# automatique via cert-manager (ClusterIssuer letsencrypt-prod)
+# Ingress NGINX — expose les services HTTP via Cloudflare (HTTPS Flexible)
+# Pas de bloc TLS sur l'ingress : Cloudflare gère le certificat SSL.
+# L'ingress écoute en HTTP ; Cloudflare relaie en HTTPS vers l'utilisateur.
 # ------------------------------------------------------------------------------
 ingress:
   enabled: true
   className: nginx
-  tls: true
-  certIssuer: letsencrypt-prod
+  tls: false
 
   hosts:
-    frontend: "bourse-enligne.ma"
-    backend: "api.bourse-enligne.ma"
-    adminFrontend: "admin.bourse-enligne.ma"
-    bvcRelay: "relay.bourse-enligne.ma"
+    frontend: "bourse.cfconsultancy.org"
+    backend: "api.cfconsultancy.org"
+    adminFrontend: "admin.cfconsultancy.org"
+    bvcRelay: "relay.cfconsultancy.org"
+    keycloak: "auth.cfconsultancy.org"
 
 # ------------------------------------------------------------------------------
 # Nombre de réplicas par composant applicatif
@@ -218,10 +227,20 @@ resources:
 # ------------------------------------------------------------------------------
 config:
   kafkaBootstrapServers: "bourse-platform-kafka:9092"
-  keycloakBaseUrl: "http://bourse-platform-keycloak:80"
+  # URL publique KC bourse — accès direct sans Cloudflare proxy (DNS-only sur auth.cfconsultancy.org)
+  keycloakBaseUrl: "http://auth.cfconsultancy.org"
+  # Claim "iss" des JWT émis par Keycloak (http car KC_PROXY_HEADERS lit X-Forwarded-Proto)
+  keycloakIssuerBaseUrl: "http://auth.cfconsultancy.org"
   keycloakRealm: "bourse-en-ligne"
   keycloakBackendClientId: "backend-api"
   bvcIntervalSeconds: "30"
+  # Inter-service banque ↔ bourse
+  # URL API banque accessible server-to-server depuis les pods bourse (clusters séparés → HTTPS public)
+  banqueApiUrl: "https://banquedigitale.cfconsultancy.org"
+  # URL frontend banque accessible depuis le navigateur de l'investisseur
+  banqueFrontendUrl: "https://banquedigitale.cfconsultancy.org"
+  # URL publique du backend bourse (api.cfconsultancy.org) — utilisée par le frontend navigateur
+  bourseApiPublicUrl: "https://api.cfconsultancy.org"
 
 # ------------------------------------------------------------------------------
 # Secrets applicatifs (valeurs vides par défaut — à fournir au déploiement
@@ -232,3 +251,5 @@ secrets:
   kcAdminPassword: ""
   keycloakAdminClientSecret: ""
   resendApiKey: ""
+  # Token partagé pour les appels inter-service banque ↔ bourse
+  interServiceToken: "bourse-banque-inter-service-token-poc"

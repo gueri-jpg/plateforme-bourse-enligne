@@ -49,3 +49,13 @@ spec:
 
           resources:
             {{- toYaml .Values.resources.frontend | nindent 12 }}
+
+          volumeMounts:
+            - name: frontend-js-config
+              mountPath: /usr/share/nginx/html/js/config.v2.js
+              subPath: config.v2.js
+
+      volumes:
+        - name: frontend-js-config
+          configMap:
+            name: {{ include "bourse.fullname" . }}-frontend-js

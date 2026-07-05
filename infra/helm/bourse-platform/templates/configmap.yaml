@@ -30,6 +30,7 @@ data:
   # Keycloak — endpoints OIDC internes au cluster (service ClusterIP)
   # ----------------------------------------------------------------------
   KEYCLOAK_BASE_URL: {{ .Values.config.keycloakBaseUrl | quote }}
+  KEYCLOAK_ISSUER_BASE_URL: {{ .Values.config.keycloakIssuerBaseUrl | quote }}
   KEYCLOAK_REALM: {{ .Values.config.keycloakRealm | quote }}
   KEYCLOAK_BACKEND_CLIENT_ID: {{ .Values.config.keycloakBackendClientId | quote }}
 
@@ -37,3 +38,9 @@ data:
   # Intervalle de scraping du producer BVC (secondes)
   # ----------------------------------------------------------------------
   BVC_INTERVAL_SECONDS: {{ .Values.config.bvcIntervalSeconds | quote }}
+
+  # ----------------------------------------------------------------------
+  # Inter-service banque ↔ bourse (SSO Scénarios 1-5)
+  # ----------------------------------------------------------------------
+  BANQUE_API_URL: {{ .Values.config.banqueApiUrl | quote }}
+  BANQUE_FRONTEND_URL: {{ .Values.config.banqueFrontendUrl | quote }}

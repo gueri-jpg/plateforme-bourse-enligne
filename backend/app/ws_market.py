@@ -14,6 +14,7 @@ import asyncio
 import os
 import sys
 import threading
+import uuid
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 router = APIRouter()
@@ -22,6 +23,8 @@ _clients: set[WebSocket] = set()
 _loop: asyncio.AbstractEventLoop | None = None
 _latest_snapshot: str | None = None
 _KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+# Unique consumer group per pod instance so every replica receives all partitions
+_KAFKA_GROUP_ID = f"ws-market-{uuid.uuid4()}"
 
 
 async def _broadcast(payload: str) -> None:
@@ -49,9 +52,9 @@ def _kafka_consumer_thread() -> None:
     consumer = Consumer(
         {
             "bootstrap.servers": _KAFKA_BOOTSTRAP,
-            "group.id": "ws-market-broadcaster",
+            "group.id": _KAFKA_GROUP_ID,
             "auto.offset.reset": "latest",
-            "enable.auto.commit": True,
+            "enable.auto.commit": False,
         }
     )
     consumer.subscribe(["market.prices"])
@@ -69,6 +72,8 @@ def _kafka_consumer_thread() -> None:
                 print(f"[ws_market] Erreur Kafka : {msg.error()}")
             continue
         payload = msg.value().decode("utf-8")
+        global _latest_snapshot
+        _latest_snapshot = payload  # cache even before first WebSocket client connects
         if _loop and not _loop.is_closed():
             asyncio.run_coroutine_threadsafe(_broadcast(payload), _loop)
 

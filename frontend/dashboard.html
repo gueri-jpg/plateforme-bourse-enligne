@@ -406,8 +406,7 @@
           border-radius:999px;padding:1px 8px;font-size:10px;"></span>
       </div>
       <button class="btn-sm" id="btn-banque" title="Retour à la banque digitale CFC"
-        style="border-color:rgba(211,47,47,.4);color:#f87171"
-        onclick="window.open(window.location.hostname==='localhost'?'http://localhost:8010/?action=login':'https://banquedigitale.cfconsulting.ma/?action=login','_blank')">
+        style="border-color:rgba(211,47,47,.4);color:#f87171">
         ← Banque CFC
       </button>
       <button class="btn-sm btn-danger" id="btn-logout">Déconnecter</button>
@@ -562,13 +561,48 @@
 
       <!-- ── PORTEFEUILLE ── -->
       <div class="dash-section" id="section-portefeuille">
-        <div class="section-title">
-          Mon Portefeuille
-          <button id="btn-alimenter-bourse" class="btn-sm"
-            style="margin-left:auto;border-color:rgba(34,197,94,.4);color:#22c55e;font-size:11px"
-            onclick="ouvrirAlimenterBourse()">
-            + Alimenter depuis la banque CFC
-          </button>
+        <div class="section-title">Mon Portefeuille</div>
+
+        <!-- ── Carte Compte Titres ── -->
+        <div class="box" id="ct-card" style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px;gap:16px">
+            <div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Compte Titres</div>
+              <div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.5px" id="ct-numero">—</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:6px">
+                Ouvert le <span id="ct-date">—</span>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px;word-break:break-all">
+                IBAN : <span id="ct-iban" style="font-family:monospace">—</span>
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="display:flex;gap:6px;justify-content:flex-end;margin-bottom:8px">
+                <span id="ct-type-badge" style="font-size:10px;padding:2px 8px;border-radius:999px;background:rgba(96,165,250,.12);color:var(--accent);font-weight:600;text-transform:capitalize">—</span>
+                <span id="ct-statut-badge" style="font-size:10px;padding:2px 8px;border-radius:999px;font-weight:600;text-transform:uppercase">—</span>
+              </div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Valorisation totale</div>
+              <div style="font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px" id="ct-total">—</div>
+              <div style="font-size:11px;color:var(--muted)" id="ct-devise-label">MAD</div>
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--line);padding:12px 20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Espèces disponibles</div>
+              <div style="font-weight:600;margin-top:2px" id="ct-solde">—</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Valeur marché</div>
+              <div style="font-weight:600;margin-top:2px" id="ct-marche">—</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+              <button id="btn-alimenter-bourse" class="btn-sm"
+                style="border-color:rgba(34,197,94,.4);color:#22c55e;font-size:11px"
+                onclick="ouvrirAlimenterBourse()">+ Alimenter</button>
+              <button class="btn-sm" style="font-size:11px"
+                onclick="ouvrirNouveauCompteTitres()">Nouveau compte</button>
+            </div>
+          </div>
         </div>
 
         <!-- Modal dépôt depuis la banque -->
@@ -586,6 +620,35 @@
                 style="flex:2;padding:10px;border-radius:8px;border:none;font-size:13px;
                   font-weight:700;cursor:pointer;font-family:inherit"
                 onclick="confirmerDepot()">✓ Confirmer le dépôt</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal ouverture nouveau compte titres -->
+        <div id="modal-ct-overlay" style="display:none;position:fixed;inset:0;z-index:300;
+          background:rgba(5,8,20,.8);align-items:center;justify-content:center">
+          <div style="background:var(--panel);border:1px solid var(--line);border-radius:16px;
+            padding:28px;width:100%;max-width:400px;box-shadow:0 24px 80px rgba(0,0,0,.5)">
+            <div style="font-size:16px;font-weight:700;margin-bottom:6px">Ouvrir un nouveau compte titres</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.7">
+              Le compte titres actuel sera clôturé. Un nouveau compte avec un numéro et un IBAN distincts sera créé immédiatement.
+            </div>
+            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Type de compte</label>
+            <select id="ct-type-select" style="width:100%;padding:10px;border-radius:8px;
+              border:1px solid var(--line);background:var(--panel2);color:var(--txt);
+              font-size:13px;font-family:inherit;margin-bottom:20px">
+              <option value="actions">Actions — marché boursier BVC</option>
+              <option value="obligations">Obligations — titres de créance</option>
+              <option value="opcvm">OPCVM — fonds de placement</option>
+              <option value="mixte" selected>Mixte — tous instruments</option>
+            </select>
+            <div id="ct-modal-msg" style="font-size:12px;min-height:1.2em;margin-bottom:12px;color:var(--down)"></div>
+            <div style="display:flex;gap:10px">
+              <button class="mc-btn-cancel" onclick="fermerModalCT()">Annuler</button>
+              <button id="btn-ct-confirmer" class="mc-btn-confirm achat"
+                style="flex:2;padding:10px;border-radius:8px;border:none;font-size:13px;
+                  font-weight:700;cursor:pointer;font-family:inherit"
+                onclick="confirmerOuvertureCT()">Ouvrir le compte</button>
             </div>
           </div>
         </div>
@@ -916,7 +979,7 @@
 <!-- ══════════════════════════════════════ SCRIPTS ═══════════════════════════ -->
 <script type="module">
 import { obtenirAccessTokenValide, rafraichirToken, obtenirAccessToken, effacerTokens, obtenirIdToken, decoderJwt, recupererUserInfo, seDeconnecter } from "./js/auth.js";
-import { BACKEND_API_BASE_URL, STORAGE_KEYS } from "./js/config.js";
+import { BACKEND_API_BASE_URL, BANQUE_FRONTEND_URL, STORAGE_KEYS } from "./js/config.js";
 import { getWatchlist, isInWatchlist, toggleWatchlist, checkPendingOrders, isMarketOpen, marketStatusLabel, setUserId } from "./js/trading.js";
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -934,6 +997,23 @@ const isInvestor   = roles.includes("investisseur");
 const isSupport    = roles.includes("support_client");
 
 document.getElementById("btn-logout").addEventListener("click", seDeconnecter);
+document.getElementById("btn-banque").addEventListener("click", _ouvrirBanque);
+
+// Scénario 4 : heartbeat toutes les 30s — détecte si banque a déconnecté l'utilisateur
+const _heartbeatInterval = setInterval(async () => {
+  const tok = await obtenirAccessTokenValide();
+  if (!tok) return;
+  try {
+    const r = await fetch(`${BACKEND_API_BASE_URL}/api/sso/heartbeat`, {
+      headers: { Authorization: `Bearer ${tok}` },
+    });
+    if (r.status === 401) {
+      clearInterval(_heartbeatInterval);
+      showToast("Session expirée", "Votre session banque a été clôturée. Reconnexion requise.", "warn");
+      setTimeout(seDeconnecter, 3500);
+    }
+  } catch {}
+}, 30000);
 
 // Récupération du profil utilisateur
 let userInfo;
@@ -944,7 +1024,9 @@ const displayName = userInfo.name || userInfo.preferred_username || "—";
 setUserId(userInfo.sub || accessClaims?.sub || "default");
 
 // ── État portefeuille (chargé depuis l'API) ───────────────────────────────────
-let _pfState  = { balance: 0, positions: [], devise: "MAD", mouvements: [] };
+let _pfState  = { balance: 0, positions: [], devise: "MAD", mouvements: [],
+                  iban: "", numero: "", type: "mixte", statut: "actif",
+                  date_ouverture: null, valeur_marche: 0, valorisation_totale: 0 };
 let _ordresState = [];
 
 async function _apiCall(path, options = {}) {
@@ -956,8 +1038,8 @@ async function _apiCall(path, options = {}) {
     return h;
   };
   let r = await fetch(`${BACKEND_API_BASE_URL}${path}`, { ...options, headers: buildHeaders(token) });
-  // 403 : le token ne contient pas le rôle requis → forcer un refresh
-  if (r.status === 403) {
+  // 401/403 : token expiré ou rôle manquant → forcer un refresh et rejouer
+  if (r.status === 401 || r.status === 403) {
     const ok = await rafraichirToken();
     if (ok) {
       token = obtenirAccessToken();
@@ -983,11 +1065,18 @@ async function chargerPortefeuille() {
     _pfState = {
       balance: parseFloat(data.solde_especes) || 0,
       iban: data.iban || "",
+      numero: data.numero || "",
+      type: data.type || "mixte",
+      statut: data.statut || "actif",
+      date_ouverture: data.date_ouverture || null,
+      valeur_marche: parseFloat(data.valeur_marche) || 0,
+      valorisation_totale: parseFloat(data.valorisation_totale) || 0,
       positions: (data.positions || []).map(p => ({
         name: p.instrument_code,
         nom: p.instrument_nom || p.instrument_code,
         qty: parseFloat(p.quantite) || 0,
         avgPrice: parseFloat(p.prix_revient_moyen) || 0,
+        cours_actuel: p.cours_actuel ? parseFloat(p.cours_actuel) : null,
         sector: "—",
       })),
       devise: data.devise || "MAD",
@@ -1121,7 +1210,7 @@ const mkt = {
 
 // ── WebSocket ─────────────────────────────────────────────────────────────────
 const WS_URL = (location.port === "80" || location.port === "443" || location.port === "")
-  ? `ws://${location.host}/ws/market`
+  ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/market`
   : "ws://localhost:8000/ws/market";
 
 let wsReconnDelay = 2000;
@@ -1450,7 +1539,79 @@ function renderWatchlistLive() {
 }
 
 // ── Portfolio ─────────────────────────────────────────────────────────────────
-function renderPortfolio() { renderPortfolioLive(); renderPfHistorique(); }
+function renderPortfolio() { renderCompteTitres(); renderPortfolioLive(); renderPfHistorique(); }
+
+function renderCompteTitres() {
+  const pf = _pfState;
+  const fmt2 = v => fmtN(v, 2);
+
+  // Numéro de compte
+  document.getElementById("ct-numero").textContent  = pf.numero || "—";
+  document.getElementById("ct-iban").textContent    = pf.iban   || "—";
+  document.getElementById("ct-solde").textContent   = fmt2(pf.balance) + " " + pf.devise;
+  document.getElementById("ct-marche").textContent  = fmt2(pf.valeur_marche) + " " + pf.devise;
+  document.getElementById("ct-total").textContent   = fmt2(pf.valorisation_totale);
+  document.getElementById("ct-devise-label").textContent = pf.devise;
+
+  // Date ouverture
+  const dateEl = document.getElementById("ct-date");
+  if (pf.date_ouverture) {
+    const d = new Date(pf.date_ouverture);
+    dateEl.textContent = d.toLocaleDateString("fr-FR", { day:"2-digit", month:"long", year:"numeric" });
+  } else { dateEl.textContent = "—"; }
+
+  // Badge type
+  const typeBadge = document.getElementById("ct-type-badge");
+  const typeLabels = { actions:"Actions", obligations:"Obligations", opcvm:"OPCVM", mixte:"Mixte" };
+  typeBadge.textContent = typeLabels[pf.type] || pf.type;
+
+  // Badge statut
+  const statutBadge = document.getElementById("ct-statut-badge");
+  const statutStyles = {
+    actif:   { bg:"rgba(34,197,94,.12)",  color:"#22c55e" },
+    suspendu:{ bg:"rgba(245,158,11,.12)", color:"#f59e0b" },
+    cloture: { bg:"rgba(239,68,68,.12)",  color:"#ef4444" },
+  };
+  const st = statutStyles[pf.statut] || statutStyles.actif;
+  statutBadge.textContent = pf.statut || "actif";
+  statutBadge.style.background = st.bg;
+  statutBadge.style.color = st.color;
+}
+
+function ouvrirNouveauCompteTitres() {
+  document.getElementById("ct-modal-msg").textContent = "";
+  document.getElementById("ct-type-select").value = "mixte";
+  document.getElementById("modal-ct-overlay").style.display = "flex";
+}
+
+function fermerModalCT() {
+  document.getElementById("modal-ct-overlay").style.display = "none";
+}
+
+window.confirmerOuvertureCT = async function() {
+  const type = document.getElementById("ct-type-select").value;
+  const msgEl = document.getElementById("ct-modal-msg");
+  const btn   = document.getElementById("btn-ct-confirmer");
+  btn.disabled = true; btn.textContent = "Ouverture…";
+  msgEl.textContent = "";
+  try {
+    const res = await _apiCall("/api/portefeuille/comptes-titres/ouvrir", {
+      method: "POST",
+      body: JSON.stringify({ type }),
+    });
+    fermerModalCT();
+    await chargerPortefeuille();
+    renderPortfolio();
+    showToast(
+      "Compte titres ouvert ✓",
+      `Numéro : ${res.numero} — Type : ${res.type} — IBAN : ${res.iban}`,
+      "success"
+    );
+  } catch (err) {
+    msgEl.textContent = err.message;
+    btn.disabled = false; btn.textContent = "Ouvrir le compte";
+  }
+};
 
 function renderPortfolioLive() {
   const pf = getPortfolio();
@@ -1703,6 +1864,14 @@ document.getElementById("mc-btn-confirm").addEventListener("click", async () => 
     updateOrderSummary();
 
   } catch (err) {
+    // Scénario 3 : SCA requise avant de passer un ordre
+    let errDetail = err.message;
+    try { errDetail = JSON.parse(err.message.replace(/^.*?(\{)/, "$1")); } catch {}
+    if (errDetail?.code === "sca_requis" || String(err.message).includes("sca_requis")) {
+      btn.disabled = false;
+      _ouvrirModalSCA(_pendingOrder);
+      return;
+    }
     closeOrderModal();
     showFormMsg(err.message, "err");
     showToast("Ordre rejeté ✕", err.message, "error");
@@ -1710,6 +1879,69 @@ document.getElementById("mc-btn-confirm").addEventListener("click", async () => 
     btn.disabled = false;
   }
 });
+
+// ── Modal SCA (Scénario 3) ────────────────────────────────────────────────────
+let _postScaOrder = null;
+
+function _ouvrirModalSCA(order) {
+  _postScaOrder = order;
+  let m = document.getElementById("modal-sca-overlay");
+  if (!m) {
+    m = document.createElement("div");
+    m.id = "modal-sca-overlay";
+    m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;";
+    m.innerHTML = `
+      <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 22px;max-width:340px;width:90%;text-align:center">
+        <div style="font-size:36px;margin-bottom:10px">🔐</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;color:var(--txt)">Authentification forte requise</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.5">
+          Pour sécuriser vos ordres, entrez votre code OTP à 6 chiffres.<br>
+          <span style="font-size:11px;opacity:.7">(POC : entrez n'importe quel code à 6 chiffres)</span>
+        </div>
+        <input id="sca-code-input" type="text" inputmode="numeric" maxlength="6" placeholder="000000"
+          style="width:100%;padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);
+                 color:var(--txt);font-size:20px;text-align:center;letter-spacing:6px;margin-bottom:16px;font-family:monospace">
+        <div id="sca-msg" style="font-size:12px;color:var(--down);margin-bottom:12px;min-height:16px"></div>
+        <div style="display:flex;gap:10px">
+          <button onclick="document.getElementById('modal-sca-overlay').style.display='none'"
+            style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--txt);cursor:pointer;font-family:inherit">
+            Annuler
+          </button>
+          <button id="btn-sca-confirm"
+            style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--accent);color:#000;cursor:pointer;font-weight:700;font-family:inherit">
+            Confirmer
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+    document.getElementById("btn-sca-confirm").addEventListener("click", _confirmerSCA);
+    document.getElementById("sca-code-input").addEventListener("keydown", e => {
+      if (e.key === "Enter") _confirmerSCA();
+    });
+  }
+  m.style.display = "flex";
+  document.getElementById("sca-code-input").value = "";
+  document.getElementById("sca-msg").textContent = "";
+  setTimeout(() => document.getElementById("sca-code-input")?.focus(), 100);
+}
+
+async function _confirmerSCA() {
+  const code = document.getElementById("sca-code-input").value.trim();
+  const msg  = document.getElementById("sca-msg");
+  if (!/^\d{6}$/.test(code)) { msg.textContent = "Entrez exactement 6 chiffres."; return; }
+
+  const btn = document.getElementById("btn-sca-confirm");
+  btn.disabled = true;
+  try {
+    await _apiCall("/api/sca/verifier", { method: "POST", body: JSON.stringify({ code }) });
+    document.getElementById("modal-sca-overlay").style.display = "none";
+    showToast("SCA validée ✓", "Authentification forte confirmée. Repassez votre ordre.", "success");
+  } catch (e) {
+    msg.textContent = e.message || "Erreur lors de la vérification.";
+  } finally {
+    btn.disabled = false;
+  }
+}
 
 function showFormMsg(msg, type) {
   const el = document.getElementById("form-msg");
@@ -1819,6 +2051,27 @@ window.doCancelOrder = async function(orderId) {
   }
 };
 
+// ── Navigation vers la banque CFC (Scénario 5 : vérification suspension) ─────
+async function _ouvrirBanque() {
+  try {
+    const token = await obtenirAccessTokenValide();
+    if (token) {
+      const r = await fetch(`${BACKEND_API_BASE_URL}/api/sso/status-banque`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (r.ok) {
+        const st = await r.json();
+        if (!st.actif) {
+          showToast("Compte banque suspendu", st.raison || "Votre accès à la banque a été suspendu.", "error");
+          return;
+        }
+      }
+    }
+  } catch {}
+  fetch(BANQUE_FRONTEND_URL + "/bourse/log-retour", { method: "POST", mode: "no-cors" }).catch(() => {});
+  window.open(BANQUE_FRONTEND_URL + "/?action=login", "_blank", "noopener");
+}
+
 // ── Dépôt depuis la banque CFC ────────────────────────────────────────────────
 let _depotRefEnCours = null;
 
@@ -1838,10 +2091,7 @@ window.ouvrirAlimenterBourse = async function() {
   const tsSufx = String(ts).slice(-6);
   const ref = `BRS${subHex}${tsSufx}`;
 
-  // Toujours utiliser l'URL K8s ingress de la banque (cookies liés à cfc.127.0.0.1.nip.io)
-  const banqueUrl = window.location.hostname.includes(".nip.io")
-    ? `https://cfc.${window.location.hostname.match(/(\d+\.\d+\.\d+\.\d+)/)?.[1]}.nip.io`
-    : "http://cfc.127.0.0.1.nip.io";
+  const banqueUrl = BANQUE_FRONTEND_URL;
 
   const retourUrl = encodeURIComponent(
     `${window.location.origin}${window.location.pathname}?depot_ref=${ref}`
@@ -1890,7 +2140,7 @@ window.ouvrirModalDepot = async function(ref) {
 window.fermerModalDepot = function() {
   document.getElementById("modal-depot-overlay").style.display = "none";
   _depotRefEnCours = null;
-  // Nettoyer l'URL
+  localStorage.removeItem("depot_ref_pending");
   if (location.search.includes("depot_ref")) {
     history.replaceState({}, "", location.pathname);
   }

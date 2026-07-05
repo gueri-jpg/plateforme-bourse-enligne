@@ -1,18 +1,27 @@
 // ============================================================================
 // config.ts — URLs et constantes de configuration
-// Les valeurs sont lues depuis .env (variables EXPO_PUBLIC_*)
-// Pour changer l'IP : modifier EXPO_PUBLIC_BACKEND_IP dans mobile/.env
+//
+// Deux modes :
+//  - Dev local  : EXPO_PUBLIC_BACKEND_IP + ports (via mobile/.env)
+//  - Production : EXPO_PUBLIC_API_URL + EXPO_PUBLIC_KEYCLOAK_URL (via eas.json)
 // ============================================================================
 
-const BACKEND_IP   = process.env.EXPO_PUBLIC_BACKEND_IP   ?? '172.20.10.5';
-const BACKEND_PORT = process.env.EXPO_PUBLIC_BACKEND_PORT  ?? '8000';
-const KC_PORT      = process.env.EXPO_PUBLIC_KEYCLOAK_PORT ?? '9090';
+// Production (eas.json preview/production) → URL complètes https://
+// Dev local (.env) → IP + ports
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
+  ?? `http://${process.env.EXPO_PUBLIC_BACKEND_IP ?? '172.20.10.5'}:${process.env.EXPO_PUBLIC_BACKEND_PORT ?? '8000'}`;
+
+const KC_BASE_URL = process.env.EXPO_PUBLIC_KEYCLOAK_URL
+  ?? `http://${process.env.EXPO_PUBLIC_BACKEND_IP ?? '172.20.10.5'}:${process.env.EXPO_PUBLIC_KEYCLOAK_PORT ?? '9090'}`;
+
+// WebSocket : wss:// en production, ws:// en dev
+const WS_BASE_URL = API_BASE_URL.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://');
 
 export const CONFIG = {
-  API_BASE_URL:  `http://${BACKEND_IP}:${BACKEND_PORT}`,
-  WS_MARKET_URL: `ws://${BACKEND_IP}:${BACKEND_PORT}/ws/market`,
+  API_BASE_URL,
+  WS_MARKET_URL: `${WS_BASE_URL}/ws/market`,
 
-  KEYCLOAK_BASE_URL:  `http://${BACKEND_IP}:${KC_PORT}`,
+  KEYCLOAK_BASE_URL:  KC_BASE_URL,
   KEYCLOAK_REALM:     process.env.EXPO_PUBLIC_KEYCLOAK_REALM     ?? 'bourse-en-ligne',
   KEYCLOAK_CLIENT_ID: process.env.EXPO_PUBLIC_KEYCLOAK_CLIENT_ID ?? 'mobile-app',
 

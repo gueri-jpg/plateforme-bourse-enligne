@@ -1033,7 +1033,7 @@ function schedule() {
 
 /* ── Transport WebSocket (primaire) ── */
 const WS_URL = (location.port === "80" || location.port === "443" || location.port === "")
-  ? `ws://${location.host}/ws/market`
+  ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/market`
   : "ws://localhost:8000/ws/market";
 
 const wsState = { socket: null, reconnectDelay: 2000, active: false };

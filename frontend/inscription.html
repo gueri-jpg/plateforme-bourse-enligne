@@ -500,7 +500,7 @@
 <script type="module">
   import { genererCodeVerifier, genererCodeChallenge, genererEtatAleatoire } from "./js/pkce.js";
   import {
-    KEYCLOAK_AUTH_ENDPOINT, KEYCLOAK_CLIENT_ID, REDIRECT_URI, STORAGE_KEYS
+    KEYCLOAK_AUTH_ENDPOINT, KEYCLOAK_CLIENT_ID, REDIRECT_URI, STORAGE_KEYS, BACKEND_API_BASE_URL
   } from "./js/config.js";
 
   window.lancerConnexion = async function () {
@@ -512,6 +512,13 @@
         const sub = JSON.parse(atob(token.split(".")[1])).sub;
         if (sub) localStorage.setItem("bourse_profil_" + sub, "1");
       } catch { /* token malformé */ }
+      // Créer le portefeuille en base (idempotent)
+      try {
+        await fetch(`${BACKEND_API_BASE_URL}/api/portefeuille/creer`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch { /* non bloquant */ }
       window.location.href = "dashboard.html";
       return;
     }

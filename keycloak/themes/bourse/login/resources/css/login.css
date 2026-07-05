@@ -1,435 +1,281 @@
-/* ==========================================================================
-   Thème BourseOnline — Keycloak 26
-   ========================================================================== */
+/* ═══════════════════════════════════════════════════════════
+   BourseOnline — Keycloak 26 — dark blue premium theme
+   ═══════════════════════════════════════════════════════════ */
 
-:root {
-  --bg:     #070b1c;
-  --panel:  #111733;
-  --input:  #0e1430;
-  --txt:    #e7ecff;
-  --muted:  #8a93b8;
-  --line:   #1f2a52;
-  --blue:   #60a5fa;
-  --indigo: #818cf8;
-  --red:    #ef4444;
-  --green:  #22c55e;
-  --gold:   #f59e0b;
-}
-
-/* ── Reset total ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Fond unique ── */
+:root {
+  --bg:          #070b1c;
+  --panel:       #111733;
+  --input:       #0e1430;
+  --txt:         #e7ecff;
+  --muted:       #8a93b8;
+  --line:        #1f2a52;
+  --blue:        #60a5fa;
+  --indigo:      #818cf8;
+  --green:       #22c55e;
+  --red:         #ef4444;
+  --gold:        #f59e0b;
+  --blue-dim:    rgba(96,165,250,.12);
+  --blue-border: rgba(96,165,250,.25);
+}
+
 html, body {
   min-height: 100vh;
-  background: #070b1c !important;
-  color: var(--txt) !important;
-  font-family: -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif !important;
-  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Supprimer tout ce que Bootstrap et PatternFly ajoutent ── */
-body > nav,
-body > .navbar,
-.navbar { display: none !important; }
-
-/* ── Header logo — bande fine en haut ── */
-#kc-header,
-.login-pf-page-header,
-.pf-c-login__header {
-  background: #070b1c !important;
-  border-bottom: 1px solid var(--line) !important;
-  padding: 20px 0 !important;
-  text-align: center !important;
-  width: 100% !important;
+/* ── Ambient glow ────────────────────────────────────────── */
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 900px 700px at 50% 30%, rgba(96,165,250,.06)  0%, transparent 60%),
+    radial-gradient(ellipse 600px 400px at 10% 90%, rgba(129,140,248,.04) 0%, transparent 55%),
+    radial-gradient(ellipse 600px 400px at 90% 10%, rgba(59,130,246,.04)  0%, transparent 55%);
 }
 
-#kc-header-wrapper {
-  color: var(--txt) !important;
-  font-size: 18px !important;
-  font-weight: 800 !important;
-  letter-spacing: -.3px !important;
-  text-shadow: none !important;
+/* ── Page wrapper ────────────────────────────────────────── */
+.bourse-page {
+  min-height: 100vh; position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px 16px 32px;
 }
 
-/* ── Écraser le grid Bootstrap ENTIÈREMENT ── */
-/* Keycloak classic met le titre en col-sm-5 et le form en col-sm-7 — on annule */
-.container-fluid,
-.container {
-  max-width: 100% !important;
-  width: 100% !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  float: none !important;
-  display: block !important;
+/* ── Carte principale ────────────────────────────────────── */
+.bourse-card {
+  width: 100%; max-width: 440px;
+  background: rgba(17, 23, 51, 0.96);
+  border: 1px solid rgba(96,165,250,.2);
+  border-radius: 22px;
+  box-shadow:
+    0 40px 100px rgba(0,0,0,.7),
+    0 0 0 1px rgba(96,165,250,.05),
+    inset 0 1px 0 rgba(96,165,250,.08);
+  animation: cardIn .35s cubic-bezier(.22,1,.36,1);
+  position: relative; overflow: hidden;
 }
 
-.row,
-.form-horizontal {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  width: 100% !important;
-  margin: 0 !important;
-  float: none !important;
+/* Ligne d'accent en haut */
+.bourse-card::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 5%, rgba(96,165,250,.55) 50%, transparent 95%);
 }
 
-/* Toutes les colonnes Bootstrap → pleine largeur centrée */
-[class*="col-sm-"],
-[class*="col-md-"],
-[class*="col-lg-"],
-[class*="col-xs-"] {
-  float: none !important;
-  width: 100% !important;
-  max-width: 580px !important;
-  padding: 0 !important;
-  margin: 0 auto !important;
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(22px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
 }
 
-/* ── Zone de contenu — centrage vertical ── */
-#kc-content,
-#kc-content-wrapper {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  width: 100% !important;
-  padding: 48px 16px 80px !important;
+/* ── Logo ────────────────────────────────────────────────── */
+.bourse-logo {
+  text-align: center;
+  padding: 30px 28px 0;
+}
+.bourse-logo-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 68px; height: 68px; border-radius: 20px;
+  background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+  color: #fff; font-size: 26px; font-weight: 900; letter-spacing: -1px;
+  box-shadow: 0 10px 30px rgba(96,165,250,.4), 0 0 0 5px rgba(96,165,250,.1);
+  margin-bottom: 10px; text-decoration: none;
+}
+.bourse-logo-name {
+  font-size: 15px; font-weight: 800; color: var(--txt); letter-spacing: .1px; margin-bottom: 3px;
+}
+.bourse-logo-tagline {
+  font-size: 12px; color: var(--muted); letter-spacing: .2px;
 }
 
-/* ── CARTE principale ── */
-.card-pf,
-form#kc-register-form,
-form#kc-login,
-form#kc-reset-password-form,
-#kc-form,
-.pf-c-login__main {
-  width: 100% !important;
-  max-width: 580px !important;
-  background: var(--panel) !important;
-  border: 1px solid var(--line) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 16px 56px rgba(0,0,0,.6) !important;
-  padding: 36px 36px 32px !important;
-  margin: 0 auto !important;
-  float: none !important;
+/* ── En-tête ─────────────────────────────────────────────── */
+.bourse-header { padding: 20px 28px 0; }
+.bourse-title {
+  font-size: 24px; font-weight: 900; color: var(--txt); letter-spacing: -.4px; margin-bottom: 5px;
 }
+.bourse-subtitle { font-size: 13px; color: var(--muted); line-height: 1.5; }
 
-/* Texte "* Required fields" — mini note au dessus */
-#kc-content > p,
-#kc-content-wrapper > p,
-.required-fields-note,
-p.required {
-  color: var(--muted) !important;
-  font-size: 12px !important;
-  text-align: center !important;
-  margin-bottom: 12px !important;
-  max-width: 580px !important;
-  width: 100% !important;
+/* ── Corps ───────────────────────────────────────────────── */
+.bourse-body { padding: 20px 28px 24px; }
+
+/* ── Alertes ─────────────────────────────────────────────── */
+.kc-alert {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 13px; border-radius: 11px; margin-bottom: 16px;
+  font-size: 13px; line-height: 1.5;
 }
+.kc-alert-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.kc-alert.error   { background: rgba(239,68,68,.1);  color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+.kc-alert.success { background: rgba(34,197,94,.1);  color: #86efac; border: 1px solid rgba(34,197,94,.25); }
+.kc-alert.warning { background: rgba(245,158,11,.1); color: #fcd34d; border: 1px solid rgba(245,158,11,.22); }
+.kc-alert.info    { background: rgba(96,165,250,.1); color: var(--blue); border: 1px solid rgba(96,165,250,.22); }
 
-/* ── Titre du formulaire ── */
-#kc-page-title,
-h1#kc-page-title,
-.login-pf-header,
-header.login-pf-header,
-.pf-c-login__main-header {
-  color: var(--txt) !important;
-  font-size: 20px !important;
-  font-weight: 700 !important;
-  text-align: center !important;
-  margin: 0 0 28px !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
+/* ── Groupes de champs ───────────────────────────────────── */
+.form-group { margin-bottom: 15px; }
+.label-row {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
 }
-
-/* ── Labels ── */
-label,
-.control-label,
-.pf-c-form__label {
-  display: block !important;
-  color: var(--muted) !important;
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: .6px !important;
-  margin-bottom: 6px !important;
+.form-label {
+  font-size: 10px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .7px;
 }
-
-.pf-c-form__label-required { color: var(--red) !important; }
-
-/* ── Groupes de champs ── */
-.form-group,
-.pf-c-form__group {
-  margin-bottom: 16px !important;
+.forgot-link {
+  font-size: 11px; color: var(--blue); text-decoration: none; font-weight: 700; transition: color .15s;
 }
+.forgot-link:hover { color: var(--indigo); }
 
-/* ── Inputs ── */
-input[type="text"],
-input[type="password"],
-input[type="email"],
-input[type="number"],
-input[type="tel"],
-input[type="url"],
-select,
-textarea,
-.pf-c-form-control,
-.form-control {
-  display: block !important;
-  width: 100% !important;
-  background: var(--input) !important;
-  background-color: var(--input) !important;
-  color: var(--txt) !important;
-  border: 1px solid var(--line) !important;
-  border-radius: 9px !important;
-  padding: 10px 13px !important;
-  font-size: 14px !important;
-  font-family: inherit !important;
-  box-shadow: none !important;
-  outline: none !important;
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  transition: border-color .18s, box-shadow .18s !important;
+/* ── Input avec icône ────────────────────────────────────── */
+.input-wrap { position: relative; }
+.input-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); display: flex; pointer-events: none;
 }
+.input-icon svg { width: 15px; height: 15px; }
 
-input:focus,
-.form-control:focus,
-.pf-c-form-control:focus {
-  border-color: var(--blue) !important;
-  box-shadow: 0 0 0 3px rgba(96,165,250,.15) !important;
-  outline: none !important;
+.form-input {
+  width: 100%; padding: 13px 14px 13px 42px;
+  background: var(--input);
+  border: 1.5px solid var(--line);
+  border-radius: 11px; color: var(--txt);
+  font-size: 14px; font-family: inherit;
+  outline: none; transition: border-color .18s, box-shadow .18s;
+  caret-color: var(--blue);
 }
+.form-input.no-icon { padding-left: 14px; }
 
-input::placeholder { color: var(--muted) !important; opacity: .6 !important; }
+.form-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(96,165,250,.13);
+}
+.form-input::placeholder { color: var(--muted); opacity: .55; }
+.form-input.has-error { border-color: var(--red); }
+.form-input.has-error:focus { box-shadow: 0 0 0 3px rgba(239,68,68,.13); }
 
-/* ── Autofill Chrome/Edge ── */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
+/* Autofill Chrome/Edge */
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0 60px var(--input) inset !important;
   -webkit-text-fill-color: var(--txt) !important;
   caret-color: var(--txt) !important;
   transition: background-color 9999s 0s !important;
 }
 
-/* ── Wrapper input + bouton œil ── */
-.pf-c-input-group,
-.input-group {
-  display: flex !important;
-  align-items: stretch !important;
-  background: var(--input) !important;
-  border: 1px solid var(--line) !important;
-  border-radius: 9px !important;
-  overflow: hidden !important;
+.field-error { display: block; font-size: 11px; color: #fca5a5; margin-top: 4px; }
+
+/* ── Toggle mot de passe ─────────────────────────────────── */
+.password-wrap { position: relative; }
+.password-wrap .form-input { padding-right: 46px; }
+.toggle-pw {
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 44px; background: none; border: none;
+  border-left: 1px solid var(--line);
+  color: var(--muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 0 11px 11px 0; transition: color .15s, background .15s;
+}
+.toggle-pw:hover { color: var(--blue); background: rgba(96,165,250,.07); }
+.toggle-pw svg { width: 16px; height: 16px; }
+
+/* ── Checkbox ────────────────────────────────────────────── */
+.remember-row { margin: 13px 0 2px; }
+.checkbox-label {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 13px; color: var(--muted);
+}
+.checkbox-label input[type="checkbox"] {
+  width: 15px; height: 15px; accent-color: var(--blue); flex-shrink: 0;
 }
 
-.pf-c-input-group input,
-.pf-c-input-group .pf-c-form-control,
-.input-group input {
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  flex: 1 !important;
+/* ── Bouton principal ────────────────────────────────────── */
+.btn-primary {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 14px 20px; border-radius: 11px; border: none;
+  background: linear-gradient(135deg, #1d4ed8 0%, #4f46e5 100%);
+  color: #fff; font-size: 15px; font-weight: 700; font-family: inherit;
+  cursor: pointer; letter-spacing: .1px;
+  box-shadow: 0 6px 28px rgba(59,130,246,.4);
+  transition: box-shadow .2s, transform .15s;
+  margin-top: 18px; text-decoration: none;
+}
+.btn-primary:hover  { box-shadow: 0 10px 40px rgba(59,130,246,.6); transform: translateY(-1px); }
+.btn-primary:active { transform: scale(.99); }
+.btn-primary:disabled { opacity: .55; cursor: default; transform: none; box-shadow: none; }
+.btn-arrow { font-size: 18px; font-weight: 300; line-height: 1; margin-left: 2px; }
+
+/* ── Bouton secondaire ───────────────────────────────────── */
+.btn-secondary {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; padding: 12px 20px; border-radius: 11px;
+  background: transparent; color: var(--txt);
+  border: 1.5px solid var(--line);
+  font-size: 14px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: all .18s; margin-top: 10px;
+  text-decoration: none;
+}
+.btn-secondary:hover { border-color: var(--blue); color: var(--blue); background: rgba(96,165,250,.06); }
+
+/* ── Pied de carte ───────────────────────────────────────── */
+.bourse-footer {
+  border-top: 1px solid rgba(96,165,250,.1);
+  padding: 14px 28px 0;
+  text-align: center;
+  font-size: 13px; color: var(--muted);
+}
+.bourse-footer a {
+  color: var(--blue); font-weight: 700; text-decoration: none; margin-left: 3px; transition: color .15s;
+}
+.bourse-footer a:hover { color: var(--indigo); text-decoration: underline; }
+
+/* ── Badges de confiance ─────────────────────────────────── */
+.trust-row {
+  display: flex; align-items: flex-start; gap: 0;
+  padding: 14px 20px 18px;
+  border-top: 1px solid rgba(96,165,250,.08);
+}
+.trust-item {
+  flex: 1; display: flex; align-items: flex-start; gap: 7px; padding: 0 8px;
+}
+.trust-item:first-child { padding-left: 0; }
+.trust-item:last-child  { padding-right: 0; }
+.trust-sep { width: 1px; background: rgba(96,165,250,.1); align-self: stretch; flex-shrink: 0; }
+.trust-icon { color: var(--blue); flex-shrink: 0; margin-top: 1px; }
+.trust-icon svg { width: 14px; height: 14px; }
+.trust-title { font-size: 10px; font-weight: 800; color: var(--txt); margin-bottom: 2px; line-height: 1.3; }
+.trust-text  { font-size: 9.5px; color: var(--muted); line-height: 1.4; }
+
+/* ── Grille 2 colonnes (inscription) ────────────────────── */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+@media (max-width: 440px) { .form-row { grid-template-columns: 1fr; } }
+
+/* ── Pages info / erreur ─────────────────────────────────── */
+.bourse-info-body { padding: 28px 28px 32px; text-align: center; }
+.bourse-info-icon { font-size: 52px; margin-bottom: 14px; display: block; }
+.bourse-info-title { font-size: 22px; font-weight: 900; color: var(--txt); margin-bottom: 10px; }
+.bourse-info-text {
+  font-size: 14px; color: var(--muted); line-height: 1.65;
+  max-width: 360px; margin: 0 auto 20px;
 }
 
-.pf-c-input-group__item button,
-.pf-c-button.pf-m-control,
-.input-group-addon,
-.input-group-btn button {
-  background: transparent !important;
-  border: none !important;
-  border-left: 1px solid var(--line) !important;
-  color: var(--muted) !important;
-  padding: 0 13px !important;
-  cursor: pointer !important;
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .bourse-page  { padding: 16px 10px 28px; }
+  .bourse-card  { border-radius: 18px; }
+  .bourse-logo  { padding: 22px 20px 0; }
+  .bourse-logo-badge { width: 56px; height: 56px; font-size: 22px; border-radius: 16px; }
+  .bourse-header { padding: 16px 20px 0; }
+  .bourse-body   { padding: 16px 20px 20px; }
+  .bourse-footer { padding: 13px 20px 0; }
+  .bourse-info-body { padding: 22px 20px 26px; }
+  .trust-row { flex-direction: column; gap: 10px; padding: 12px 20px 16px; }
+  .trust-sep { width: auto; height: 1px; }
+  .trust-item { padding: 0; }
+  .bourse-title { font-size: 20px; }
 }
 
-.pf-c-button.pf-m-control:hover,
-.input-group-btn button:hover { color: var(--blue) !important; }
-
-/* ── Checkbox ── */
-input[type="checkbox"] {
-  accent-color: var(--blue) !important;
-  width: 15px !important; height: 15px !important;
-  vertical-align: middle !important;
-  margin-right: 7px !important;
-}
-
-.checkbox label,
-#rememberMe + label { color: var(--muted) !important; }
-
-/* ── Bouton principal ── */
-#kc-login,
-input[type="submit"],
-button[type="submit"],
-.btn-primary,
-.pf-m-primary {
-  display: block !important;
-  width: 100% !important;
-  margin-top: 20px !important;
-  padding: 12px 0 !important;
-  background: linear-gradient(135deg, #1d4ed8, #4f46e5) !important;
-  border: none !important;
-  border-radius: 9px !important;
-  color: #fff !important;
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  font-family: inherit !important;
-  cursor: pointer !important;
-  box-shadow: 0 4px 20px rgba(59,130,246,.38) !important;
-  transition: transform .15s, box-shadow .15s !important;
-  letter-spacing: .1px !important;
-}
-
-#kc-login:hover,
-input[type="submit"]:hover,
-button[type="submit"]:hover,
-.btn-primary:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 28px rgba(59,130,246,.55) !important;
-}
-
-/* ── Bouton secondaire ── */
-.btn-default, #kc-cancel, .pf-m-secondary {
-  background: transparent !important;
-  border: 1px solid var(--line) !important;
-  border-radius: 9px !important;
-  color: var(--muted) !important;
-  font-family: inherit !important;
-  padding: 10px 20px !important;
-  cursor: pointer !important;
-  transition: border-color .15s, color .15s !important;
-}
-
-.btn-default:hover, #kc-cancel:hover { border-color: var(--blue) !important; color: var(--blue) !important; }
-
-/* ── Liens ── */
-a, a:link, a:visited { color: var(--blue) !important; text-decoration: none !important; }
-a:hover { color: var(--indigo) !important; text-decoration: underline !important; }
-
-/* ── "Forgot password" aligné à droite ── */
-#kc-forgot-pw, .login-pf-settings {
-  text-align: right !important;
-  margin-top: -4px !important;
-  margin-bottom: 12px !important;
-}
-
-/* ── "New user? Register" / "Back to login" ── */
-#kc-registration,
-#kc-registration-container,
-#kc-info-message {
-  color: var(--muted) !important;
-  margin-top: 20px !important;
-  padding-top: 16px !important;
-  border-top: 1px solid var(--line) !important;
-  text-align: center !important;
-  font-size: 13px !important;
-}
-
-/* ── Alertes ── */
-.alert, .pf-c-alert {
-  border-radius: 8px !important;
-  padding: 10px 14px !important;
-  margin-bottom: 16px !important;
-  font-size: 13px !important;
-  border-width: 1px !important;
-  border-style: solid !important;
-}
-
-.alert-error, .pf-m-danger  { background: rgba(239,68,68,.12) !important; border-color: rgba(239,68,68,.4) !important; color: #fca5a5 !important; }
-.alert-warning, .pf-m-warning { background: rgba(245,158,11,.12) !important; border-color: rgba(245,158,11,.4) !important; color: #fcd34d !important; }
-.alert-success, .pf-m-success { background: rgba(34,197,94,.12)  !important; border-color: rgba(34,197,94,.4)  !important; color: #86efac !important; }
-.alert-info, .pf-m-info      { background: rgba(96,165,250,.10) !important; border-color: rgba(96,165,250,.3) !important; color: var(--blue) !important; }
-
-/* Champ en erreur */
-.has-error .form-control,
-.pf-m-error .pf-c-form-control { border-color: var(--red) !important; }
-.help-block, .pf-c-form__helper-text.pf-m-error { color: #fca5a5 !important; font-size: 12px !important; margin-top: 4px !important; }
-
-/* ── PatternFly v4 (pf-c-login) ── */
-.pf-c-page, .pf-c-login { background: #070b1c !important; min-height: 100vh !important; }
-.pf-c-login__container { max-width: 580px !important; margin: 0 auto !important; padding: 48px 16px !important; }
-.pf-c-login__main {
-  background: var(--panel) !important;
-  border: 1px solid var(--line) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 16px 56px rgba(0,0,0,.6) !important;
-}
-.pf-c-login__main-header,
-.pf-c-login__main-body,
-.pf-c-login__main-footer { padding: 24px 32px !important; }
-.pf-c-login__main-header { padding-bottom: 0 !important; }
-.pf-c-title { color: var(--txt) !important; }
-.pf-c-login__footer { color: var(--muted) !important; }
-
-/* ── Register : colonne unique, compact pour tenir sur l'écran ── */
-form#kc-register-form {
-  display: block !important;
-  padding: 24px 28px 20px !important;
-}
-
-/* Groupes de champs resserrés */
-form#kc-register-form .form-group,
-form#kc-register-form .pf-c-form__group {
-  margin-bottom: 10px !important;
-}
-
-/* Labels compacts */
-form#kc-register-form label,
-form#kc-register-form .control-label,
-form#kc-register-form .pf-c-form__label {
-  font-size: 10px !important;
-  margin-bottom: 4px !important;
-}
-
-/* Astérisque requis inline */
-form#kc-register-form .pf-c-form__label-required,
-form#kc-register-form label .required,
-form#kc-register-form span.required {
-  display: inline !important;
-  margin-left: 2px !important;
-  color: var(--red) !important;
-}
-
-/* Inputs compacts */
-form#kc-register-form input[type="text"],
-form#kc-register-form input[type="password"],
-form#kc-register-form input[type="email"] {
-  padding: 8px 11px !important;
-  font-size: 13px !important;
-}
-
-/* Input-group (password + œil) */
-form#kc-register-form .pf-c-input-group,
-form#kc-register-form .input-group {
-  width: 100% !important;
-  overflow: hidden !important;
-}
-
-/* Bouton Register pleine largeur */
-form#kc-register-form input[type="submit"],
-form#kc-register-form button[type="submit"],
-form#kc-register-form .btn-primary {
-  width: 100% !important;
-  margin-top: 10px !important;
-  padding: 11px 0 !important;
-}
-
-/* Lien "Back to Login" */
-form#kc-register-form #back-to-login,
-form#kc-register-form .login-pf-signup {
-  display: block !important;
-  text-align: center !important;
-  font-size: 13px !important;
-  padding-top: 12px !important;
-  border-top: 1px solid var(--line) !important;
-  margin-top: 8px !important;
-}
-
-/* Masquer "* Required fields" redondant */
-#kc-content-wrapper > p { display: none !important; }
-
-/* ── Scroll ── */
+/* ── Scrollbar ───────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }

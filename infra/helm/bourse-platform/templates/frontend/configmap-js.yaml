@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bourse.fullname" . }}-frontend-js
+  labels:
+    {{- include "bourse.labels" . | nindent 4 }}
+data:
+  config.v2.js: |
+    const _isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const _proto = window.location.protocol;
+
+    export const KEYCLOAK_BASE_URL = _isLocal
+      ? "http://localhost:9090"
+      : {{ .Values.config.keycloakIssuerBaseUrl | default "https://auth.cfconsultancy.org" | quote }};
+
+    export const KEYCLOAK_REALM = "bourse-en-ligne";
+    export const KEYCLOAK_CLIENT_ID = "frontend-spa";
+    export const KEYCLOAK_REALM_URL = `${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}`;
+    export const KEYCLOAK_AUTH_ENDPOINT = `${KEYCLOAK_REALM_URL}/protocol/openid-connect/auth`;
+    export const KEYCLOAK_TOKEN_ENDPOINT = `${KEYCLOAK_REALM_URL}/protocol/openid-connect/token`;
+    export const KEYCLOAK_USERINFO_ENDPOINT = `${KEYCLOAK_REALM_URL}/protocol/openid-connect/userinfo`;
+    export const KEYCLOAK_LOGOUT_ENDPOINT = `${KEYCLOAK_REALM_URL}/protocol/openid-connect/logout`;
+
+    export const FRONTEND_BASE_URL = window.location.origin;
+    export const REDIRECT_URI = `${FRONTEND_BASE_URL}/callback.html`;
+    export const POST_LOGOUT_REDIRECT_URI = `${FRONTEND_BASE_URL}/index.html`;
+
+    // En prod : sous-domaine dédié api.cfconsultancy.org → ingress → backend direct (CORS autorisé)
+    export const BACKEND_API_BASE_URL = _isLocal
+      ? "http://localhost:8000"
+      : {{ .Values.config.bourseApiPublicUrl | default "https://api.cfconsultancy.org" | quote }};
+
+    export const BANQUE_FRONTEND_URL = _isLocal
+      ? "http://banquedigitale.127.0.0.1.nip.io"
+      : {{ .Values.config.banqueFrontendUrl | default "https://banquedigitale.cfconsultancy.org" | quote }};
+
+    export const STORAGE_KEYS = {
+      ACCESS_TOKEN: "bourse_access_token",
+      REFRESH_TOKEN: "bourse_refresh_token",
+      ID_TOKEN: "bourse_id_token",
+      EXPIRES_AT: "bourse_expires_at",
+      CODE_VERIFIER: "bourse_pkce_code_verifier",
+    };

@@ -1,0 +1,60 @@
+{
+  "cli": {
+    "version": ">= 16.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "development:azure": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.cfconsultancy.org",
+        "EXPO_PUBLIC_KEYCLOAK_URL": "https://auth.cfconsultancy.org",
+        "EXPO_PUBLIC_KEYCLOAK_REALM": "bourse-en-ligne",
+        "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "mobile-app",
+        "EXPO_PUBLIC_MARKET_OPEN_HOUR": "9",
+        "EXPO_PUBLIC_MARKET_CLOSE_HOUR": "15",
+        "EXPO_PUBLIC_MARKET_CLOSE_MIN": "30"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.cfconsultancy.org",
+        "EXPO_PUBLIC_KEYCLOAK_URL": "https://auth.cfconsultancy.org",
+        "EXPO_PUBLIC_KEYCLOAK_REALM": "bourse-en-ligne",
+        "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "mobile-app",
+        "EXPO_PUBLIC_MARKET_OPEN_HOUR": "9",
+        "EXPO_PUBLIC_MARKET_CLOSE_HOUR": "15",
+        "EXPO_PUBLIC_MARKET_CLOSE_MIN": "30"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.cfconsultancy.org",
+        "EXPO_PUBLIC_KEYCLOAK_URL": "https://auth.cfconsultancy.org",
+        "EXPO_PUBLIC_KEYCLOAK_REALM": "bourse-en-ligne",
+        "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "mobile-app",
+        "EXPO_PUBLIC_MARKET_OPEN_HOUR": "9",
+        "EXPO_PUBLIC_MARKET_CLOSE_HOUR": "15",
+        "EXPO_PUBLIC_MARKET_CLOSE_MIN": "30"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

@@ -201,9 +201,13 @@ services:
       KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET:-admin-tools-secret-a-changer}
       ROLE_ADMINISTRATEUR: administrateur
       ROLE_INVESTISSEUR: investisseur
-      BANQUE_API_URL: http://host.docker.internal:8010
+      BANQUE_API_URL: http://host.docker.internal:8000
+      BANQUE_FRONTEND_URL: http://cfc.127.0.0.1.nip.io
+      INTER_SERVICE_TOKEN: bourse-banque-inter-service-token-poc
     ports:
       - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       kafka:
         condition: service_healthy

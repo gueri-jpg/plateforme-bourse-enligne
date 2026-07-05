@@ -9,7 +9,10 @@
     "scheme": "bourseenligne",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "ma.ecentralecasa.bourseenligne"
+      "bundleIdentifier": "ma.ecentralecasa.bourseenligne",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,6 +24,12 @@
     "plugins": [
       "expo-secure-store",
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8aea88d6-5c50-45d3-9ec1-1003be06697e"
+      }
+    },
+    "owner": "mamathyacine"
   }
 }

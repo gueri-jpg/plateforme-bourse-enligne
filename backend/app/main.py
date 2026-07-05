@@ -14,7 +14,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import ws_market
-from app.routers import otp_utilisateur, parametres_devise, parametres_otp, parametres_securite, portefeuille, ordres_bourse
+from app.config import settings
+from app.routers import otp_utilisateur, parametres_devise, parametres_otp, parametres_securite, portefeuille, ordres_bourse, inter_service
 
 
 @asynccontextmanager
@@ -43,7 +44,9 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:5173",
         "http://localhost:8010",
-        # nip.io AKS — autorise toutes les origines *.nip.io pour les déploiements K8s
+        "https://bourse.cfconsultancy.org",
+        "https://admin.cfconsultancy.org",
+        "https://banquedigitale.cfconsultancy.org",
     ],
     allow_origin_regex=r"https?://.*\.nip\.io(:\d+)?",
     allow_credentials=True,
@@ -61,9 +64,16 @@ app.include_router(otp_utilisateur.router)
 app.include_router(ws_market.router)
 app.include_router(portefeuille.router)
 app.include_router(ordres_bourse.router)
+app.include_router(inter_service.router)
 
 
 @app.get("/api/health", tags=["Supervision"])
 def healthcheck():
     """Endpoint de supervision simple, sans authentification (verifie que l'API repond)."""
     return {"statut": "ok"}
+
+
+@app.get("/api/config", tags=["Config"], include_in_schema=False)
+def public_config():
+    """Config frontend publique : URLs pour navigation inter-plateforme."""
+    return {"banque_frontend_url": settings.BANQUE_FRONTEND_URL}

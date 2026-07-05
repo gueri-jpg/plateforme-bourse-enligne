@@ -67,21 +67,18 @@
       "redirectUris": [
         "http://localhost:3000/*",
         "http://localhost:5173/*",
-        "https://bourse-enligne.ma/*",
-        "https://www.bourse-enligne.ma/*",
-        "https://bourse.cfconsulting.ma/*",
+        "https://bourse.cfconsultancy.org/*",
         "http://bourse.172.189.167.158.nip.io/*"
       ],
       "webOrigins": [
         "http://localhost:3000",
         "http://localhost:5173",
-        "https://bourse-enligne.ma",
-        "https://bourse.cfconsulting.ma",
+        "https://bourse.cfconsultancy.org",
         "http://bourse.172.189.167.158.nip.io"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:3000/*##https://bourse-enligne.ma/*"
+        "post.logout.redirect.uris": "http://localhost:3000/*##https://bourse.cfconsultancy.org/*##http://bourse.172.189.167.158.nip.io/*"
       }
     },
     {

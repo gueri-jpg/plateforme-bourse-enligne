@@ -50,8 +50,13 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
     KEYCLOAK_ADMIN_REALM: str = "bourse-admin"
 
-    # URL de base de l'API banque CFC (pour la vérification des paiements inter-service)
-    BANQUE_API_URL: str = "http://localhost:8010"
+    # URL de base de l'API banque CFC (appels server-to-server depuis le backend bourse)
+    BANQUE_API_URL: str = "http://localhost:8000"
+    # URL du frontend banque accessible depuis le navigateur de l'investisseur
+    BANQUE_FRONTEND_URL: str = "http://cfc.127.0.0.1.nip.io"
+
+    # Token partagé pour les appels inter-service banque ↔ bourse (sans auth utilisateur)
+    INTER_SERVICE_TOKEN: str = "bourse-banque-inter-service-token-poc"
 
     # Client utilise pour VALIDER les tokens JWT presentes par le frontend
     # (resource server / bearer-only - cf. realm-export.json "backend-api").

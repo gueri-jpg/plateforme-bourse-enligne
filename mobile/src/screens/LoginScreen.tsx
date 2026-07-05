@@ -86,46 +86,53 @@ function friendlyError(raw: string): { title: string; tips: string[] } {
 export function LoginScreen() {
   const setTokens = useAuth((s) => s.setTokens);
 
-  const [showWebView, setShowWebView] = useState(false);
-  const [webLoading,  setWebLoading]  = useState(true);
-  const [exchanging,  setExchanging]  = useState(false);
-  const [errorMsg,    setErrorMsg]    = useState<string | null>(null);
-  const [webError,    setWebError]    = useState<string | null>(null);
-  const [reloadKey,   setReloadKey]   = useState(0);
-  const [loading,     setLoading]     = useState(false);
+  // authUrl non-vide = WebView montée en arrière-plan (invisible)
+  // webVisible = true  = WebView prête, on l'affiche par-dessus la landing page
+  const [authUrl,    setAuthUrl]    = useState('');
+  const [webVisible, setWebVisible] = useState(false);
+  const [errorMsg,   setErrorMsg]   = useState<string | null>(null);
+  const [webError,   setWebError]   = useState<string | null>(null);
+  const [reloadKey,  setReloadKey]  = useState(0);
 
   const codeVerifierRef = useRef('');
   const stateRef        = useRef('');
-  const authUrlRef      = useRef('');
   const handledRef      = useRef(false);
   const lastUrlRef      = useRef('');
-  const isRegisterRef   = useRef(false);   // true quand le flow vient de "Ouvrir un compte"
+  const isRegisterRef   = useRef(false);
   const webviewRef      = useRef<WebView>(null);
 
+  // Vrai pendant le chargement silencieux (bouton = spinner)
+  const isLoading = authUrl !== '' && !webVisible && !webError;
+
   // ── Démarrer le flow PKCE ─────────────────────────────────────────────────
-  const openWebView = useCallback((builder: () => { url: string; codeVerifier: string; state: string }, isRegister: boolean) => {
-    setLoading(true);
+  const openWebView = useCallback((
+    builder: () => { url: string; codeVerifier: string; state: string },
+    isRegister: boolean,
+  ) => {
     try {
       const { url, codeVerifier, state } = builder();
       codeVerifierRef.current = codeVerifier;
       stateRef.current        = state;
-      authUrlRef.current      = url;
       handledRef.current      = false;
       isRegisterRef.current   = isRegister;
       setWebError(null);
       setErrorMsg(null);
-      setWebLoading(true);
-      setExchanging(false);
-      setShowWebView(true);
+      setWebVisible(false);
+      setAuthUrl(url); // monte la WebView en arrière-plan
     } catch (e) {
-      setErrorMsg('Impossible de démarrer la connexion : ' + String(e));
-    } finally {
-      setLoading(false);
+      setErrorMsg('Impossible de démarrer la connexion. Réessayez.');
     }
   }, []);
 
   const startLogin    = useCallback(() => openWebView(buildPkceAuthUrl,    false), [openWebView]);
   const startRegister = useCallback(() => openWebView(buildPkceRegisterUrl, true),  [openWebView]);
+
+  const closeWebView = useCallback(() => {
+    setAuthUrl('');
+    setWebVisible(false);
+    setWebError(null);
+    handledRef.current = false;
+  }, []);
 
   // ── Traiter le callback OAuth2 ────────────────────────────────────────────
   const processCallback = useCallback((url: string) => {
@@ -138,52 +145,33 @@ export function LoginScreen() {
       }
     });
 
-    if (params.error) {
-      setExchanging(false);
-      setShowWebView(false);
-      handledRef.current = false;
+    if (params.error || !params.code) {
+      closeWebView();
       setErrorMsg(`Erreur d'authentification. Réessayez.`);
       return;
     }
 
-    const code = params.code;
-    if (!code) {
-      setExchanging(false);
-      setShowWebView(false);
-      handledRef.current = false;
-      setErrorMsg('Erreur d\'authentification. Réessayez.');
-      return;
-    }
-
     if (params.state && params.state !== stateRef.current) {
-      setExchanging(false);
-      setShowWebView(false);
-      handledRef.current = false;
-      setErrorMsg('Erreur de sécurité (state CSRF). Réessayez.');
+      closeWebView();
+      setErrorMsg('Erreur de sécurité. Réessayez.');
       return;
     }
 
-    exchangeCodeForTokens(code, codeVerifierRef.current)
+    exchangeCodeForTokens(params.code, codeVerifierRef.current)
       .then(async (tokens) => {
         await setTokens(tokens, isRegisterRef.current);
-        // RootNavigator bascule vers Onboarding (inscription) ou MainTabs (login)
       })
       .catch((e: unknown) => {
-        setExchanging(false);
-        setShowWebView(false);
-        handledRef.current = false;
+        closeWebView();
         setErrorMsg(`Échec connexion : ${e instanceof Error ? e.message : String(e)}`);
       });
-  }, [setTokens]);
+  }, [setTokens, closeWebView]);
 
   // ── Intercepteur de navigation WebView ───────────────────────────────────
-  // Deux rôles :
-  //  1) Réécrire http://localhost:9090 → KC_REAL (redirects internes Keycloak)
-  //  2) Intercepter http://localhost/mobile-callback → extraire code
   const handleShouldStart = useCallback((req: WebViewNavigation): boolean => {
     if (handledRef.current) return false;
 
-    // 1) Redirect interne Keycloak via localhost:9090
+    // Redirect interne Keycloak via localhost:9090 → réécriture vers KC_REAL
     if (req.url.startsWith(KC_LOCAL)) {
       const rewritten = req.url.replace(KC_LOCAL, KC_REAL);
       const safe = rewritten.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -191,10 +179,9 @@ export function LoginScreen() {
       return false;
     }
 
-    // 2) Notre callback PKCE
+    // Callback PKCE
     if (req.url.startsWith(REDIRECT_URI)) {
       handledRef.current = true;
-      setExchanging(true);
       processCallback(req.url);
       return false;
     }
@@ -202,129 +189,15 @@ export function LoginScreen() {
     return true;
   }, [processCallback]);
 
-  // ── Rendu : WebView Keycloak ──────────────────────────────────────────────
-  if (showWebView) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
-        <StatusBar style="light" />
+  // L'overlay WebView est affiché dès que webVisible=true OU qu'une erreur est survenue
+  const overlayShown = webVisible || webError !== null;
 
-        <View style={wv.bar}>
-          <Text style={wv.barTitle}>Connexion sécurisée</Text>
-          <TouchableOpacity
-            onPress={() => {
-              setShowWebView(false);
-              setExchanging(false);
-              setWebError(null);
-              handledRef.current = false;
-            }}
-            style={wv.closeBtn}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={wv.closeText}>✕ Annuler</Text>
-          </TouchableOpacity>
-        </View>
-
-        {webError ? (
-          // ── Erreur de chargement Keycloak ───────────────────────────────
-          <View style={[wv.errorScreen, { backgroundColor: C.bg }]}>
-            <View style={wv.errorIcon}>
-              <Text style={{ fontSize: 36 }}>⚠️</Text>
-            </View>
-            <Text style={[wv.errorTitle, { color: C.txt }]}>
-              {friendlyError(webError).title}
-            </Text>
-            <View style={{ marginTop: 20, width: '100%' }}>
-              {friendlyError(webError).tips.map((tip, i) => (
-                <View key={i} style={wv.tipRow}>
-                  <Text style={{ color: C.gold, marginRight: 8 }}>•</Text>
-                  <Text style={[wv.tipText, { color: C.muted }]}>{tip}</Text>
-                </View>
-              ))}
-            </View>
-            <Pressable
-              onPress={() => {
-                setWebError(null);
-                setWebLoading(true);
-                handledRef.current = false;
-                setReloadKey((k) => k + 1);
-              }}
-              style={({ pressed }) => [wv.retryBtn, { opacity: pressed ? 0.8 : 1 }]}
-            >
-              <Text style={wv.retryBtnText}>↻ Réessayer</Text>
-            </Pressable>
-          </View>
-        ) : (
-          // ── WebView + overlays ───────────────────────────────────────────
-          <View style={{ flex: 1 }}>
-            <WebView
-              ref={webviewRef}
-              key={reloadKey}
-              source={{ uri: authUrlRef.current }}
-              userAgent="BourseOnlineMobile/1.0 (compatible; WebView)"
-              onShouldStartLoadWithRequest={handleShouldStart}
-              onNavigationStateChange={(nav) => {
-                lastUrlRef.current = nav.url;
-                // Backup : si onShouldStartLoadWithRequest n'a pas intercepté
-                // le callback (cas rare sur iOS avec HTTP 302 server-side),
-                // on l'intercepte ici avant que onError ne s'affiche.
-                if (!handledRef.current && nav.url.startsWith(REDIRECT_URI)) {
-                  handledRef.current = true;
-                  setExchanging(true);
-                  processCallback(nav.url);
-                }
-              }}
-              onLoadStart={() => setWebLoading(true)}
-              onLoadEnd={() => {
-                setWebLoading(false);
-                // Réécrire les form actions pointant vers localhost:9090
-                webviewRef.current?.injectJavaScript(FIX_KC_FORMS_SCRIPT);
-              }}
-              onError={(e) => {
-                setWebLoading(false);
-                // Ignorer les erreurs de connexion vers localhost (notre redirect URI)
-                const failedUrl = e.nativeEvent.url || lastUrlRef.current || '';
-                if (
-                  failedUrl.startsWith('http://localhost/mobile-callback') ||
-                  failedUrl.startsWith(REDIRECT_URI)
-                ) {
-                  return; // Ignoré — la navigation vers localhost échoue intentionnellement
-                }
-                setWebError(e.nativeEvent.description || 'Erreur de chargement');
-              }}
-              sharedCookiesEnabled
-              thirdPartyCookiesEnabled
-              javaScriptEnabled
-              domStorageEnabled
-              setSupportMultipleWindows={false}
-              style={{ flex: 1, backgroundColor: '#fff' }}
-              containerStyle={{ backgroundColor: C.bg }}
-            />
-
-            {webLoading && !exchanging && (
-              <View style={wv.loaderOverlay}>
-                <ActivityIndicator color={C.gold} size="large" />
-                <Text style={wv.loaderText}>Chargement…</Text>
-              </View>
-            )}
-
-            {exchanging && (
-              <View style={wv.exchangeOverlay}>
-                <ActivityIndicator color={C.gold} size="large" />
-                <Text style={wv.exchangeTitle}>Connexion en cours…</Text>
-                <Text style={wv.exchangeSub}>Vérification de vos identifiants</Text>
-              </View>
-            )}
-          </View>
-        )}
-      </SafeAreaView>
-    );
-  }
-
-  // ── Rendu : écran d'accueil ───────────────────────────────────────────────
+  // ── Rendu ─────────────────────────────────────────────────────────────────
   return (
     <View style={s.container}>
       <StatusBar style="light" />
 
+      {/* ── Page d'accueil (toujours rendue) ── */}
       <View style={s.hero}>
         <View style={s.logoCircle}>
           <Text style={s.logoIcon}>📈</Text>
@@ -354,27 +227,124 @@ export function LoginScreen() {
 
       <View style={s.actions}>
         <TouchableOpacity
-          style={[s.btnPrimary, loading && s.btnDisabled]}
+          style={[s.btnPrimary, isLoading && s.btnDisabled]}
           onPress={startLogin}
-          disabled={loading}
+          disabled={isLoading}
           activeOpacity={0.85}
         >
-          {loading
+          {isLoading
             ? <ActivityIndicator color="#000" size="small" />
             : <Text style={s.btnPrimaryText}>Se connecter</Text>
           }
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={s.btnSecondary}
+          style={[s.btnSecondary, isLoading && s.btnDisabled]}
           onPress={startRegister}
+          disabled={isLoading}
           activeOpacity={0.85}
         >
           <Text style={s.btnSecondaryText}>Ouvrir un compte</Text>
         </TouchableOpacity>
+
+        {isLoading && (
+          <TouchableOpacity onPress={closeWebView} style={s.cancelBtn}>
+            <Text style={s.cancelTxt}>Annuler</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <Text style={s.footer}>© 2025 BourseOnline · Données BVC</Text>
+
+      {/* ── WebView montée en silence ; révélée quand prête ── */}
+      {authUrl !== '' && (
+        <View
+          style={[StyleSheet.absoluteFill, { opacity: overlayShown ? 1 : 0 }]}
+          pointerEvents={overlayShown ? 'auto' : 'none'}
+        >
+          <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
+            <View style={wv.bar}>
+              <Text style={wv.barTitle}>Connexion sécurisée</Text>
+              <TouchableOpacity
+                onPress={closeWebView}
+                style={wv.closeBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={wv.closeText}>✕ Annuler</Text>
+              </TouchableOpacity>
+            </View>
+
+            {webError ? (
+              <View style={[wv.errorScreen, { backgroundColor: C.bg }]}>
+                <View style={wv.errorIcon}>
+                  <Text style={{ fontSize: 36 }}>⚠️</Text>
+                </View>
+                <Text style={[wv.errorTitle, { color: C.txt }]}>
+                  {friendlyError(webError).title}
+                </Text>
+                <View style={{ marginTop: 20, width: '100%' }}>
+                  {friendlyError(webError).tips.map((tip, i) => (
+                    <View key={i} style={wv.tipRow}>
+                      <Text style={{ color: C.gold, marginRight: 8 }}>•</Text>
+                      <Text style={[wv.tipText, { color: C.muted }]}>{tip}</Text>
+                    </View>
+                  ))}
+                </View>
+                <Pressable
+                  onPress={() => {
+                    setWebError(null);
+                    setWebVisible(false);
+                    handledRef.current = false;
+                    setReloadKey((k) => k + 1);
+                  }}
+                  style={({ pressed }) => [wv.retryBtn, { opacity: pressed ? 0.8 : 1 }]}
+                >
+                  <Text style={wv.retryBtnText}>↻ Réessayer</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={{ flex: 1 }}>
+                <WebView
+                  ref={webviewRef}
+                  key={reloadKey}
+                  source={{ uri: authUrl }}
+                  userAgent="BourseOnlineMobile/1.0 (compatible; WebView)"
+                  onShouldStartLoadWithRequest={handleShouldStart}
+                  onNavigationStateChange={(nav) => {
+                    lastUrlRef.current = nav.url;
+                    if (!handledRef.current && nav.url.startsWith(REDIRECT_URI)) {
+                      handledRef.current = true;
+                      processCallback(nav.url);
+                    }
+                  }}
+                  onLoadEnd={() => {
+                    setWebVisible(true); // révèle la WebView (page chargée)
+                    webviewRef.current?.injectJavaScript(FIX_KC_FORMS_SCRIPT);
+                  }}
+                  onError={(e) => {
+                    const failedUrl = e.nativeEvent.url || lastUrlRef.current || '';
+                    if (
+                      failedUrl.startsWith('http://localhost/mobile-callback') ||
+                      failedUrl.startsWith(REDIRECT_URI)
+                    ) {
+                      return;
+                    }
+                    setWebError(e.nativeEvent.description || 'Erreur de chargement');
+                  }}
+                  sharedCookiesEnabled
+                  thirdPartyCookiesEnabled
+                  javaScriptEnabled
+                  domStorageEnabled
+                  setSupportMultipleWindows={false}
+                  style={{ flex: 1, backgroundColor: '#fff' }}
+                  containerStyle={{ backgroundColor: C.bg }}
+                />
+
+              </View>
+            )}
+          </SafeAreaView>
+        </View>
+      )}
     </View>
   );
 }
@@ -421,6 +391,8 @@ const s = StyleSheet.create({
   btnSecondaryText:{ fontSize: 16, fontWeight: '600', color: C.accent },
   btnDisabled:     { opacity: 0.5 },
   footer:          { marginTop: 28, fontSize: 11, color: '#4a5280' },
+  cancelBtn:       { alignItems: 'center', paddingVertical: 8 },
+  cancelTxt:       { fontSize: 13, color: C.muted, textDecorationLine: 'underline' },
 });
 
 const wv = StyleSheet.create({
@@ -432,13 +404,6 @@ const wv = StyleSheet.create({
   barTitle:  { flex: 1, color: C.txt, fontWeight: '600', fontSize: 14 },
   closeBtn:  { padding: 8 },
   closeText: { color: C.muted, fontSize: 13 },
-
-  loaderOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(7,11,28,0.9)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  loaderText: { color: C.muted, marginTop: 14, fontSize: 13 },
 
   exchangeOverlay: {
     ...StyleSheet.absoluteFillObject,

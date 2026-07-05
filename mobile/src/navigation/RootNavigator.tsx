@@ -86,7 +86,7 @@ export function RootNavigator() {
           headerTitleStyle: { color: C.txt, fontWeight: '700' },
           headerTintColor:  C.accent,
           contentStyle:     { backgroundColor: C.bg },
-          animation:        'slide_from_right',
+          animation:        'none',
         }}
       >
         {status === 'unauthenticated' ? (
