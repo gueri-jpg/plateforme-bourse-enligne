@@ -302,3 +302,50 @@ export function isTokenExpired(accessToken: string): boolean {
   // Marge de 30 secondes pour éviter les race conditions
   return Date.now() / 1000 > (claims.exp as number) - 30;
 }
+
+// ── Réinitialisation du mot de passe ─────────────────────────────────────────
+// Ces appels sont non authentifiés (pas de Bearer token) → on utilise fetch direct.
+
+const API_BASE = CONFIG.API_BASE_URL.replace(/\/$/, '');
+
+export async function forgotPassword(email: string): Promise<{ masked_email: string }> {
+  const r = await fetch(`${API_BASE}/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!r.ok) {
+    const data = await r.json().catch(() => ({}));
+    throw new Error(data.detail ?? 'Erreur lors de la demande de réinitialisation.');
+  }
+  return r.json();
+}
+
+export async function verifyResetCode(email: string, code: string): Promise<{ reset_token: string }> {
+  const r = await fetch(`${API_BASE}/auth/verify-reset-code`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, code }),
+  });
+  if (!r.ok) {
+    const data = await r.json().catch(() => ({}));
+    throw new Error(data.detail ?? 'Code incorrect ou expiré.');
+  }
+  return r.json();
+}
+
+export async function resetPassword(
+  resetToken: string,
+  password: string,
+  confirmPassword: string,
+): Promise<void> {
+  const r = await fetch(`${API_BASE}/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reset_token: resetToken, password, confirm_password: confirmPassword }),
+  });
+  if (!r.ok) {
+    const data = await r.json().catch(() => ({}));
+    throw new Error(data.detail ?? 'Erreur lors de la réinitialisation du mot de passe.');
+  }
+}

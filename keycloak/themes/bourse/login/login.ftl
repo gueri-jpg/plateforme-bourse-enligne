@@ -80,7 +80,7 @@
           <div class="label-row">
             <label class="form-label" for="password">Mot de passe</label>
             <#if realm.resetPasswordAllowed>
-              <a class="forgot-link" href="${url.loginResetCredentialsUrl}" tabindex="4">
+              <a class="forgot-link" href="https://bourse.cfconsultancy.org/forgot-password.html" tabindex="4">
                 Mot de passe oublié ?
               </a>
             </#if>

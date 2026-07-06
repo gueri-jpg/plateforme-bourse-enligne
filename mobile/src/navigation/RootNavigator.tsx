@@ -18,10 +18,13 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator }          from '@react-navigation/native-stack';
 import { StatusBar }                           from 'expo-status-bar';
 
-import { useAuth }           from '../store/useAuth';
-import { LoginScreen }       from '../screens/LoginScreen';
-import { OnboardingScreen }  from '../screens/OnboardingScreen';
-import { MainTabs }          from './MainTabs';
+import { useAuth }                from '../store/useAuth';
+import { LoginScreen }            from '../screens/LoginScreen';
+import { OnboardingScreen }       from '../screens/OnboardingScreen';
+import { ForgotPasswordScreen }   from '../screens/ForgotPasswordScreen';
+import { VerifyResetCodeScreen }  from '../screens/VerifyResetCodeScreen';
+import { ResetPasswordScreen }    from '../screens/ResetPasswordScreen';
+import { MainTabs }               from './MainTabs';
 import type { RootStackParamList } from './types';
 
 const C = {
@@ -90,11 +93,28 @@ export function RootNavigator() {
         }}
       >
         {status === 'unauthenticated' ? (
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false, gestureEnabled: false }}
-          />
+          <>
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{ headerShown: false, gestureEnabled: false }}
+            />
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPasswordScreen}
+              options={{ title: 'Mot de passe oublié', headerShown: true }}
+            />
+            <Stack.Screen
+              name="VerifyResetCode"
+              component={VerifyResetCodeScreen}
+              options={{ title: 'Vérification', headerShown: true }}
+            />
+            <Stack.Screen
+              name="ResetPassword"
+              component={ResetPasswordScreen}
+              options={{ title: 'Nouveau mot de passe', headerShown: true }}
+            />
+          </>
         ) : isNewUser ? (
           <Stack.Screen
             name="Onboarding"

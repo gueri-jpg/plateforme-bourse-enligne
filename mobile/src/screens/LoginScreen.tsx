@@ -7,9 +7,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewNavigation } from 'react-native-webview';
 import { StatusBar } from 'expo-status-bar';
 
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { buildPkceAuthUrl, buildPkceRegisterUrl, exchangeCodeForTokens, REDIRECT_URI } from '../api/auth';
 import { useAuth } from '../store/useAuth';
 import { CONFIG } from '../../constants/config';
+import type { RootStackParamList } from '../navigation/types';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const C = {
@@ -83,8 +86,11 @@ function friendlyError(raw: string): { title: string; tips: string[] } {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+type Nav = NativeStackNavigationProp<RootStackParamList>;
+
 export function LoginScreen() {
-  const setTokens = useAuth((s) => s.setTokens);
+  const setTokens  = useAuth((s) => s.setTokens);
+  const navigation = useNavigation<Nav>();
 
   // authUrl non-vide = WebView montée en arrière-plan (invisible)
   // webVisible = true  = WebView prête, on l'affiche par-dessus la landing page
@@ -252,6 +258,14 @@ export function LoginScreen() {
             <Text style={s.cancelTxt}>Annuler</Text>
           </TouchableOpacity>
         )}
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate('ForgotPassword')}
+          style={s.forgotBtn}
+          disabled={isLoading}
+        >
+          <Text style={s.forgotTxt}>Mot de passe oublié ?</Text>
+        </TouchableOpacity>
       </View>
 
       <Text style={s.footer}>© 2025 BourseOnline · Données BVC</Text>
@@ -393,6 +407,8 @@ const s = StyleSheet.create({
   footer:          { marginTop: 28, fontSize: 11, color: '#4a5280' },
   cancelBtn:       { alignItems: 'center', paddingVertical: 8 },
   cancelTxt:       { fontSize: 13, color: C.muted, textDecorationLine: 'underline' },
+  forgotBtn:       { alignItems: 'center', paddingVertical: 10 },
+  forgotTxt:       { fontSize: 14, color: C.accent },
 });
 
 const wv = StyleSheet.create({

@@ -5,9 +5,12 @@
 
 // ── Stack racine ──────────────────────────────────────────────────────────────
 export type RootStackParamList = {
-  Login:      undefined;
-  Onboarding: undefined;
-  Main:       undefined;
+  Login:           undefined;
+  Onboarding:      undefined;
+  Main:            undefined;
+  ForgotPassword:  undefined;
+  VerifyResetCode: { email: string; maskedEmail: string };
+  ResetPassword:   { email: string; resetToken: string };
 };
 
 // ── Bottom Tabs principaux ────────────────────────────────────────────────────
