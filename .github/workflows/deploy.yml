@@ -5,14 +5,13 @@ on:
     branches: [main]
 
 env:
-  # Secrets GitHub à créer :
-  #   ACR_LOGIN_SERVER  → acrbourseprod.azurecr.io  (terraform output acr_login_server)
-  #   AZURE_CREDENTIALS → JSON du service principal  (az ad sp create-for-rbac --sdk-auth)
-  #   EXPO_TOKEN        → token expo.dev
+  # Secrets à configurer dans Settings → Secrets → Actions du repo GitHub :
+  #   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+  #   ACR_LOGIN_SERVER, EXPO_TOKEN
   ACR: ${{ secrets.ACR_LOGIN_SERVER }}
   NS:  bourse
-  RG:  rg-bourse-prod
-  AKS: aks-bourse-prod
+  RG:  rg-cfc-dev
+  AKS: bourse-aks-dev
 
 jobs:
   # ── Détection des fichiers modifiés ────────────────────────────────────────
@@ -48,6 +47,9 @@ jobs:
   deploy:
     needs: changes
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     if: |
       needs.changes.outputs.backend  == 'true' ||
       needs.changes.outputs.frontend == 'true' ||
@@ -61,7 +63,9 @@ jobs:
       - name: Azure login
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: ACR login
         run: az acr login --name $(echo "$ACR" | cut -d. -f1)
