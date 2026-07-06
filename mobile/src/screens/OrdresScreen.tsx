@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useFocusEffect, useRoute, RouteProp } from '@react-navigation/native';
 import { useMarketData, Stock } from '../../hooks/useMarketData';
-import { fetchPortfolio, placeOrdre, verifySCA, PlaceOrdreParams } from '../api/portfolio';
+import { fetchPortfolio, placeOrdre, verifySCA, envoyerOTP, PlaceOrdreParams } from '../api/portfolio';
 import { isMarketOpen } from '../../services/trading';
 import type { MainTabParamList } from '../navigation/types';
 
@@ -41,6 +41,8 @@ export function OrdresScreen() {
   const [showConfirm, setShowConfirm]     = useState(false);
   const [showSCA, setShowSCA]             = useState(false);
   const [scaCode, setScaCode]             = useState('');
+  const [maskedEmail, setMaskedEmail]     = useState('');
+  const [scaSending, setScaSending]       = useState(false);
   const [searchQuery, setSearchQuery]     = useState('');
   const [submitting, setSubmitting]       = useState(false);
   const [scaSubmitting, setScaSubmitting] = useState(false);
@@ -107,9 +109,18 @@ export function OrdresScreen() {
     }
 
     if (res.scaRequired) {
-      // Backend demande un code SCA avant de valider l'ordre
       setShowConfirm(false);
       setScaCode('');
+      setScaSending(true);
+      try {
+        const r = await envoyerOTP();
+        setMaskedEmail(r.masked_email);
+      } catch {
+        Alert.alert('Erreur', "Impossible d'envoyer le code OTP. Réessayez.");
+        setScaSending(false);
+        return;
+      }
+      setScaSending(false);
       setShowSCA(true);
       return;
     }
@@ -356,38 +367,49 @@ export function OrdresScreen() {
 
       {/* ── Modale SCA ────────────────────────────────────────────────────── */}
       <Modal visible={showSCA} transparent animationType="slide" onRequestClose={() => setShowSCA(false)}>
-        <View style={sca.overlay}>
-          <View style={sca.card}>
-            <Text style={sca.title}>🔒 Authentification forte</Text>
-            <Text style={sca.subtitle}>
-              Saisissez le code à 6 chiffres reçu par SMS pour valider l'ordre.
-            </Text>
-            <TextInput
-              style={sca.input}
-              keyboardType="number-pad"
-              maxLength={6}
-              value={scaCode}
-              onChangeText={setScaCode}
-              placeholder="• • • • • •"
-              placeholderTextColor={C.muted}
-              textAlign="center"
-            />
-            <View style={sca.actions}>
-              <TouchableOpacity style={sca.cancel} onPress={() => setShowSCA(false)}>
-                <Text style={{ color: C.muted }}>Annuler l'ordre</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[sca.confirm, scaCode.length !== 6 && { opacity: 0.4 }]}
-                onPress={handleSCAVerify}
-                disabled={scaCode.length !== 6 || scaSubmitting}
-              >
-                {scaSubmitting
-                  ? <ActivityIndicator color="#fff" size="small" />
-                  : <Text style={{ color: '#fff', fontWeight: '700' }}>Valider</Text>}
-              </TouchableOpacity>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={sca.overlay}>
+            <View style={sca.card}>
+              <Text style={sca.title}>🔒 Authentification forte</Text>
+              {scaSending ? (
+                <ActivityIndicator color={C.accent} style={{ marginBottom: 20 }} />
+              ) : (
+                <Text style={sca.subtitle}>
+                  Code envoyé par email{maskedEmail ? ` à ${maskedEmail}` : ''}.{'\n'}
+                  Saisissez les 6 chiffres reçus pour valider l'ordre.
+                </Text>
+              )}
+              <TextInput
+                style={sca.input}
+                keyboardType="number-pad"
+                maxLength={6}
+                value={scaCode}
+                onChangeText={setScaCode}
+                placeholder="• • • • • •"
+                placeholderTextColor={C.muted}
+                textAlign="center"
+                autoFocus
+              />
+              <View style={sca.actions}>
+                <TouchableOpacity style={sca.cancel} onPress={() => setShowSCA(false)}>
+                  <Text style={{ color: C.muted }}>Annuler l'ordre</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[sca.confirm, scaCode.length !== 6 && { opacity: 0.4 }]}
+                  onPress={handleSCAVerify}
+                  disabled={scaCode.length !== 6 || scaSubmitting}
+                >
+                  {scaSubmitting
+                    ? <ActivityIndicator color="#fff" size="small" />
+                    : <Text style={{ color: '#fff', fontWeight: '700' }}>Valider</Text>}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* ── Modale sélection instrument ───────────────────────────────────── */}
@@ -469,7 +491,7 @@ const cm = StyleSheet.create({
 
 const sca = StyleSheet.create({
   overlay:  { flex: 1, backgroundColor: 'rgba(5,8,20,0.85)', justifyContent: 'flex-end' },
-  card:     { backgroundColor: C.panel, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 28, borderWidth: 1, borderColor: C.line },
+  card:     { backgroundColor: C.panel, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 28, paddingBottom: 40, borderWidth: 1, borderColor: C.line },
   title:    { fontSize: 18, fontWeight: '700', color: C.txt, marginBottom: 8, textAlign: 'center' },
   subtitle: { fontSize: 13, color: C.muted, textAlign: 'center', marginBottom: 20, lineHeight: 18 },
   input:    { backgroundColor: C.panel2, borderRadius: 12, padding: 18, fontSize: 28, fontWeight: '700', color: C.txt, borderWidth: 1, borderColor: C.accent, letterSpacing: 12, marginBottom: 20 },

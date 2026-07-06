@@ -100,7 +100,13 @@ export async function fetchOrdres(): Promise<OrdreBackend[]> {
   return res.data;
 }
 
-/** Vérifie le code SCA (POC : n'importe quel code à 6 chiffres est accepté). */
+/** Déclenche l'envoi de l'OTP par email et retourne l'adresse masquée. */
+export async function envoyerOTP(): Promise<{ masked_email: string; expires_in: number }> {
+  const res = await apiClient.post('/api/sca/envoyer-otp');
+  return res.data;
+}
+
+/** Vérifie le code OTP reçu par email. */
 export async function verifySCA(code: string): Promise<boolean> {
   try {
     await apiClient.post('/api/sca/verifier', { code });
