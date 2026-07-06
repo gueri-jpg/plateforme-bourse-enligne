@@ -1104,7 +1104,13 @@ async function _apiCall(path, options = {}) {
   }
   if (!r.ok) {
     let msg = `Erreur ${r.status}`;
-    try { const j = await r.json(); msg = j.detail || msg; } catch {}
+    try {
+      const j = await r.json();
+      if (typeof j.detail === "string") msg = j.detail;
+      else if (Array.isArray(j.detail)) msg = j.detail.map(e => e.msg || JSON.stringify(e)).join(", ");
+      else if (j.detail && typeof j.detail === "object") msg = JSON.stringify(j.detail);
+      else if (j.message) msg = j.message;
+    } catch {}
     throw new Error(msg);
   }
   return r.status === 204 ? null : r.json();
@@ -1921,8 +1927,9 @@ document.getElementById("mc-btn-confirm").addEventListener("click", async () => 
       return;
     }
     closeOrderModal();
-    showFormMsg(err.message, "err");
-    showToast("Ordre rejeté ✕", err.message, "error");
+    const errMsg = errDetail?.message || (typeof err.message === "string" ? err.message : JSON.stringify(err.message));
+    showFormMsg(errMsg, "err");
+    showToast("Ordre rejeté ✕", errMsg, "error");
   } finally {
     btn.disabled = false;
   }

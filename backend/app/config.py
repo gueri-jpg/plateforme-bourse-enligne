@@ -61,6 +61,8 @@ class Settings(BaseSettings):
     # Resend — envoi d'emails transactionnels (OTP SCA, notifications)
     RESEND_API_KEY: str = ""
     EMAIL_FROM: str = "onboarding@resend.dev"
+    # Plan gratuit Resend : forcer la destination vers l'email vérifié (laisser vide en prod)
+    RESEND_OVERRIDE_TO: str = ""
 
     # Client utilise pour VALIDER les tokens JWT presentes par le frontend
     # (resource server / bearer-only - cf. realm-export.json "backend-api").
