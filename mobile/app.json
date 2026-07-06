@@ -21,15 +21,21 @@
       },
       "package": "ma.ecentralecasa.bourseenligne"
     },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "plugins": [
       "expo-secure-store",
       "expo-web-browser"
     ],
+    "owner": "cfconsulting",
     "extra": {
       "eas": {
-        "projectId": "8aea88d6-5c50-45d3-9ec1-1003be06697e"
+        "projectId": "37f28d4f-69ee-4b8b-813e-e88814a11188"
       }
     },
-    "owner": "mamathyacine"
+    "updates": {
+      "url": "https://u.expo.dev/37f28d4f-69ee-4b8b-813e-e88814a11188"
+    }
   }
 }

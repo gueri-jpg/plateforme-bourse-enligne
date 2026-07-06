@@ -20,6 +20,7 @@ import {
 } from '../api/auth';
 import { setLogoutCallback } from '../api/client';
 import { setUserId } from '../../services/trading';
+import { ensureCompte } from '../api/portfolio';
 
 // ── Type utilisateur extrait du token JWT ─────────────────────────────────────
 export interface AuthUser {
@@ -117,6 +118,9 @@ export const useAuth = create<AuthState>((set, get) => ({
 
     const user = extractUserFromToken(tokens.access_token);
     if (user?.sub) setUserId(user.sub);
+
+    // Provision du compte titres (idempotent, silencieux si déjà existant)
+    void ensureCompte().catch(() => {});
 
     set({
       status:       'authenticated',

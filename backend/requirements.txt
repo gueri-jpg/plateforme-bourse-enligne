@@ -24,6 +24,9 @@ PyJWT[crypto]>=2.10.0
 # PUT /admin/realms/..., gestion des utilisateurs)
 requests>=2.32.0
 
+# Envoi d'emails transactionnels (OTP SCA, notifications)
+resend>=2.0.0
+
 # Client Kafka pour le consumer WebSocket (ws_market.py)
 confluent-kafka==2.6.1
 

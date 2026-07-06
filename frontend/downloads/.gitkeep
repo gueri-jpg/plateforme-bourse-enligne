@@ -1,0 +1,4 @@
+# Ce dossier reçoit l'APK généré par EAS Build.
+# Commande : eas build --platform android --profile preview
+# Après le build, télécharger l'APK depuis expo.dev et le déposer ici sous le nom :
+#   bourse-online.apk

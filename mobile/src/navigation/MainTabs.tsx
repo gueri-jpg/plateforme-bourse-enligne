@@ -6,6 +6,7 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { MainTabParamList } from './types';
 
 // Import des screens
@@ -37,17 +38,17 @@ function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
 }
 
 export function MainTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={{
-        // Masquer le header : chaque screen gère son propre titre via le headerShown de Stack
         headerShown:             false,
         tabBarStyle: {
           backgroundColor:   C.panel,
           borderTopColor:    C.line,
           borderTopWidth:    1,
-          height:            60,
-          paddingBottom:     8,
+          height:            60 + insets.bottom,
+          paddingBottom:     8 + insets.bottom,
           paddingTop:        4,
         },
         tabBarActiveTintColor:   C.accent,

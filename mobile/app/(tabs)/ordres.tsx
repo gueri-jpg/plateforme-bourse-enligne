@@ -1,17 +1,36 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   TextInput, ScrollView, Modal, Alert, KeyboardAvoidingView, Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useMarketData, Stock } from '../../hooks/useMarketData';
 import { getPortfolio, placeOrder, isMarketOpen } from '../../services/trading';
+import { getValidAccessToken } from '../../services/auth';
+import { CONFIG } from '../../constants/config';
 
 const C = {
   bg: '#070b1c', panel: '#111733', panel2: '#0e1430',
   txt: '#e7ecff', muted: '#8a93b8', line: '#1f2a52',
   up: '#22c55e', down: '#ef4444', accent: '#60a5fa', gold: '#f59e0b',
 };
+
+const otp = StyleSheet.create({
+  overlay:         { flex: 1, backgroundColor: 'rgba(5,8,20,0.85)', justifyContent: 'flex-start', alignItems: 'center', paddingTop: 80, paddingHorizontal: 20 },
+  card:            { backgroundColor: C.panel, borderRadius: 16, padding: 24, width: '100%', borderWidth: 1, borderColor: C.line },
+  title:           { fontSize: 18, fontWeight: '700', color: C.txt, marginBottom: 6, textAlign: 'center' },
+  subtitle:        { fontSize: 13, color: C.muted, textAlign: 'center', marginBottom: 16, lineHeight: 20 },
+  email:           { color: C.accent, fontWeight: '600' },
+  errorTxt:        { color: '#ef4444', fontSize: 12, textAlign: 'center', marginBottom: 10 },
+  codeInput:       { backgroundColor: C.panel2, borderRadius: 10, borderWidth: 1, borderColor: C.line, fontSize: 28, letterSpacing: 12, color: C.txt, textAlign: 'center', paddingVertical: 16, marginBottom: 20 },
+  btnPrimary:      { backgroundColor: C.up, borderRadius: 10, padding: 14, alignItems: 'center', marginBottom: 12 },
+  btnPrimaryTxt:   { color: '#fff', fontWeight: '700', fontSize: 15 },
+  row:             { flexDirection: 'row', gap: 10 },
+  btnSecondary:    { flex: 1, borderRadius: 10, borderWidth: 1, borderColor: C.accent, padding: 12, alignItems: 'center' },
+  btnSecondaryTxt: { color: C.accent, fontSize: 13, fontWeight: '600' },
+  btnCancel:       { flex: 1, borderRadius: 10, borderWidth: 1, borderColor: C.line, padding: 12, alignItems: 'center' },
+});
 
 function fmtN(x: number | null | undefined, dp = 2) {
   if (x === null || x === undefined || isNaN(x as number)) return '—';
@@ -33,10 +52,96 @@ export default function OrdresScreen() {
   const [searchQuery, setSearchQuery]     = useState('');
   const [submitting, setSubmitting]       = useState(false);
   const [resultMsg, setResultMsg]         = useState('');
+  // ── OTP SCA ──────────────────────────────────────────────────────────────
+  const [showOtp, setShowOtp]             = useState(false);
+  const [otpCode, setOtpCode]             = useState('');
+  const [maskedEmail, setMaskedEmail]     = useState('');
+  const [otpSending, setOtpSending]       = useState(false);
+  const [otpVerifying, setOtpVerifying]   = useState(false);
+  const [otpError, setOtpError]           = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useFocusEffect(useCallback(() => {
     getPortfolio().then(p => setBalance(p.balance));
   }, []));
+
+  // ── OTP : envoyer le code ─────────────────────────────────────────────────
+  const sendOtp = async () => {
+    setOtpSending(true);
+    setOtpError('');
+    try {
+      const token = await getValidAccessToken();
+      if (!token) throw new Error('Non authentifié.');
+      const res = await fetch(`${CONFIG.API_BASE_URL}/api/sca/envoyer-otp`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Erreur envoi OTP.');
+      setMaskedEmail(data.masked_email ?? '');
+      // Cooldown 30s avant de pouvoir renvoyer
+      setResendCooldown(30);
+      cooldownRef.current = setInterval(() => {
+        setResendCooldown(v => {
+          if (v <= 1) { clearInterval(cooldownRef.current!); return 0; }
+          return v - 1;
+        });
+      }, 1000);
+    } catch (e: any) {
+      setOtpError(e.message || 'Impossible d\'envoyer le code OTP.');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  // ── OTP : vérifier puis passer l'ordre ───────────────────────────────────
+  const verifyAndPlace = async () => {
+    if (otpCode.length !== 6) { setOtpError('Saisissez 6 chiffres.'); return; }
+    setOtpVerifying(true);
+    setOtpError('');
+    try {
+      const token = await getValidAccessToken();
+      if (!token) throw new Error('Non authentifié.');
+      const res = await fetch(`${CONFIG.API_BASE_URL}/api/sca/verifier`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: otpCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Code incorrect.');
+
+      // OTP validé → passer l'ordre
+      setShowOtp(false);
+      setOtpCode('');
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+      await doPlaceOrder();
+    } catch (e: any) {
+      setOtpCode('');
+      setOtpError(e.message || 'Code OTP invalide.');
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
+  // ── Passer l'ordre (après validation OTP) ────────────────────────────────
+  const doPlaceOrder = async () => {
+    if (!selectedStock) return;
+    setSubmitting(true);
+    const res = await placeOrder({
+      name: selectedStock.name, sector: selectedStock.sector,
+      direction, type: orderType, qty: qtyNum,
+      price: orderType === 'limite' ? parseFloat(limitPrice) : selectedStock.price,
+    });
+    setSubmitting(false);
+    setResultMsg(res.message ?? '');
+    if (res.success) {
+      setQty('1');
+      setLimitPrice('');
+      getPortfolio().then(p => setBalance(p.balance));
+    }
+    Alert.alert(res.success ? '✓ Ordre soumis' : '✗ Erreur', res.message ?? '');
+  };
 
   useEffect(() => {
     if (params.stock && stocks.length > 0) {
@@ -65,22 +170,12 @@ export default function OrdresScreen() {
     : stocks;
 
   const handleConfirm = async () => {
-    if (!selectedStock) return;
-    setSubmitting(true);
-    const res = await placeOrder(
-      selectedStock.name, selectedStock.sector,
-      direction, orderType, qtyNum,
-      orderType === 'limite' ? parseFloat(limitPrice) : selectedStock.price,
-    );
-    setSubmitting(false);
     setShowConfirm(false);
-    setResultMsg(res.message ?? '');
-    if (res.success) {
-      setQty('1');
-      setLimitPrice('');
-      getPortfolio().then(p => setBalance(p.balance));
-    }
-    Alert.alert(res.success ? '✓ Ordre soumis' : '✗ Erreur', res.message ?? '');
+    setOtpCode('');
+    setOtpError('');
+    setMaskedEmail('');
+    setShowOtp(true);
+    await sendOtp();
   };
 
   return (
@@ -240,6 +335,59 @@ export default function OrdresScreen() {
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* ── Modal OTP SCA ── */}
+      <Modal visible={showOtp} transparent animationType="fade" onRequestClose={() => { setShowOtp(false); if (cooldownRef.current) clearInterval(cooldownRef.current); }}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View style={otp.overlay}>
+            <View style={otp.card}>
+              <Text style={otp.title}>Confirmation de l'ordre</Text>
+              <Text style={otp.subtitle}>
+                Un code OTP a été envoyé à{'\n'}
+                <Text style={otp.email}>{maskedEmail || '…'}</Text>
+              </Text>
+
+              {otpError ? <Text style={otp.errorTxt}>{otpError}</Text> : null}
+
+              <TextInput
+                style={otp.codeInput}
+                placeholder="• • • • • •"
+                placeholderTextColor={C.muted}
+                keyboardType="number-pad"
+                maxLength={6}
+                value={otpCode}
+                onChangeText={v => { setOtpCode(v.replace(/\D/g, '')); setOtpError(''); }}
+                autoFocus
+              />
+
+              <TouchableOpacity
+                style={[otp.btnPrimary, (otpVerifying || otpCode.length !== 6) && { opacity: 0.45 }]}
+                onPress={verifyAndPlace}
+                disabled={otpVerifying || otpCode.length !== 6}
+              >
+                {otpVerifying
+                  ? <ActivityIndicator color="#fff" />
+                  : <Text style={otp.btnPrimaryTxt}>✓ Valider l'ordre</Text>}
+              </TouchableOpacity>
+
+              <View style={otp.row}>
+                <TouchableOpacity
+                  style={[otp.btnSecondary, (resendCooldown > 0 || otpSending) && { opacity: 0.4 }]}
+                  onPress={sendOtp}
+                  disabled={resendCooldown > 0 || otpSending}
+                >
+                  {otpSending
+                    ? <ActivityIndicator color={C.accent} size="small" />
+                    : <Text style={otp.btnSecondaryTxt}>{resendCooldown > 0 ? `Renvoyer (${resendCooldown}s)` : 'Renvoyer le code'}</Text>}
+                </TouchableOpacity>
+                <TouchableOpacity style={otp.btnCancel} onPress={() => { setShowOtp(false); if (cooldownRef.current) clearInterval(cooldownRef.current); }}>
+                  <Text style={{ color: C.muted }}>Annuler</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Picker modal */}

@@ -21,11 +21,13 @@
         "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "mobile-app",
         "EXPO_PUBLIC_MARKET_OPEN_HOUR": "9",
         "EXPO_PUBLIC_MARKET_CLOSE_HOUR": "15",
-        "EXPO_PUBLIC_MARKET_CLOSE_MIN": "30"
+        "EXPO_PUBLIC_MARKET_CLOSE_MIN": "30",
+        "EXPO_PUBLIC_BANQUE_DASHBOARD_URL": "https://banquedigitale.cfconsultancy.org"
       }
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "android": {
         "buildType": "apk"
       },
@@ -36,7 +38,8 @@
         "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "mobile-app",
         "EXPO_PUBLIC_MARKET_OPEN_HOUR": "9",
         "EXPO_PUBLIC_MARKET_CLOSE_HOUR": "15",
-        "EXPO_PUBLIC_MARKET_CLOSE_MIN": "30"
+        "EXPO_PUBLIC_MARKET_CLOSE_MIN": "30",
+        "EXPO_PUBLIC_BANQUE_DASHBOARD_URL": "https://banquedigitale.cfconsultancy.org"
       }
     },
     "production": {
@@ -50,7 +53,8 @@
         "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "mobile-app",
         "EXPO_PUBLIC_MARKET_OPEN_HOUR": "9",
         "EXPO_PUBLIC_MARKET_CLOSE_HOUR": "15",
-        "EXPO_PUBLIC_MARKET_CLOSE_MIN": "30"
+        "EXPO_PUBLIC_MARKET_CLOSE_MIN": "30",
+        "EXPO_PUBLIC_BANQUE_DASHBOARD_URL": "https://banquedigitale.cfconsultancy.org"
       }
     }
   },

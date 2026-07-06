@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     # Token partagé pour les appels inter-service banque ↔ bourse (sans auth utilisateur)
     INTER_SERVICE_TOKEN: str = "bourse-banque-inter-service-token-poc"
 
+    # Resend — envoi d'emails transactionnels (OTP SCA, notifications)
+    RESEND_API_KEY: str = ""
+    EMAIL_FROM: str = "onboarding@resend.dev"
+
     # Client utilise pour VALIDER les tokens JWT presentes par le frontend
     # (resource server / bearer-only - cf. realm-export.json "backend-api").
     # Le "audience" (claim "aud" ou "azp") attendu dans les tokens valides

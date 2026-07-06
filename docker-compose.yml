@@ -204,6 +204,8 @@ services:
       BANQUE_API_URL: http://host.docker.internal:8000
       BANQUE_FRONTEND_URL: http://cfc.127.0.0.1.nip.io
       INTER_SERVICE_TOKEN: bourse-banque-inter-service-token-poc
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM:-onboarding@resend.dev}
     ports:
       - "8000:8000"
     extra_hosts:

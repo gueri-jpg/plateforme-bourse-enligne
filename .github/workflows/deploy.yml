@@ -1,0 +1,201 @@
+name: "Build & Deploy — Bourse"
+
+on:
+  push:
+    branches: [main]
+
+env:
+  # Secrets GitHub à créer :
+  #   ACR_LOGIN_SERVER  → acrbourseprod.azurecr.io  (terraform output acr_login_server)
+  #   AZURE_CREDENTIALS → JSON du service principal  (az ad sp create-for-rbac --sdk-auth)
+  #   EXPO_TOKEN        → token expo.dev
+  ACR: ${{ secrets.ACR_LOGIN_SERVER }}
+  NS:  bourse
+  RG:  rg-bourse-prod
+  AKS: aks-bourse-prod
+
+jobs:
+  # ── Détection des fichiers modifiés ────────────────────────────────────────
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend:  ${{ steps.f.outputs.backend }}
+      frontend: ${{ steps.f.outputs.frontend }}
+      admin:    ${{ steps.f.outputs.admin }}
+      keycloak: ${{ steps.f.outputs.keycloak }}
+      kafka:    ${{ steps.f.outputs.kafka }}
+      mobile:   ${{ steps.f.outputs.mobile }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: f
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+            admin:
+              - 'admin/**'
+            keycloak:
+              - 'keycloak/**'
+            kafka:
+              - 'kafka/**'
+            mobile:
+              - 'mobile/**'
+
+  # ── Build + Push + Deploy ──────────────────────────────────────────────────
+  deploy:
+    needs: changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.changes.outputs.backend  == 'true' ||
+      needs.changes.outputs.frontend == 'true' ||
+      needs.changes.outputs.admin    == 'true' ||
+      needs.changes.outputs.keycloak == 'true' ||
+      needs.changes.outputs.kafka    == 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR login
+        run: az acr login --name $(echo "$ACR" | cut -d. -f1)
+
+      # ── Builds conditionnels ────────────────────────────────────────────────
+      - name: Build & push backend
+        if: needs.changes.outputs.backend == 'true'
+        run: |
+          docker build \
+            -t $ACR/bourse-backend:${{ github.sha }} \
+            -t $ACR/bourse-backend:latest \
+            ./backend
+          docker push $ACR/bourse-backend:${{ github.sha }}
+          docker push $ACR/bourse-backend:latest
+
+      - name: Build & push frontend
+        if: needs.changes.outputs.frontend == 'true'
+        run: |
+          docker build \
+            -t $ACR/bourse-frontend:${{ github.sha }} \
+            -t $ACR/bourse-frontend:latest \
+            ./frontend
+          docker push $ACR/bourse-frontend:${{ github.sha }}
+          docker push $ACR/bourse-frontend:latest
+
+      - name: Build & push admin
+        if: needs.changes.outputs.admin == 'true'
+        run: |
+          docker build \
+            -t $ACR/bourse-admin-frontend:${{ github.sha }} \
+            -t $ACR/bourse-admin-frontend:latest \
+            ./admin
+          docker push $ACR/bourse-admin-frontend:${{ github.sha }}
+          docker push $ACR/bourse-admin-frontend:latest
+
+      - name: Build & push keycloak
+        if: needs.changes.outputs.keycloak == 'true'
+        run: |
+          docker build \
+            -t $ACR/bourse-keycloak:${{ github.sha }} \
+            -t $ACR/bourse-keycloak:latest \
+            ./keycloak
+          docker push $ACR/bourse-keycloak:${{ github.sha }}
+          docker push $ACR/bourse-keycloak:latest
+
+      - name: Build & push BVC producer
+        if: needs.changes.outputs.kafka == 'true'
+        run: |
+          docker build \
+            -t $ACR/bourse-bvc-producer:${{ github.sha }} \
+            -t $ACR/bourse-bvc-producer:latest \
+            ./kafka
+          docker push $ACR/bourse-bvc-producer:${{ github.sha }}
+          docker push $ACR/bourse-bvc-producer:latest
+
+      # ── Déploiement AKS ─────────────────────────────────────────────────────
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      # az aks get-credentials --admin génère un kubeconfig basé sur certificat
+      # (pas d'exec:/kubelogin) — compatible avec les runners GitHub Actions.
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group $RG \
+            --name $AKS \
+            --admin \
+            --overwrite-existing
+
+      - name: Deploy backend
+        if: needs.changes.outputs.backend == 'true'
+        run: |
+          kubectl set image deployment/bourse-platform-backend \
+            -n $NS backend=$ACR/bourse-backend:${{ github.sha }}
+          kubectl rollout status deployment/bourse-platform-backend \
+            -n $NS --timeout=180s
+
+      - name: Deploy frontend
+        if: needs.changes.outputs.frontend == 'true'
+        run: |
+          kubectl set image deployment/bourse-platform-frontend \
+            -n $NS frontend=$ACR/bourse-frontend:${{ github.sha }}
+          kubectl rollout status deployment/bourse-platform-frontend \
+            -n $NS --timeout=180s
+
+      - name: Deploy admin
+        if: needs.changes.outputs.admin == 'true'
+        run: |
+          kubectl set image deployment/bourse-platform-admin-frontend \
+            -n $NS admin-frontend=$ACR/bourse-admin-frontend:${{ github.sha }}
+          kubectl rollout status deployment/bourse-platform-admin-frontend \
+            -n $NS --timeout=180s
+
+      - name: Deploy keycloak
+        if: needs.changes.outputs.keycloak == 'true'
+        run: |
+          kubectl set image deployment/bourse-platform-keycloak \
+            -n $NS keycloak=$ACR/bourse-keycloak:${{ github.sha }}
+          kubectl rollout status deployment/bourse-platform-keycloak \
+            -n $NS --timeout=180s
+
+      - name: Deploy BVC producer
+        if: needs.changes.outputs.kafka == 'true'
+        run: |
+          kubectl set image deployment/bourse-platform-bvc-producer \
+            -n $NS bvc-producer=$ACR/bourse-bvc-producer:${{ github.sha }}
+          kubectl rollout status deployment/bourse-platform-bvc-producer \
+            -n $NS --timeout=180s
+
+  # ── Mobile : EAS Build Android APK ────────────────────────────────────────
+  build-mobile:
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli@latest
+
+      - name: EAS Build — Android APK (preview)
+        working-directory: mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform android --profile preview --non-interactive

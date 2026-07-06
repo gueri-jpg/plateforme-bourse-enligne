@@ -28,6 +28,8 @@ export const CONFIG = {
   MARKET_OPEN_HOUR:  Number(process.env.EXPO_PUBLIC_MARKET_OPEN_HOUR)  || 9,
   MARKET_CLOSE_HOUR: Number(process.env.EXPO_PUBLIC_MARKET_CLOSE_HOUR) || 15,
   MARKET_CLOSE_MIN:  Number(process.env.EXPO_PUBLIC_MARKET_CLOSE_MIN)  || 30,
+
+  BANQUE_DASHBOARD_URL: process.env.EXPO_PUBLIC_BANQUE_DASHBOARD_URL ?? 'https://banquedigitale.cfconsultancy.org',
 } as const;
 
 export const KEYCLOAK_DISCOVERY = {

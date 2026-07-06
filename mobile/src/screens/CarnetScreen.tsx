@@ -1,13 +1,18 @@
 // ============================================================================
-// screens/CarnetScreen.tsx — Carnet d'ordres (historique et statuts)
-// Adapté de app/(tabs)/carnet.tsx pour React Navigation
-// Remplacement : useFocusEffect expo-router → useFocusEffect @react-navigation/native
+// screens/CarnetScreen.tsx — Carnet d'ordres (backend réel)
 // ============================================================================
 
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import {
+  View, Text, FlatList, StyleSheet, TouchableOpacity,
+  Alert, ActivityIndicator,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { getOrders, cancelOrder, Order, OrderStatus } from '../../services/trading';
+import {
+  fetchOrdres, cancelOrdre,
+  OrdreBackend, StatutOrdre,
+  STATUT_ORDRE_LABELS,
+} from '../api/portfolio';
 
 const C = {
   bg: '#070b1c', panel: '#111733', panel2: '#0e1430',
@@ -15,138 +20,166 @@ const C = {
   up: '#22c55e', down: '#ef4444', accent: '#60a5fa', gold: '#f59e0b', flat: '#9ca3af',
 };
 
-function fmtN(x: number, dp = 2) {
-  return isNaN(x) ? '—' : x.toLocaleString('fr-FR', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+function fmtN(x: number | null | undefined, dp = 2) {
+  if (x === null || x === undefined || isNaN(x as number)) return '—';
+  return (x as number).toLocaleString('fr-FR', { minimumFractionDigits: dp, maximumFractionDigits: dp });
 }
 
 function fmtDate(iso: string | null) {
   if (!iso) return '—';
   const d = new Date(iso);
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) + ' ' +
-         d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  return (
+    d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) +
+    ' ' +
+    d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  );
 }
 
-// Labels et couleurs selon le statut (machine d'états BVC)
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  'en_attente': 'En attente',
-  'exécuté':   'Exécuté',
-  'annulé':    'Annulé',
-  'rejeté':    'Rejeté',
+const STATUS_COLORS: Record<StatutOrdre, string> = {
+  en_attente: C.gold,
+  execute:    C.up,
+  annule:     C.flat,
 };
 
-const STATUS_COLORS: Record<OrderStatus, string> = {
-  'en_attente': C.gold,
-  'exécuté':   C.up,
-  'annulé':    C.flat,
-  'rejeté':    C.down,
-};
+type FilterKey = StatutOrdre | 'all';
 
-const FILTERS: Array<{ key: OrderStatus | 'all'; label: string }> = [
+const FILTERS: Array<{ key: FilterKey; label: string }> = [
   { key: 'all',        label: 'Tous' },
   { key: 'en_attente', label: 'En attente' },
-  { key: 'exécuté',   label: 'Exécutés' },
-  { key: 'annulé',    label: 'Annulés' },
-  { key: 'rejeté',    label: 'Rejetés' },
+  { key: 'execute',    label: 'Exécutés' },
+  { key: 'annule',     label: 'Annulés' },
 ];
 
 export function CarnetScreen() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [filter, setFilter] = useState<OrderStatus | 'all'>('all');
+  const [ordres, setOrdres]   = useState<OrdreBackend[]>([]);
+  const [filter, setFilter]   = useState<FilterKey>('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState<string | null>(null);
 
-  // Recharger à chaque focus (après retour d'un autre onglet)
-  useFocusEffect(useCallback(() => {
-    getOrders().then(setOrders);
-  }, []));
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchOrdres();
+      setOrdres(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    } catch (e: any) {
+      setError(e.message ?? 'Impossible de charger les ordres');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const displayed = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
 
-  // Annulation d'un ordre en_attente (restitue les fonds/titres réservés)
-  const handleCancel = (order: Order) => {
+  const displayed = filter === 'all'
+    ? ordres
+    : ordres.filter(o => o.statut === filter);
+
+  const handleCancel = (ordre: OrdreBackend) => {
     Alert.alert(
-      'Annuler l\'ordre',
-      `Annuler l'ordre ${order.direction} de ${order.qty}× ${order.name} ?\nLes fonds seront restitués.`,
+      "Annuler l'ordre",
+      `Annuler l'ordre ${ordre.sens} de ${ordre.quantite}× ${ordre.nom || ordre.instrument} ?`,
       [
         { text: 'Non', style: 'cancel' },
         {
           text: 'Oui, annuler',
           style: 'destructive',
           onPress: async () => {
-            const res = await cancelOrder(order.id);
-            Alert.alert(res.success ? 'Annulé' : 'Erreur', res.message);
-            getOrders().then(setOrders);
+            setCancelling(ordre.id);
+            try {
+              await cancelOrdre(ordre.id);
+              await load();
+            } catch (e: any) {
+              Alert.alert('Erreur', e.response?.data?.detail ?? 'Impossible d\'annuler cet ordre');
+            } finally {
+              setCancelling(null);
+            }
           },
         },
       ]
     );
   };
 
-  const renderOrder = ({ item }: { item: Order }) => (
-    <View style={s.card}>
-      {/* En-tête : nom + badge statut */}
-      <View style={s.cardHeader}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.cardName}>{item.name}</Text>
-          <Text style={s.cardSub}>{item.sector}</Text>
-        </View>
-        <View style={[s.badge, {
-          backgroundColor: `${STATUS_COLORS[item.status]}20`,
-          borderColor: `${STATUS_COLORS[item.status]}50`,
-        }]}>
-          <Text style={[s.badgeTxt, { color: STATUS_COLORS[item.status] }]}>
-            {STATUS_LABELS[item.status]}
-          </Text>
-        </View>
-      </View>
+  const renderOrdre = ({ item }: { item: OrdreBackend }) => {
+    const color = STATUS_COLORS[item.statut];
+    const label = STATUT_ORDRE_LABELS[item.statut];
+    const isCancelling = cancelling === item.id;
+    const prixExec = item.prix_execution ?? item.prix_limite;
 
-      {/* Corps : détails de l'ordre */}
-      <View style={s.cardBody}>
-        <View style={s.cardRow}>
-          <Text style={s.cardLabel}>Sens</Text>
-          <Text style={[s.cardVal, {
-            color: item.direction === 'achat' ? C.up : C.down, fontWeight: '600',
-          }]}>
-            {item.direction === 'achat' ? '▲ Achat' : '▼ Vente'}
-          </Text>
+    return (
+      <View style={s.card}>
+        {/* En-tête */}
+        <View style={s.cardHeader}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.cardName}>{item.nom || item.instrument}</Text>
+            <Text style={s.cardCode}>{item.instrument}</Text>
+          </View>
+          <View style={[s.badge, { backgroundColor: `${color}20`, borderColor: `${color}50` }]}>
+            <Text style={[s.badgeTxt, { color }]}>{label}</Text>
+          </View>
         </View>
-        <View style={s.cardRow}>
-          <Text style={s.cardLabel}>Type</Text>
-          <Text style={s.cardVal}>{item.type === 'marche' ? 'Au marché' : 'Limité'}</Text>
-        </View>
-        <View style={s.cardRow}>
-          <Text style={s.cardLabel}>Qté</Text>
-          <Text style={s.cardVal}>{item.qty} titre(s)</Text>
-        </View>
-        <View style={s.cardRow}>
-          <Text style={s.cardLabel}>Prix</Text>
-          <Text style={s.cardVal}>{fmtN(item.price)} MAD</Text>
-        </View>
-        <View style={[s.cardRow, { borderTopWidth: 1, borderTopColor: C.line, marginTop: 4, paddingTop: 8 }]}>
-          <Text style={[s.cardLabel, { fontWeight: '700', color: C.txt }]}>Total</Text>
-          <Text style={[s.cardVal, { fontWeight: '700', color: C.txt }]}>{fmtN(item.total)} MAD</Text>
-        </View>
-      </View>
 
-      {/* Pied : dates + bouton annulation si en attente */}
-      <View style={s.cardFooter}>
-        <Text style={s.cardDate}>Créé : {fmtDate(item.date)}</Text>
-        {item.executionDate && (
-          <Text style={s.cardDate}>Exécuté : {fmtDate(item.executionDate)}</Text>
-        )}
-        {item.cancelDate && (
-          <Text style={s.cardDate}>Annulé : {fmtDate(item.cancelDate)}</Text>
-        )}
-        {item.status === 'en_attente' && (
-          <TouchableOpacity style={s.cancelBtn} onPress={() => handleCancel(item)}>
-            <Text style={s.cancelTxt}>Annuler</Text>
-          </TouchableOpacity>
-        )}
+        {/* Corps */}
+        <View style={s.cardBody}>
+          <View style={s.cardRow}>
+            <Text style={s.cardLabel}>Sens</Text>
+            <Text style={[s.cardVal, {
+              color: item.sens === 'achat' ? C.up : C.down, fontWeight: '600',
+            }]}>
+              {item.sens === 'achat' ? '▲ Achat' : '▼ Vente'}
+            </Text>
+          </View>
+          <View style={s.cardRow}>
+            <Text style={s.cardLabel}>Type</Text>
+            <Text style={s.cardVal}>{item.type === 'marche' ? 'Au marché' : 'Limité'}</Text>
+          </View>
+          <View style={s.cardRow}>
+            <Text style={s.cardLabel}>Quantité</Text>
+            <Text style={s.cardVal}>{item.quantite} titre(s)</Text>
+          </View>
+          {item.statut === 'execute' && item.quantite_executee > 0 && (
+            <View style={s.cardRow}>
+              <Text style={s.cardLabel}>Qté exécutée</Text>
+              <Text style={[s.cardVal, { color: C.up }]}>{item.quantite_executee} titre(s)</Text>
+            </View>
+          )}
+          {prixExec !== null && (
+            <View style={s.cardRow}>
+              <Text style={s.cardLabel}>Prix</Text>
+              <Text style={s.cardVal}>{fmtN(prixExec)} MAD</Text>
+            </View>
+          )}
+          <View style={[s.cardRow, s.totalRow]}>
+            <Text style={[s.cardLabel, { color: C.txt, fontWeight: '700' }]}>Montant total</Text>
+            <Text style={[s.cardVal, { color: C.txt, fontWeight: '700' }]}>
+              {fmtN(item.montant_total)} MAD
+            </Text>
+          </View>
+        </View>
+
+        {/* Pied */}
+        <View style={s.cardFooter}>
+          <Text style={s.cardDate}>Soumis : {fmtDate(item.date)}</Text>
+          {item.statut === 'en_attente' && (
+            <TouchableOpacity
+              style={[s.cancelBtn, isCancelling && { opacity: 0.5 }]}
+              onPress={() => handleCancel(item)}
+              disabled={isCancelling}
+            >
+              {isCancelling
+                ? <ActivityIndicator size="small" color={C.down} />
+                : <Text style={s.cancelTxt}>Annuler</Text>}
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={s.container}>
-      {/* Filtres par statut */}
+      {/* Filtres */}
       <View style={s.filters}>
         {FILTERS.map(f => (
           <TouchableOpacity
@@ -161,22 +194,34 @@ export function CarnetScreen() {
         ))}
       </View>
 
-      <FlatList
-        data={displayed}
-        keyExtractor={item => String(item.id)}
-        renderItem={renderOrder}
-        contentContainerStyle={{ padding: 12, paddingTop: 16, gap: 10, paddingBottom: 32 }}
-        ListEmptyComponent={
-          <View style={s.empty}>
-            <Text style={{ fontSize: 32, marginBottom: 12 }}>📓</Text>
-            <Text style={s.emptyTxt}>
-              {filter === 'all'
-                ? 'Aucun ordre passé.'
-                : `Aucun ordre ${STATUS_LABELS[filter as OrderStatus]?.toLowerCase()}.`}
-            </Text>
-          </View>
-        }
-      />
+      {loading && ordres.length === 0 ? (
+        <View style={s.loadingBox}>
+          <ActivityIndicator size="large" color={C.accent} />
+        </View>
+      ) : error && ordres.length === 0 ? (
+        <View style={s.loadingBox}>
+          <Text style={{ fontSize: 28, marginBottom: 12 }}>⚠️</Text>
+          <Text style={[s.emptyTxt, { textAlign: 'center', marginHorizontal: 32 }]}>{error}</Text>
+          <TouchableOpacity style={{ marginTop: 16, padding: 12, borderWidth: 1, borderColor: C.accent, borderRadius: 8 }} onPress={load}>
+            <Text style={{ color: C.accent }}>Réessayer</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={displayed}
+          keyExtractor={item => item.id}
+          renderItem={renderOrdre}
+          contentContainerStyle={{ padding: 12, paddingTop: 16, gap: 10, paddingBottom: 32 }}
+          ListEmptyComponent={
+            <View style={s.empty}>
+              <Text style={{ fontSize: 32, marginBottom: 12 }}>📓</Text>
+              <Text style={s.emptyTxt}>
+                {filter === 'all' ? 'Aucun ordre passé.' : 'Aucun ordre dans cette catégorie.'}
+              </Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -188,19 +233,21 @@ const s = StyleSheet.create({
   filterBtnActive: { borderColor: C.accent, backgroundColor: 'rgba(96,165,250,0.1)' },
   filterTxt:       { fontSize: 12, color: C.muted },
   filterTxtActive: { color: C.accent, fontWeight: '600' },
+  loadingBox:      { flex: 1, justifyContent: 'center', alignItems: 'center' },
   card:            { backgroundColor: C.panel, borderRadius: 14, borderWidth: 1, borderColor: C.line, overflow: 'hidden' },
   cardHeader:      { flexDirection: 'row', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: C.line },
-  cardName:        { fontSize: 16, fontWeight: '700', color: C.txt },
-  cardSub:         { fontSize: 11, color: C.muted, marginTop: 2 },
+  cardName:        { fontSize: 15, fontWeight: '700', color: C.txt },
+  cardCode:        { fontSize: 10, color: C.muted, marginTop: 2, letterSpacing: 0.5 },
   badge:           { borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
   badgeTxt:        { fontSize: 11, fontWeight: '600' },
   cardBody:        { padding: 14, gap: 6 },
   cardRow:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardLabel:       { fontSize: 13, color: C.muted },
   cardVal:         { fontSize: 13, color: C.txt },
+  totalRow:        { borderTopWidth: 1, borderTopColor: C.line, marginTop: 4, paddingTop: 8 },
   cardFooter:      { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', padding: 12, borderTopWidth: 1, borderTopColor: C.line, gap: 8 },
-  cardDate:        { fontSize: 11, color: C.muted },
-  cancelBtn:       { marginLeft: 'auto' as any, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: C.down },
+  cardDate:        { fontSize: 11, color: C.muted, flex: 1 },
+  cancelBtn:       { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: C.down },
   cancelTxt:       { color: C.down, fontSize: 12, fontWeight: '600' },
   empty:           { alignItems: 'center', paddingTop: 60 },
   emptyTxt:        { color: C.muted, fontSize: 14 },
