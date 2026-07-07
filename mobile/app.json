@@ -28,14 +28,11 @@
       "expo-secure-store",
       "expo-web-browser"
     ],
-    "owner": "cfconsulting",
+    "owner": "cfconsultancy",
     "extra": {
       "eas": {
-        "projectId": "37f28d4f-69ee-4b8b-813e-e88814a11188"
+        "projectId": "75a3debe-4112-4d8a-ade1-081d1519ff06"
       }
-    },
-    "updates": {
-      "url": "https://u.expo.dev/37f28d4f-69ee-4b8b-813e-e88814a11188"
     }
   }
 }
