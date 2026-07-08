@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   ActivityIndicator, Pressable,
@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewNavigation } from 'react-native-webview';
 import { StatusBar } from 'expo-status-bar';
 
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { buildPkceAuthUrl, buildPkceRegisterUrl, exchangeCodeForTokens, REDIRECT_URI } from '../api/auth';
 import { useAuth } from '../store/useAuth';
@@ -86,11 +86,13 @@ function friendlyError(raw: string): { title: string; tips: string[] } {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav   = NativeStackNavigationProp<RootStackParamList>;
+type Route = RouteProp<RootStackParamList, 'Login'>;
 
 export function LoginScreen() {
   const setTokens  = useAuth((s) => s.setTokens);
   const navigation = useNavigation<Nav>();
+  const route      = useRoute<Route>();
 
   // authUrl non-vide = WebView montée en arrière-plan (invisible)
   // webVisible = true  = WebView prête, on l'affiche par-dessus la landing page
@@ -132,6 +134,21 @@ export function LoginScreen() {
 
   const startLogin    = useCallback(() => openWebView(buildPkceAuthUrl,    false), [openWebView]);
   const startRegister = useCallback(() => openWebView(buildPkceRegisterUrl, true),  [openWebView]);
+
+  const startSsoLogin = useCallback((loginHint: string) => {
+    openWebView(() => buildPkceAuthUrl({ loginHint, idpHint: 'cfc-banque' }), false);
+  }, [openWebView]);
+
+  // ── SSO banque → bourse : échange du handoff token ────────────────────────
+  useEffect(() => {
+    const ssoToken = (route.params as { sso_token?: string } | undefined)?.sso_token;
+    if (!ssoToken) return;
+    fetch(`${CONFIG.BANQUE_DASHBOARD_URL}/bourse/sso-exchange?token=${encodeURIComponent(ssoToken)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(({ email }: { email: string }) => { startSsoLogin(email); })
+      .catch(() => { startLogin(); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const closeWebView = useCallback(() => {
     setAuthUrl('');

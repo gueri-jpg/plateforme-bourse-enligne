@@ -5,7 +5,7 @@
 
 // ── Stack racine ──────────────────────────────────────────────────────────────
 export type RootStackParamList = {
-  Login:           undefined;
+  Login:           { sso_token?: string } | undefined;
   Onboarding:      undefined;
   Main:            undefined;
   ForgotPassword:  undefined;

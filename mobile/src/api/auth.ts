@@ -176,8 +176,10 @@ function buildPkceParams(): { params: URLSearchParams; codeVerifier: string; sta
   return { params, codeVerifier, state };
 }
 
-export function buildPkceAuthUrl(): { url: string; codeVerifier: string; state: string } {
+export function buildPkceAuthUrl(opts?: { loginHint?: string; idpHint?: string }): { url: string; codeVerifier: string; state: string } {
   const { params, codeVerifier, state } = buildPkceParams();
+  if (opts?.loginHint) params.append('login_hint', opts.loginHint);
+  if (opts?.idpHint)   params.append('kc_idp_hint', opts.idpHint);
   return { url: `${AUTH_ENDPOINT}?${params}`, codeVerifier, state };
 }
 

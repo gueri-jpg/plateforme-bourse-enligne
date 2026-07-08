@@ -12,10 +12,11 @@
 
 import React, { useEffect } from 'react';
 import {
-  ActivityIndicator, View, Text, StyleSheet,
+  ActivityIndicator, View, Text, StyleSheet, Linking,
 } from 'react-native';
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator }          from '@react-navigation/native-stack';
+import type { RootStackParamList }             from './types';
 import { StatusBar }                           from 'expo-status-bar';
 
 import { useAuth }                from '../store/useAuth';
@@ -25,7 +26,13 @@ import { ForgotPasswordScreen }   from '../screens/ForgotPasswordScreen';
 import { VerifyResetCodeScreen }  from '../screens/VerifyResetCodeScreen';
 import { ResetPasswordScreen }    from '../screens/ResetPasswordScreen';
 import { MainTabs }               from './MainTabs';
-import type { RootStackParamList } from './types';
+
+// Ref globale pour naviguer depuis les Linking listeners (hors composant)
+const navRef = createNavigationContainerRef<RootStackParamList>();
+
+function extractSsoToken(url: string): string {
+  try { return new URL(url).searchParams.get('t') ?? ''; } catch { return ''; }
+}
 
 const C = {
   bg:     '#070b1c',
@@ -77,11 +84,30 @@ export function RootNavigator() {
     hydrate();
   }, [hydrate]);
 
+  // ── Deep links SSO entrants ────────────────────────────────────────────────
+  useEffect(() => {
+    const navigate = (url: string) => {
+      if (!url.startsWith('bourseenligne://sso')) return;
+      const token = extractSsoToken(url);
+      if (!token || !navRef.isReady()) return;
+      const s = useAuth.getState().status;
+      if (s === 'authenticated') {
+        navRef.navigate('Main');
+      } else {
+        navRef.navigate('Login', { sso_token: token });
+      }
+    };
+
+    Linking.getInitialURL().then((url) => { if (url) navigate(url); });
+    const sub = Linking.addEventListener('url', ({ url }) => navigate(url));
+    return () => sub.remove();
+  }, []);
+
   // Afficher le splash pendant l'hydratation
   if (status === 'unknown') return <SplashScreen />;
 
   return (
-    <NavigationContainer theme={navTheme}>
+    <NavigationContainer ref={navRef} theme={navTheme}>
       <StatusBar style="light" />
       <Stack.Navigator
         screenOptions={{
