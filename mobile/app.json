@@ -11,7 +11,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "ma.ecentralecasa.bourseenligne",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSApplicationQueriesSchemes": ["cfcdigibank"]
       }
     },
     "android": {
@@ -25,6 +26,7 @@
       "policy": "appVersion"
     },
     "plugins": [
+      "./plugins/withBanqueQueries",
       "expo-secure-store",
       "expo-web-browser"
     ],

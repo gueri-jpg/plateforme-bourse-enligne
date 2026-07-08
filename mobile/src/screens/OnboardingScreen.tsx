@@ -453,7 +453,7 @@ const st = StyleSheet.create({
 // ─────────────────────────────────────────────────────────────────────────────
 // Composant : Boutons de navigation
 // ─────────────────────────────────────────────────────────────────────────────
-function NavRow({ onPrev, onSkip, onNext, nextLabel = 'Suivant →' }: {
+function NavRow({ onPrev, onSkip, onNext, nextLabel = 'Suivant' }: {
   onPrev?: () => void; onSkip?: () => void;
   onNext: () => void; nextLabel?: string;
 }) {
@@ -530,7 +530,7 @@ export function OnboardingScreen() {
             accéder à votre espace investisseur.
           </Text>
           <TouchableOpacity style={s.finalBtn} onPress={completeOnboarding} activeOpacity={0.85}>
-            <Text style={s.finalBtnTxt}>Accéder à mon compte →</Text>
+            <Text style={s.finalBtnTxt}>Accéder à mon compte</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

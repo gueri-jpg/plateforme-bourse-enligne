@@ -224,7 +224,7 @@ export function PortefeuilleScreen() {
           {/* Étape 1 : Ouvrir la banque */}
           {depotStep === 'init' && (
             <TouchableOpacity style={s.modalBtnPrimary} onPress={ouvrirBanque}>
-              <Text style={s.modalBtnPrimaryTxt}>Aller à la banque CFC →</Text>
+              <Text style={s.modalBtnPrimaryTxt}>Aller à la banque CFC</Text>
             </TouchableOpacity>
           )}
 
@@ -347,7 +347,7 @@ export function PortefeuilleScreen() {
               style={s.emptyBtn}
             >
               <Text style={{ color: C.accent, fontWeight: '600' }}>
-                Passer un premier ordre →
+                Passer un premier ordre
               </Text>
             </TouchableOpacity>
           </View>
@@ -392,7 +392,7 @@ export function PortefeuilleScreen() {
             <MouvementRow key={i} mv={mv} />
           ))}
           <TouchableOpacity style={s.seeAll} onPress={() => navigation.navigate('Carnet')}>
-            <Text style={{ color: C.accent, fontSize: 13 }}>Voir tous les ordres →</Text>
+            <Text style={{ color: C.accent, fontSize: 13 }}>Voir tous les ordres</Text>
           </TouchableOpacity>
         </View>
       )}

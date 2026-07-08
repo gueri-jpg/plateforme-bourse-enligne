@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Linking } from 'react-native';
 import { getPortfolio, getOrders, Portfolio, Order, resetPortfolio } from '../../services/trading';
 import { useMarketData } from '../../hooks/useMarketData';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
+import { CONFIG } from '../../constants/config';
+import { getValidAccessToken } from '../../services/auth';
 
 const C = {
   bg: '#070b1c', panel: '#111733', panel2: '#0e1430',
@@ -25,13 +27,54 @@ export default function PortefeuilleScreen() {
   const [history,   setHistory]   = useState<Order[]>([]);
   const { stocks } = useMarketData();
   const router = useRouter();
+  const params = useLocalSearchParams<{ depot_ref?: string; depot_status?: string }>();
 
   useFocusEffect(useCallback(() => {
     getPortfolio().then(setPortfolio);
     getOrders().then(orders =>
       setHistory(orders.filter(o => o.status === 'exécuté').slice(0, 5))
     );
-  }, []));
+    // Confirmation de dépôt reçue via deep link bourseenligne://depot-confirm
+    if (params.depot_ref && params.depot_status === 'ok') {
+      Alert.alert('Dépôt initié', `Virement banque reçu (réf: ${params.depot_ref}). Votre solde sera mis à jour sous peu.`);
+    }
+  }, [params.depot_ref, params.depot_status]));
+
+  const alimenterDepuisBanque = useCallback(async () => {
+    try {
+      const token = await getValidAccessToken();
+      if (!token) {
+        Alert.alert('Non connecté', 'Connectez-vous pour alimenter votre compte.');
+        return;
+      }
+      // Récupérer l'IBAN du compte titres
+      const resp = await fetch(`${CONFIG.API_BASE_URL}/api/portefeuille/comptes-titres`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!resp.ok) throw new Error('Compte titres introuvable');
+      const compte = await resp.json();
+      const iban: string = compte.iban ?? '';
+      if (!iban) throw new Error('IBAN bourse non disponible');
+
+      // Générer une référence unique
+      const hexPart = Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0').toUpperCase();
+      const tsPart  = Date.now().toString(36).slice(-6).toUpperCase();
+      const ref     = `BRS${hexPart}${tsPart}`;
+      const retour  = `bourseenligne://depot-confirm?ref=${ref}`;
+
+      const deepLink = `cfcdigibank://alimenter-bourse?ref=${ref}&iban=${encodeURIComponent(iban)}&retour=${encodeURIComponent(retour)}`;
+      const canOpen  = await Linking.canOpenURL(deepLink);
+      if (canOpen) {
+        await Linking.openURL(deepLink);
+      } else {
+        // Fallback : ouvrir le dashboard web banque
+        const banqueUrl = `${CONFIG.BANQUE_DASHBOARD_URL}?action=alimenter-bourse&ref=${ref}&iban=${encodeURIComponent(iban)}&retour=${encodeURIComponent(retour)}`;
+        Linking.openURL(banqueUrl).catch(() => {});
+      }
+    } catch (e: any) {
+      Alert.alert('Erreur', e.message || 'Impossible de contacter la banque.');
+    }
+  }, []);
 
   const totalValue = portfolio.positions.reduce((acc, pos) => {
     const cur = stocks.find(s => s.name === pos.name)?.price ?? pos.avgPrice;
@@ -84,7 +127,7 @@ export default function PortefeuilleScreen() {
           <View style={s.emptyBox}>
             <Text style={s.emptyTxt}>Aucune position ouverte.</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/ordres' as any)} style={s.emptyBtn}>
-              <Text style={{ color: C.accent, fontWeight: '600' }}>Passer un premier ordre →</Text>
+              <Text style={{ color: C.accent, fontWeight: '600' }}>Passer un premier ordre</Text>
             </TouchableOpacity>
           </View>
         ) : portfolio.positions.map(pos => {
@@ -148,10 +191,14 @@ export default function PortefeuilleScreen() {
             </View>
           ))}
           <TouchableOpacity style={s.seeAll} onPress={() => router.push('/(tabs)/carnet' as any)}>
-            <Text style={{ color: C.accent, fontSize: 13 }}>Voir tout le carnet →</Text>
+            <Text style={{ color: C.accent, fontSize: 13 }}>Voir tout le carnet</Text>
           </TouchableOpacity>
         </View>
       )}
+
+      <TouchableOpacity style={s.alimenterBtn} onPress={alimenterDepuisBanque}>
+        <Text style={s.alimenterTxt}>🏦 Alimenter depuis CFC Banque</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={s.resetBtn} onPress={handleReset}>
         <Text style={s.resetTxt}>Réinitialiser le portefeuille</Text>
@@ -188,6 +235,8 @@ const s = StyleSheet.create({
   histDir:      { fontSize: 13, fontWeight: '600' },
   histTotal:    { fontSize: 12, color: C.muted, marginTop: 2 },
   seeAll:       { padding: 8, alignItems: 'center' },
+  alimenterBtn: { margin: 12, marginBottom: 0, padding: 14, borderRadius: 10, backgroundColor: '#1e3a5f', alignItems: 'center' },
+  alimenterTxt: { color: '#60a5fa', fontSize: 14, fontWeight: '600' },
   resetBtn:     { margin: 12, padding: 14, borderRadius: 10, borderWidth: 1, borderColor: C.down, alignItems: 'center' },
   resetTxt:     { color: C.down, fontSize: 13, fontWeight: '500' },
 });

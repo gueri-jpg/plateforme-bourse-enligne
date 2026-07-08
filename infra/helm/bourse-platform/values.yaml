@@ -230,7 +230,7 @@ config:
   # URL publique KC bourse — accès direct sans Cloudflare proxy (DNS-only sur auth.cfconsultancy.org)
   keycloakBaseUrl: "http://auth.cfconsultancy.org"
   # Claim "iss" des JWT émis par Keycloak (http car KC_PROXY_HEADERS lit X-Forwarded-Proto)
-  keycloakIssuerBaseUrl: "http://auth.cfconsultancy.org"
+  keycloakIssuerBaseUrl: "https://auth.cfconsultancy.org"
   keycloakRealm: "bourse-en-ligne"
   keycloakBackendClientId: "backend-api"
   bvcIntervalSeconds: "30"

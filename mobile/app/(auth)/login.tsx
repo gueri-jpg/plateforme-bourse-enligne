@@ -11,14 +11,14 @@
  *  4. Échanger le code contre tokens via fetch() POST
  *  5. Stocker tokens + naviguer vers l'app
  */
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewNavigation } from 'react-native-webview';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { CONFIG, KEYCLOAK_DISCOVERY, SECURE_KEYS } from '../../constants/config';
 import { saveTokens, decodeJwt } from '../../services/auth';
 import { setUserId } from '../../services/trading';
@@ -99,6 +99,8 @@ const REDIRECT_URI = 'bourseenligne://callback';
 // ── Composant ─────────────────────────────────────────────────────────────────
 
 export default function LoginScreen() {
+  const { sso_token } = useLocalSearchParams<{ sso_token?: string }>();
+
   const [showWebView, setShowWebView] = useState(false);
   const [loading,     setLoading]     = useState(false);
   const [webLoading,  setWebLoading]  = useState(true);
@@ -107,7 +109,7 @@ export default function LoginScreen() {
   const state        = useRef('');
   const authUrl      = useRef('');
 
-  const startLogin = useCallback(() => {
+  const startLogin = useCallback((opts?: { loginHint?: string; idpHint?: string }) => {
     const verifier   = generateCodeVerifier();
     const challenge  = generateCodeChallenge(verifier);
     const stateVal   = generateState();
@@ -124,11 +126,29 @@ export default function LoginScreen() {
       code_challenge_method: 'S256',
       state:                 stateVal,
     });
+    if (opts?.loginHint) params.append('login_hint', opts.loginHint);
+    if (opts?.idpHint)   params.append('kc_idp_hint', opts.idpHint);
 
     authUrl.current = `${KEYCLOAK_DISCOVERY.authorizationEndpoint}?${params.toString()}`;
     setWebLoading(true);
     setShowWebView(true);
   }, []);
+
+  // Démarrage automatique SSO si l'app a reçu un deep link bourseenligne://sso?t=xxx
+  useEffect(() => {
+    if (!sso_token) return;
+    const banqueApi = CONFIG.BANQUE_DASHBOARD_URL; // ex: https://banquedigitale.cfconsultancy.org
+    fetch(`${banqueApi}/bourse/sso-exchange?token=${encodeURIComponent(sso_token)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(({ email }: { email: string }) => {
+        startLogin({ loginHint: email, idpHint: 'cfc-banque' });
+      })
+      .catch(() => {
+        // Token expiré ou invalide → connexion manuelle
+        startLogin();
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sso_token]);
 
   const handleNavigationChange = useCallback(async (navState: WebViewNavigation) => {
     const url = navState.url;
@@ -251,7 +271,7 @@ export default function LoginScreen() {
 
         <TouchableOpacity
           style={[s.btnLogin, loading && s.btnDisabled]}
-          onPress={startLogin}
+          onPress={() => startLogin()}
           disabled={loading}
         >
           {loading
@@ -280,7 +300,6 @@ const s = StyleSheet.create({
   btnLogin:   { backgroundColor: '#f59e0b', borderRadius: 12, padding: 16, alignItems: 'center' },
   btnDisabled:{ opacity: 0.5 },
   btnText:    { fontSize: 16, fontWeight: '700', color: '#000' },
-  secureNote: { marginTop: 20, fontSize: 12, color: '#4a5280', textAlign: 'center' },
   secureNote: { marginTop: 20, fontSize: 12, color: '#4a5280', textAlign: 'center' },
   footer:     { marginTop: 32, fontSize: 11, color: '#4a5280' },
 });
