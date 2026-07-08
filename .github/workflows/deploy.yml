@@ -282,11 +282,12 @@ jobs:
         run: eas build --platform android --profile preview --non-interactive
 
   # ── Mobile JS : OTA update via EAS Update ─────────────────────────────────
-  # Changements JS/UI uniquement → pas besoin de nouvel APK.
-  # L'app télécharge la mise à jour au prochain lancement (canal preview).
+  # Changements JS/UI → OTA update (pas besoin de nouvel APK).
+  # Tourne aussi quand des fichiers natifs changent (app.json, etc.)
+  # pour que les changements JS soient toujours déployés.
   update-mobile:
     needs: changes
-    if: needs.changes.outputs.mobile_js == 'true' && needs.changes.outputs.mobile_native != 'true'
+    if: needs.changes.outputs.mobile_js == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -314,6 +315,10 @@ jobs:
           EXPO_PUBLIC_KEYCLOAK_URL: https://auth.cfconsultancy.org
           EXPO_PUBLIC_KEYCLOAK_REALM: bourse-en-ligne
           EXPO_PUBLIC_KEYCLOAK_CLIENT_ID: mobile-app
+          EXPO_PUBLIC_BANQUE_DASHBOARD_URL: https://banquedigitale.cfconsultancy.org
+          EXPO_PUBLIC_MARKET_OPEN_HOUR: "9"
+          EXPO_PUBLIC_MARKET_CLOSE_HOUR: "15"
+          EXPO_PUBLIC_MARKET_CLOSE_MIN: "30"
         run: |
           eas update \
             --channel preview \
