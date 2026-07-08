@@ -18,8 +18,10 @@ router = APIRouter(tags=["SSO Inter-Service"])
 _logout_blacklist: dict[str, float] = {}  # email → timestamp déconnexion banque
 _sca_sessions: dict[str, float] = {}     # email → timestamp dernière SCA validée
 _otp_store: dict[str, dict] = {}         # email → {otp_hash, expires_at, first_name}
+_bourse_handoff_tokens: dict[str, dict] = {}  # token → {email, expires_at} (SSO bourse→banque)
 _SCA_TTL = 900  # 15 minutes
 _OTP_TTL = 600  # 10 minutes
+_HANDOFF_TTL = 120  # 2 minutes
 
 
 def _send_otp_email(to: str, first_name: str, otp_code: str) -> None:
@@ -221,6 +223,41 @@ def session_heartbeat(request: Request):
         del _logout_blacklist[email]
 
     return {"valide": True, "email": email}
+
+
+# ── Handoff SSO bourse → banque (Scénario symétrique) ────────────────────────
+
+@router.get("/api/sso/generate-handoff")
+def generate_handoff(request: Request):
+    """
+    Génère un handoff_token one-time (TTL 2 min) pour le flux SSO bourse → banque.
+    Appelé par l'app mobile bourse avant d'ouvrir cfcdigibank://alimenter-bourse.
+    Requiert un Bearer token bourse valide.
+    """
+    email = _get_email_from_bearer(request)
+    now = time.time()
+    for k in [k for k, v in _bourse_handoff_tokens.items() if v["expires_at"] < now]:
+        del _bourse_handoff_tokens[k]
+    token = secrets.token_urlsafe(32)
+    _bourse_handoff_tokens[token] = {"email": email, "expires_at": now + _HANDOFF_TTL}
+    return {"handoff_token": token}
+
+
+@router.get("/api/sso/exchange-handoff")
+def exchange_handoff(
+    token: str,
+    x_inter_service_token: str = Header(None),
+):
+    """
+    (Inter-service) Échange un handoff_token bourse → banque contre l'email de l'utilisateur.
+    Appelé par le backend banque depuis /bourse/sso-exchange-bourse.
+    """
+    _check_inter_service(x_inter_service_token)
+    now = time.time()
+    entry = _bourse_handoff_tokens.pop(token, None)
+    if not entry or entry["expires_at"] < now:
+        raise HTTPException(status_code=401, detail="Token SSO expiré ou invalide.")
+    return {"email": entry["email"]}
 
 
 # ── SCA — Authentification forte pour ordres (Scénario 3) ─────────────────────

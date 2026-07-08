@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Pressable,
+  ActivityIndicator, Pressable, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewNavigation } from 'react-native-webview';
@@ -24,19 +24,13 @@ const C = {
   accent:'#60a5fa',
   gold:  '#f59e0b',
   red:   '#ef4444',
+  green: '#22c55e',
 };
 
 // ── URL rewriting ─────────────────────────────────────────────────────────────
-// Keycloak with KC_HOSTNAME=http://localhost:9090 may issue internal redirects
-// through localhost:9090 before reaching our callback. The phone can't reach
-// localhost, so we intercept those navigations and rewrite the host to the
-// real LAN IP.
 const KC_LOCAL = 'http://localhost:9090';
-const KC_REAL  = CONFIG.KEYCLOAK_BASE_URL.replace(/\/$/, ''); // e.g. http://172.20.10.5:9090
+const KC_REAL  = CONFIG.KEYCLOAK_BASE_URL.replace(/\/$/, '');
 
-// ── FIX_KC_FORMS_SCRIPT ───────────────────────────────────────────────────────
-// Rewrites Keycloak form actions that point to KC_LOCAL → KC_REAL.
-// Injected after every page load inside the WebView.
 const FIX_KC_FORMS_SCRIPT = `(function(){
   try {
     var t = new URL(${JSON.stringify(KC_REAL)});
@@ -52,7 +46,6 @@ const FIX_KC_FORMS_SCRIPT = `(function(){
   } catch(e){}
 })(); true;`;
 
-// ── Error categorisation (friendly messages for the user) ─────────────────────
 function friendlyError(raw: string): { title: string; tips: string[] } {
   const lower = raw.toLowerCase();
   if (lower.includes('-1004') || lower.includes('cannot connect') || lower.includes('connexion au serveur')) {
@@ -85,6 +78,9 @@ function friendlyError(raw: string): { title: string; tips: string[] } {
   };
 }
 
+// ── État SSO : quand le compte bourse n'existe pas ───────────────────────────
+type SsoNoAccount = { email: string };
+
 // ─────────────────────────────────────────────────────────────────────────────
 type Nav   = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'Login'>;
@@ -94,13 +90,16 @@ export function LoginScreen() {
   const navigation = useNavigation<Nav>();
   const route      = useRoute<Route>();
 
-  // authUrl non-vide = WebView montée en arrière-plan (invisible)
-  // webVisible = true  = WebView prête, on l'affiche par-dessus la landing page
   const [authUrl,    setAuthUrl]    = useState('');
   const [webVisible, setWebVisible] = useState(false);
   const [errorMsg,   setErrorMsg]   = useState<string | null>(null);
   const [webError,   setWebError]   = useState<string | null>(null);
   const [reloadKey,  setReloadKey]  = useState(0);
+
+  // État SSO "pas de compte bourse"
+  const [ssoNoAccount, setSsoNoAccount]   = useState<SsoNoAccount | null>(null);
+  // Spinner pendant l'échange du token SSO
+  const [ssoExchanging, setSsoExchanging] = useState(false);
 
   const codeVerifierRef = useRef('');
   const stateRef        = useRef('');
@@ -109,7 +108,6 @@ export function LoginScreen() {
   const isRegisterRef   = useRef(false);
   const webviewRef      = useRef<WebView>(null);
 
-  // Vrai pendant le chargement silencieux (bouton = spinner)
   const isLoading = authUrl !== '' && !webVisible && !webError;
 
   // ── Démarrer le flow PKCE ─────────────────────────────────────────────────
@@ -126,7 +124,8 @@ export function LoginScreen() {
       setWebError(null);
       setErrorMsg(null);
       setWebVisible(false);
-      setAuthUrl(url); // monte la WebView en arrière-plan
+      setSsoNoAccount(null);
+      setAuthUrl(url);
     } catch (e) {
       setErrorMsg('Impossible de démarrer la connexion. Réessayez.');
     }
@@ -135,18 +134,37 @@ export function LoginScreen() {
   const startLogin    = useCallback(() => openWebView(buildPkceAuthUrl,    false), [openWebView]);
   const startRegister = useCallback(() => openWebView(buildPkceRegisterUrl, true),  [openWebView]);
 
-  const startSsoLogin = useCallback((loginHint: string) => {
-    openWebView(() => buildPkceAuthUrl({ loginHint, idpHint: 'cfc-banque' }), false);
-  }, [openWebView]);
-
-  // ── SSO banque → bourse : échange du handoff token ────────────────────────
+  // ── SSO banque → bourse ────────────────────────────────────────────────────
   useEffect(() => {
-    const ssoToken = (route.params as { sso_token?: string } | undefined)?.sso_token;
+    const ssoToken = route.params?.sso_token;
     if (!ssoToken) return;
+
+    setSsoExchanging(true);
+    setSsoNoAccount(null);
+    setErrorMsg(null);
+
     fetch(`${CONFIG.BANQUE_DASHBOARD_URL}/bourse/sso-exchange?token=${encodeURIComponent(ssoToken)}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then(({ email }: { email: string }) => { startSsoLogin(email); })
-      .catch(() => { startLogin(); });
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then(({ email, existe, est_lie }: { email: string; existe: boolean; est_lie: boolean }) => {
+        setSsoExchanging(false);
+
+        if (!existe) {
+          // Cas 3 : l'utilisateur n'a pas de compte bourse
+          setSsoNoAccount({ email });
+          return;
+        }
+
+        // Cas 1 & 2 : compte bourse existant (lié ou non)
+        // PKCE avec idpHint=cfc-banque — Keycloak gère la liaison automatiquement
+        // si est_lie=true : reconnexion transparente via l'IDP banque
+        // si est_lie=false : première liaison — Keycloak demandera la confirmation
+        openWebView(() => buildPkceAuthUrl({ loginHint: email, idpHint: 'cfc-banque' }), false);
+      })
+      .catch(() => {
+        setSsoExchanging(false);
+        // Token expiré ou réseau coupé → login normal
+        startLogin();
+      });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -194,7 +212,6 @@ export function LoginScreen() {
   const handleShouldStart = useCallback((req: WebViewNavigation): boolean => {
     if (handledRef.current) return false;
 
-    // Redirect interne Keycloak via localhost:9090 → réécriture vers KC_REAL
     if (req.url.startsWith(KC_LOCAL)) {
       const rewritten = req.url.replace(KC_LOCAL, KC_REAL);
       const safe = rewritten.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -202,7 +219,6 @@ export function LoginScreen() {
       return false;
     }
 
-    // Callback PKCE
     if (req.url.startsWith(REDIRECT_URI)) {
       handledRef.current = true;
       processCallback(req.url);
@@ -212,7 +228,6 @@ export function LoginScreen() {
     return true;
   }, [processCallback]);
 
-  // L'overlay WebView est affiché dès que webVisible=true OU qu'une erreur est survenue
   const overlayShown = webVisible || webError !== null;
 
   // ── Rendu ─────────────────────────────────────────────────────────────────
@@ -220,7 +235,7 @@ export function LoginScreen() {
     <View style={s.container}>
       <StatusBar style="light" />
 
-      {/* ── Page d'accueil (toujours rendue) ── */}
+      {/* ── Page d'accueil ── */}
       <View style={s.hero}>
         <View style={s.logoCircle}>
           <Text style={s.logoIcon}>📈</Text>
@@ -248,46 +263,80 @@ export function LoginScreen() {
         </View>
       )}
 
-      <View style={s.actions}>
-        <TouchableOpacity
-          style={[s.btnPrimary, isLoading && s.btnDisabled]}
-          onPress={startLogin}
-          disabled={isLoading}
-          activeOpacity={0.85}
-        >
-          {isLoading
-            ? <ActivityIndicator color="#000" size="small" />
-            : <Text style={s.btnPrimaryText}>Se connecter</Text>
-          }
-        </TouchableOpacity>
+      {/* ── Spinner échange SSO ── */}
+      {ssoExchanging && (
+        <View style={s.ssoLoadingBox}>
+          <ActivityIndicator color={C.accent} size="small" />
+          <Text style={s.ssoLoadingTxt}>Connexion via Banque CFC…</Text>
+        </View>
+      )}
 
-        <TouchableOpacity
-          style={[s.btnSecondary, isLoading && s.btnDisabled]}
-          onPress={startRegister}
-          disabled={isLoading}
-          activeOpacity={0.85}
-        >
-          <Text style={s.btnSecondaryText}>Ouvrir un compte</Text>
-        </TouchableOpacity>
-
-        {isLoading && (
-          <TouchableOpacity onPress={closeWebView} style={s.cancelBtn}>
-            <Text style={s.cancelTxt}>Annuler</Text>
+      {/* ── Cas 3 : pas de compte bourse ── */}
+      {ssoNoAccount && !ssoExchanging && (
+        <View style={s.noAccountBox}>
+          <Text style={s.noAccountTitle}>Aucun compte BourseOnline</Text>
+          <Text style={s.noAccountDesc}>
+            Votre email{' '}
+            <Text style={{ color: C.accent }}>{ssoNoAccount.email}</Text>
+            {' '}n'est associé à aucun compte bourse.{'\n'}
+            Créez votre compte pour commencer à investir.
+          </Text>
+          <TouchableOpacity style={s.btnPrimary} onPress={startRegister} activeOpacity={0.85}>
+            <Text style={s.btnPrimaryText}>Ouvrir un compte bourse</Text>
           </TouchableOpacity>
-        )}
+          <TouchableOpacity
+            style={[s.btnSecondary, { marginTop: 10 }]}
+            onPress={startLogin}
+            activeOpacity={0.85}
+          >
+            <Text style={s.btnSecondaryText}>J'ai déjà un compte</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-        <TouchableOpacity
-          onPress={() => navigation.navigate('ForgotPassword')}
-          style={s.forgotBtn}
-          disabled={isLoading}
-        >
-          <Text style={s.forgotTxt}>Mot de passe oublié ?</Text>
-        </TouchableOpacity>
-      </View>
+      {/* ── Boutons principaux (affichés uniquement hors SSO) ── */}
+      {!ssoNoAccount && !ssoExchanging && (
+        <View style={s.actions}>
+          <TouchableOpacity
+            style={[s.btnPrimary, isLoading && s.btnDisabled]}
+            onPress={startLogin}
+            disabled={isLoading}
+            activeOpacity={0.85}
+          >
+            {isLoading
+              ? <ActivityIndicator color="#000" size="small" />
+              : <Text style={s.btnPrimaryText}>Se connecter</Text>
+            }
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[s.btnSecondary, isLoading && s.btnDisabled]}
+            onPress={startRegister}
+            disabled={isLoading}
+            activeOpacity={0.85}
+          >
+            <Text style={s.btnSecondaryText}>Ouvrir un compte</Text>
+          </TouchableOpacity>
+
+          {isLoading && (
+            <TouchableOpacity onPress={closeWebView} style={s.cancelBtn}>
+              <Text style={s.cancelTxt}>Annuler</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ForgotPassword')}
+            style={s.forgotBtn}
+            disabled={isLoading}
+          >
+            <Text style={s.forgotTxt}>Mot de passe oublié ?</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <Text style={s.footer}>© 2025 BourseOnline · Données BVC</Text>
 
-      {/* ── WebView montée en silence ; révélée quand prête ── */}
+      {/* ── WebView ── */}
       {authUrl !== '' && (
         <View
           style={[StyleSheet.absoluteFill, { opacity: overlayShown ? 1 : 0 }]}
@@ -349,7 +398,7 @@ export function LoginScreen() {
                     }
                   }}
                   onLoadEnd={() => {
-                    setWebVisible(true); // révèle la WebView (page chargée)
+                    setWebVisible(true);
                     webviewRef.current?.injectJavaScript(FIX_KC_FORMS_SCRIPT);
                   }}
                   onError={(e) => {
@@ -370,7 +419,6 @@ export function LoginScreen() {
                   style={{ flex: 1, backgroundColor: '#fff' }}
                   containerStyle={{ backgroundColor: C.bg }}
                 />
-
               </View>
             )}
           </SafeAreaView>
@@ -412,12 +460,29 @@ const s = StyleSheet.create({
   },
   errorText:   { color: C.red, fontSize: 13, textAlign: 'center' },
 
+  // SSO loading
+  ssoLoadingBox: {
+    width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 10, backgroundColor: C.panel, borderRadius: 12, padding: 16,
+    borderWidth: 1, borderColor: C.line, marginBottom: 16,
+  },
+  ssoLoadingTxt: { color: C.muted, fontSize: 14 },
+
+  // Cas 3 : pas de compte bourse
+  noAccountBox: {
+    width: '100%', backgroundColor: C.panel, borderRadius: 16,
+    borderWidth: 1, borderColor: C.line, padding: 20, marginBottom: 16,
+    alignItems: 'center',
+  },
+  noAccountTitle: { fontSize: 17, fontWeight: '700', color: C.txt, marginBottom: 10, textAlign: 'center' },
+  noAccountDesc:  { fontSize: 13, color: C.muted, textAlign: 'center', lineHeight: 20, marginBottom: 20 },
+
   actions:         { width: '100%', gap: 12 },
-  btnPrimary:      { backgroundColor: C.accent, borderRadius: 14, padding: 17, alignItems: 'center' },
+  btnPrimary:      { backgroundColor: C.accent, borderRadius: 14, padding: 17, alignItems: 'center', width: '100%' },
   btnPrimaryText:  { fontSize: 16, fontWeight: '700', color: '#000' },
   btnSecondary:    {
     backgroundColor: 'transparent', borderRadius: 14, padding: 17,
-    alignItems: 'center', borderWidth: 1.5, borderColor: C.accent,
+    alignItems: 'center', borderWidth: 1.5, borderColor: C.accent, width: '100%',
   },
   btnSecondaryText:{ fontSize: 16, fontWeight: '600', color: C.accent },
   btnDisabled:     { opacity: 0.5 },
@@ -437,14 +502,6 @@ const wv = StyleSheet.create({
   barTitle:  { flex: 1, color: C.txt, fontWeight: '600', fontSize: 14 },
   closeBtn:  { padding: 8 },
   closeText: { color: C.muted, fontSize: 13 },
-
-  exchangeOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(7,11,28,0.95)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  exchangeTitle: { fontSize: 18, fontWeight: '600', color: C.txt, marginTop: 20 },
-  exchangeSub:   { fontSize: 13, color: C.muted, marginTop: 8 },
 
   errorScreen: {
     flex: 1, alignItems: 'center',

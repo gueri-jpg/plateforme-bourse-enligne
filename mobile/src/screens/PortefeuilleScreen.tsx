@@ -19,6 +19,7 @@ import {
   TYPE_COMPTE_LABELS,
   MOUVEMENT_LABELS,
 } from '../api/portfolio';
+import { apiClient } from '../api/client';
 import { useAuth } from '../store/useAuth';
 import { CONFIG } from '../../constants/config';
 import type { MainTabParamList } from '../navigation/types';
@@ -96,7 +97,21 @@ export function PortefeuilleScreen() {
 
   useFocusEffect(useCallback(() => { void load(); }, [load]));
 
-  const openAlimenter = useCallback(() => {
+  const openAlimenter = useCallback(async () => {
+    // Cas 4 : vérifier si le compte banque est actif avant d'ouvrir le modal
+    try {
+      const r = await apiClient.get<{ actif: boolean; raison?: string }>('/api/sso/status-banque');
+      if (!r.data.actif) {
+        Alert.alert(
+          'Compte banque suspendu',
+          r.data.raison ?? 'Votre compte CFC Banque est suspendu. Contactez votre conseiller.',
+        );
+        return;
+      }
+    } catch {
+      // fail-open : si le backend est injoignable on laisse passer
+    }
+
     const sub = user?.sub ?? '000000';
     const subHex = sub.replace(/-/g, '').substring(0, 6).padEnd(6, '0');
     const tsSufx = String(Date.now()).slice(-6);
@@ -108,26 +123,51 @@ export function PortefeuilleScreen() {
   const ouvrirBanque = useCallback(async () => {
     if (!compte?.iban || !depotRef) return;
     const retour  = `bourseenligne://depot-confirm?ref=${encodeURIComponent(depotRef)}`;
+
+    // Générer un SSO handoff token pour pré-remplir l'auth banque si l'utilisateur
+    // n'est pas connecté à la banque (sens bourse → banque du SSO symétrique).
+    let ssoToken = '';
+    try {
+      const { data } = await apiClient.get<{ handoff_token: string }>('/api/sso/generate-handoff');
+      ssoToken = data.handoff_token;
+    } catch {
+      // fail-open : on ouvre la banque sans SSO, l'utilisateur verra le login normal
+    }
+
     const deepLink =
       `cfcdigibank://alimenter-bourse` +
       `?ref=${encodeURIComponent(depotRef)}` +
       `&iban=${encodeURIComponent(compte.iban)}` +
-      `&retour=${encodeURIComponent(retour)}`;
+      `&retour=${encodeURIComponent(retour)}` +
+      (ssoToken ? `&sso_token=${encodeURIComponent(ssoToken)}` : '');
+
     const canOpen = await Linking.canOpenURL(deepLink).catch(() => false);
     if (canOpen) {
       void Linking.openURL(deepLink);
+      setDepotStep('confirm');
     } else {
-      // Fallback : ouvrir le site web banque
-      const webRetour = encodeURIComponent(retour);
-      void Linking.openURL(
-        `${CONFIG.BANQUE_DASHBOARD_URL}/dashboard.html` +
-        `?action=alimenter-bourse` +
-        `&ref=${encodeURIComponent(depotRef)}` +
-        `&iban=${encodeURIComponent(compte.iban)}` +
-        `&retour=${webRetour}`,
+      // Cas 7 : app banque non installée → proposer le fallback web explicitement
+      Alert.alert(
+        'Application CFC Banque introuvable',
+        'L\'application CFC Banque n\'est pas installée sur cet appareil.\n\nSouhaitez-vous continuer via le site web ?',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Continuer sur le web',
+            onPress: () => {
+              void Linking.openURL(
+                `${CONFIG.BANQUE_DASHBOARD_URL}/dashboard.html` +
+                `?action=alimenter-bourse` +
+                `&ref=${encodeURIComponent(depotRef)}` +
+                `&iban=${encodeURIComponent(compte.iban)}` +
+                `&retour=${encodeURIComponent(retour)}`,
+              );
+              setDepotStep('confirm');
+            },
+          },
+        ],
       );
     }
-    setDepotStep('confirm');
   }, [compte, depotRef]);
 
   const confirmerDepot = useCallback(async () => {

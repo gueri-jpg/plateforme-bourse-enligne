@@ -1,16 +1,8 @@
 // ============================================================================
 // navigation/RootNavigator.tsx — Navigateur racine conditionnel
-//
-// Logique :
-//  - status = 'unknown'         → Splash (ActivityIndicator) pendant l'hydratation
-//  - status = 'unauthenticated' → Stack avec LoginScreen uniquement
-//  - status = 'authenticated'   → Stack avec MainTabs (6 onglets)
-//
-// Le NavigationContainer doit être ici (au niveau le plus haut) et non dans App.tsx
-// pour que useNavigation() fonctionne dans tous les screens enfants.
 // ============================================================================
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import {
   ActivityIndicator, View, Text, StyleSheet, Linking, Alert,
 } from 'react-native';
@@ -44,7 +36,6 @@ const C = {
   gold:   '#f59e0b',
 };
 
-// Thème NavigationContainer adapté à la palette sombre BVC
 const navTheme = {
   ...DefaultTheme,
   colors: {
@@ -60,7 +51,6 @@ const navTheme = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// ── Splash screen minimaliste affiché pendant l'hydratation ──────────────────
 function SplashScreen() {
   return (
     <View style={styles.splash}>
@@ -73,49 +63,91 @@ function SplashScreen() {
   );
 }
 
-// ── Navigateur racine ─────────────────────────────────────────────────────────
 export function RootNavigator() {
   const status     = useAuth((s) => s.status);
   const isNewUser  = useAuth((s) => s.isNewUser);
   const hydrate    = useAuth((s) => s.hydrate);
+
+  // URL reçue avant que le NavigationContainer soit monté (cold start depuis deep link)
+  const pendingUrlRef = useRef<string | null>(null);
+  // Référence virement reçue sans être authentifié → traiter après login
+  const pendingDepotRef = useRef<{ ref: string; status: string | null } | null>(null);
+
+  // ── Traitement d'un deep link (appelé quand navRef est prêt) ──────────────
+  const processUrl = useCallback((url: string) => {
+    if (!navRef.isReady()) {
+      pendingUrlRef.current = url;
+      return;
+    }
+
+    if (url.startsWith('bourseenligne://sso')) {
+      const token = extractSsoToken(url);
+      if (!token) return;
+      const s = useAuth.getState().status;
+      if (s === 'authenticated') {
+        navRef.navigate('Main');
+      } else {
+        navRef.navigate('Login', { sso_token: token });
+      }
+
+    } else if (url.startsWith('bourseenligne://depot-confirm')) {
+      let depotStatus: string | null = null;
+      try { depotStatus = new URL(url).searchParams.get('status'); } catch {}
+      let depotRef: string | null = null;
+      try { depotRef = new URL(url).searchParams.get('ref'); } catch {}
+
+      const s = useAuth.getState().status;
+      if (s === 'authenticated') {
+        navRef.navigate('Main');
+        if (depotStatus === 'ok') {
+          Alert.alert('Virement initié', 'Votre dépôt a bien été initié. Le solde sera mis à jour sous peu.');
+        }
+      } else {
+        // Stocker pour traitement après authentification
+        pendingDepotRef.current = { ref: depotRef ?? '', status: depotStatus };
+      }
+    }
+  }, []);
 
   // Hydrater le store depuis SecureStore au premier montage
   useEffect(() => {
     hydrate();
   }, [hydrate]);
 
-  // ── Deep links SSO entrants ────────────────────────────────────────────────
+  // Écouter les deep links entrants
   useEffect(() => {
-    const navigate = (url: string) => {
-      if (!navRef.isReady()) return;
-      if (url.startsWith('bourseenligne://sso')) {
-        const token = extractSsoToken(url);
-        if (!token) return;
-        const s = useAuth.getState().status;
-        if (s === 'authenticated') {
-          navRef.navigate('Main');
-        } else {
-          navRef.navigate('Login', { sso_token: token });
-        }
-      } else if (url.startsWith('bourseenligne://depot-confirm')) {
-        navRef.navigate('Main');
-        const status = (() => { try { return new URL(url).searchParams.get('status'); } catch { return null; } })();
-        if (status === 'ok') {
-          Alert.alert('Virement initié', 'Votre dépôt a bien été initié. Le solde sera mis à jour sous peu.');
-        }
-      }
-    };
-
-    Linking.getInitialURL().then((url) => { if (url) navigate(url); });
-    const sub = Linking.addEventListener('url', ({ url }) => navigate(url));
+    Linking.getInitialURL().then((url) => { if (url) processUrl(url); });
+    const sub = Linking.addEventListener('url', ({ url }) => processUrl(url));
     return () => sub.remove();
-  }, []);
+  }, [processUrl]);
+
+  // Traiter le dépôt en attente dès que l'utilisateur est authentifié
+  useEffect(() => {
+    if (status === 'authenticated' && pendingDepotRef.current && navRef.isReady()) {
+      const pending = pendingDepotRef.current;
+      pendingDepotRef.current = null;
+      navRef.navigate('Main');
+      if (pending.status === 'ok') {
+        Alert.alert('Virement initié', 'Votre dépôt a bien été initié. Le solde sera mis à jour sous peu.');
+      }
+    }
+  }, [status]);
 
   // Afficher le splash pendant l'hydratation
   if (status === 'unknown') return <SplashScreen />;
 
+  // ── Callback appelé quand NavigationContainer est prêt ───────────────────
+  // Traite l'URL en attente (cold start depuis un deep link)
+  function onNavReady() {
+    const pending = pendingUrlRef.current;
+    if (pending) {
+      pendingUrlRef.current = null;
+      processUrl(pending);
+    }
+  }
+
   return (
-    <NavigationContainer ref={navRef} theme={navTheme}>
+    <NavigationContainer ref={navRef} theme={navTheme} onReady={onNavReady}>
       <StatusBar style="light" />
       <Stack.Navigator
         screenOptions={{
