@@ -33,7 +33,8 @@ jobs:
       admin:    ${{ steps.f.outputs.admin }}
       keycloak: ${{ steps.f.outputs.keycloak }}
       kafka:    ${{ steps.f.outputs.kafka }}
-      mobile:   ${{ steps.f.outputs.mobile }}
+      mobile_native: ${{ steps.f.outputs.mobile_native }}
+      mobile_js:     ${{ steps.f.outputs.mobile_js }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -50,8 +51,24 @@ jobs:
               - 'keycloak/**'
             kafka:
               - 'kafka/**'
-            mobile:
-              - 'mobile/**'
+            # Code natif → nouveau APK obligatoire
+            mobile_native:
+              - 'mobile/android/**'
+              - 'mobile/ios/**'
+              - 'mobile/eas.json'
+              - 'mobile/app.json'
+              - 'mobile/package.json'
+              - 'mobile/package-lock.json'
+            # Code JS/UI → OTA update suffit
+            mobile_js:
+              - 'mobile/app/**'
+              - 'mobile/src/**'
+              - 'mobile/screens/**'
+              - 'mobile/hooks/**'
+              - 'mobile/services/**'
+              - 'mobile/constants/**'
+              - 'mobile/assets/**'
+              - 'mobile/App.tsx'
 
   # ── Build + Push + Deploy ──────────────────────────────────────────────────
   deploy:
@@ -186,7 +203,7 @@ jobs:
           kubectl rollout status deployment/bourse-platform-bvc-producer \
             -n $NS --timeout=180s
 
-  # ── Mobile : EAS Build Android APK — déclenchement MANUEL uniquement ────────
+  # ── Mobile natif : nouveau APK — déclenchement MANUEL uniquement ─────────────
   # GitHub Actions → Run workflow → cocher "Construire un nouvel APK"
   # Quota EAS Free = 15 builds Android/mois — ne pas déclencher sur push.
   build-mobile:
@@ -215,3 +232,42 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --platform android --profile preview --non-interactive
+
+  # ── Mobile JS : OTA update via EAS Update ─────────────────────────────────
+  # Changements JS/UI uniquement → pas besoin de nouvel APK.
+  # L'app télécharge la mise à jour au prochain lancement (canal preview).
+  update-mobile:
+    needs: changes
+    if: needs.changes.outputs.mobile_js == 'true' && needs.changes.outputs.mobile_native != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli@latest
+
+      - name: EAS Update — OTA push
+        working-directory: mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_API_URL: https://api.cfconsultancy.org
+          EXPO_PUBLIC_KEYCLOAK_URL: https://auth.cfconsultancy.org
+          EXPO_PUBLIC_KEYCLOAK_REALM: bourse-en-ligne
+          EXPO_PUBLIC_KEYCLOAK_CLIENT_ID: mobile-app
+        run: |
+          eas update \
+            --channel preview \
+            --message "Deploy ${{ github.sha }}" \
+            --non-interactive
