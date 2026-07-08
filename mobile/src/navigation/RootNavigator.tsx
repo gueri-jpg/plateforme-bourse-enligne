@@ -12,7 +12,7 @@
 
 import React, { useEffect } from 'react';
 import {
-  ActivityIndicator, View, Text, StyleSheet, Linking,
+  ActivityIndicator, View, Text, StyleSheet, Linking, Alert,
 } from 'react-native';
 import { NavigationContainer, DefaultTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator }          from '@react-navigation/native-stack';
@@ -87,14 +87,22 @@ export function RootNavigator() {
   // ── Deep links SSO entrants ────────────────────────────────────────────────
   useEffect(() => {
     const navigate = (url: string) => {
-      if (!url.startsWith('bourseenligne://sso')) return;
-      const token = extractSsoToken(url);
-      if (!token || !navRef.isReady()) return;
-      const s = useAuth.getState().status;
-      if (s === 'authenticated') {
+      if (!navRef.isReady()) return;
+      if (url.startsWith('bourseenligne://sso')) {
+        const token = extractSsoToken(url);
+        if (!token) return;
+        const s = useAuth.getState().status;
+        if (s === 'authenticated') {
+          navRef.navigate('Main');
+        } else {
+          navRef.navigate('Login', { sso_token: token });
+        }
+      } else if (url.startsWith('bourseenligne://depot-confirm')) {
         navRef.navigate('Main');
-      } else {
-        navRef.navigate('Login', { sso_token: token });
+        const status = (() => { try { return new URL(url).searchParams.get('status'); } catch { return null; } })();
+        if (status === 'ok') {
+          Alert.alert('Virement initié', 'Votre dépôt a bien été initié. Le solde sera mis à jour sous peu.');
+        }
       }
     };
 

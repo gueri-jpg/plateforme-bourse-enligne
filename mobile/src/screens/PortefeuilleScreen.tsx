@@ -105,16 +105,28 @@ export function PortefeuilleScreen() {
     setShowAlimenter(true);
   }, [user]);
 
-  const ouvrirBanque = useCallback(() => {
+  const ouvrirBanque = useCallback(async () => {
     if (!compte?.iban || !depotRef) return;
-    const retourUrl = encodeURIComponent(`${CONFIG.API_BASE_URL}/?depot_ref=${depotRef}`);
-    const url =
-      `${CONFIG.BANQUE_DASHBOARD_URL}/dashboard.html` +
-      `?action=alimenter-bourse` +
-      `&ref=${encodeURIComponent(depotRef)}` +
+    const retour  = `bourseenligne://depot-confirm?ref=${encodeURIComponent(depotRef)}`;
+    const deepLink =
+      `cfcdigibank://alimenter-bourse` +
+      `?ref=${encodeURIComponent(depotRef)}` +
       `&iban=${encodeURIComponent(compte.iban)}` +
-      `&retour=${retourUrl}`;
-    void Linking.openURL(url);
+      `&retour=${encodeURIComponent(retour)}`;
+    const canOpen = await Linking.canOpenURL(deepLink).catch(() => false);
+    if (canOpen) {
+      void Linking.openURL(deepLink);
+    } else {
+      // Fallback : ouvrir le site web banque
+      const webRetour = encodeURIComponent(retour);
+      void Linking.openURL(
+        `${CONFIG.BANQUE_DASHBOARD_URL}/dashboard.html` +
+        `?action=alimenter-bourse` +
+        `&ref=${encodeURIComponent(depotRef)}` +
+        `&iban=${encodeURIComponent(compte.iban)}` +
+        `&retour=${webRetour}`,
+      );
+    }
     setDepotStep('confirm');
   }, [compte, depotRef]);
 
