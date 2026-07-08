@@ -3,6 +3,16 @@ name: "Build & Deploy — Bourse"
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Passer les tests (skip)'
+        type: boolean
+        default: false
+      build_apk:
+        description: 'Construire un nouvel APK Android (consomme quota EAS)'
+        type: boolean
+        default: false
 
 env:
   # Secrets à configurer dans Settings → Secrets → Actions du repo GitHub :
@@ -175,10 +185,11 @@ jobs:
           kubectl rollout status deployment/bourse-platform-bvc-producer \
             -n $NS --timeout=180s
 
-  # ── Mobile : EAS Build Android APK ────────────────────────────────────────
+  # ── Mobile : EAS Build Android APK — déclenchement MANUEL uniquement ────────
+  # GitHub Actions → Run workflow → cocher "Construire un nouvel APK"
+  # Quota EAS Free = 15 builds Android/mois — ne pas déclencher sur push.
   build-mobile:
-    needs: changes
-    if: needs.changes.outputs.mobile == 'true'
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_apk == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
