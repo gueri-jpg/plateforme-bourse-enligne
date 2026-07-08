@@ -168,40 +168,88 @@ jobs:
         run: |
           kubectl set image deployment/bourse-platform-backend \
             -n $NS backend=$ACR/bourse-backend:${{ github.sha }}
-          kubectl rollout status deployment/bourse-platform-backend \
-            -n $NS --timeout=180s
+          if ! kubectl rollout status deployment/bourse-platform-backend -n $NS --timeout=180s; then
+            echo "::error::Déploiement backend échoué — rollback en cours..."
+            kubectl rollout undo deployment/bourse-platform-backend -n $NS
+            exit 1
+          fi
+
+      - name: Health check backend
+        if: needs.changes.outputs.backend == 'true'
+        run: |
+          echo "Attente stabilisation du pod (15s)..."
+          sleep 15
+          for i in 1 2 3 4 5; do
+            if curl -sf --max-time 10 https://api.cfconsultancy.org/api/health; then
+              echo "Health check backend OK"
+              exit 0
+            fi
+            echo "Tentative $i échouée, nouvel essai dans 10s..."
+            sleep 10
+          done
+          echo "::error::Health check backend échoué — rollback en cours..."
+          kubectl rollout undo deployment/bourse-platform-backend -n $NS
+          exit 1
 
       - name: Deploy frontend
         if: needs.changes.outputs.frontend == 'true'
         run: |
           kubectl set image deployment/bourse-platform-frontend \
             -n $NS frontend=$ACR/bourse-frontend:${{ github.sha }}
-          kubectl rollout status deployment/bourse-platform-frontend \
-            -n $NS --timeout=180s
+          if ! kubectl rollout status deployment/bourse-platform-frontend -n $NS --timeout=180s; then
+            echo "::error::Déploiement frontend échoué — rollback en cours..."
+            kubectl rollout undo deployment/bourse-platform-frontend -n $NS
+            exit 1
+          fi
+
+      - name: Health check frontend
+        if: needs.changes.outputs.frontend == 'true'
+        run: |
+          sleep 10
+          for i in 1 2 3 4 5; do
+            if curl -sf --max-time 10 https://bourse.cfconsultancy.org/; then
+              echo "Health check frontend OK"
+              exit 0
+            fi
+            echo "Tentative $i échouée, nouvel essai dans 10s..."
+            sleep 10
+          done
+          echo "::error::Health check frontend échoué — rollback en cours..."
+          kubectl rollout undo deployment/bourse-platform-frontend -n $NS
+          exit 1
 
       - name: Deploy admin
         if: needs.changes.outputs.admin == 'true'
         run: |
           kubectl set image deployment/bourse-platform-admin-frontend \
             -n $NS admin-frontend=$ACR/bourse-admin-frontend:${{ github.sha }}
-          kubectl rollout status deployment/bourse-platform-admin-frontend \
-            -n $NS --timeout=180s
+          if ! kubectl rollout status deployment/bourse-platform-admin-frontend -n $NS --timeout=180s; then
+            echo "::error::Déploiement admin échoué — rollback en cours..."
+            kubectl rollout undo deployment/bourse-platform-admin-frontend -n $NS
+            exit 1
+          fi
 
       - name: Deploy keycloak
         if: needs.changes.outputs.keycloak == 'true'
         run: |
           kubectl set image deployment/bourse-platform-keycloak \
             -n $NS keycloak=$ACR/bourse-keycloak:${{ github.sha }}
-          kubectl rollout status deployment/bourse-platform-keycloak \
-            -n $NS --timeout=180s
+          if ! kubectl rollout status deployment/bourse-platform-keycloak -n $NS --timeout=180s; then
+            echo "::error::Déploiement keycloak échoué — rollback en cours..."
+            kubectl rollout undo deployment/bourse-platform-keycloak -n $NS
+            exit 1
+          fi
 
       - name: Deploy BVC producer
         if: needs.changes.outputs.kafka == 'true'
         run: |
           kubectl set image deployment/bourse-platform-bvc-producer \
             -n $NS bvc-producer=$ACR/bourse-bvc-producer:${{ github.sha }}
-          kubectl rollout status deployment/bourse-platform-bvc-producer \
-            -n $NS --timeout=180s
+          if ! kubectl rollout status deployment/bourse-platform-bvc-producer -n $NS --timeout=180s; then
+            echo "::error::Déploiement BVC producer échoué — rollback en cours..."
+            kubectl rollout undo deployment/bourse-platform-bvc-producer -n $NS
+            exit 1
+          fi
 
   # ── Mobile natif : nouveau APK — déclenchement MANUEL uniquement ─────────────
   # GitHub Actions → Run workflow → cocher "Construire un nouvel APK"
