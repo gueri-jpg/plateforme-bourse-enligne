@@ -156,7 +156,7 @@ export function RootNavigator() {
           if (navRef.isReady()) navRef.navigate('Login', {});
           return;
         }
-        if (est_lie && bourse_tokens?.access_token) {
+        if (bourse_tokens?.access_token) {
           useAuth.getState().setTokens({
             access_token:  bourse_tokens.access_token,
             id_token:      bourse_tokens.id_token,
@@ -166,8 +166,8 @@ export function RootNavigator() {
           });
           return;
         }
-        // Première liaison → PKCE avec pré-remplissage
-        if (navRef.isReady()) navRef.navigate('Login', { idp_hint: 'cfc-banque', login_hint: email });
+        // Compte inexistant ou Token Exchange impossible → login normal
+        if (navRef.isReady()) navRef.navigate('Login', {});
       })
       .catch(() => {
         if (navRef.isReady()) navRef.navigate('Login', {});
