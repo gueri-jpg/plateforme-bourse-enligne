@@ -2,7 +2,7 @@
 // navigation/RootNavigator.tsx — Navigateur racine conditionnel
 // ============================================================================
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import {
   ActivityIndicator, View, Text, StyleSheet, Linking, Alert,
 } from 'react-native';
@@ -12,6 +12,7 @@ import type { RootStackParamList }             from './types';
 import { StatusBar }                           from 'expo-status-bar';
 
 import { useAuth }                from '../store/useAuth';
+import { CONFIG }                from '../../constants/config';
 import { LoginScreen }            from '../screens/LoginScreen';
 import { OnboardingScreen }       from '../screens/OnboardingScreen';
 import { ForgotPasswordScreen }   from '../screens/ForgotPasswordScreen';
@@ -72,6 +73,8 @@ export function RootNavigator() {
   const pendingUrlRef = useRef<string | null>(null);
   // Référence virement reçue sans être authentifié → traiter après login
   const pendingDepotRef = useRef<{ ref: string; status: string | null } | null>(null);
+  // SSO banque → bourse : token one-time reçu dans le deep link
+  const [pendingBanqueSsoToken, setPendingBanqueSsoToken] = useState<string | null>(null);
 
   // ── Traitement d'un deep link (appelé quand navRef est prêt) ──────────────
   const processUrl = useCallback((url: string) => {
@@ -87,7 +90,8 @@ export function RootNavigator() {
       if (s === 'authenticated') {
         navRef.navigate('Main');
       } else {
-        navRef.navigate('Login', { sso_token: token });
+        // Stocker pour échange après hydratation (même pattern que bourse→banque)
+        setPendingBanqueSsoToken(token);
       }
 
     } else if (url.startsWith('bourseenligne://depot-confirm')) {
@@ -132,6 +136,43 @@ export function RootNavigator() {
       }
     }
   }, [status]);
+
+  // SSO banque → bourse : Token Exchange dès que status est connu et token reçu
+  useEffect(() => {
+    if (status === 'unknown' || !pendingBanqueSsoToken) return;
+    const token = pendingBanqueSsoToken;
+    setPendingBanqueSsoToken(null);
+    if (status === 'authenticated') {
+      if (navRef.isReady()) navRef.navigate('Main');
+      return;
+    }
+    fetch(`${CONFIG.BANQUE_DASHBOARD_URL}/bourse/sso-exchange?token=${encodeURIComponent(token)}`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(({ email, existe, est_lie, bourse_tokens }: {
+        email: string; existe: boolean; est_lie: boolean;
+        bourse_tokens?: { access_token: string; id_token?: string; refresh_token?: string; expires_in?: number };
+      }) => {
+        if (!existe) {
+          if (navRef.isReady()) navRef.navigate('Login', {});
+          return;
+        }
+        if (est_lie && bourse_tokens?.access_token) {
+          useAuth.getState().setTokens({
+            access_token:  bourse_tokens.access_token,
+            id_token:      bourse_tokens.id_token,
+            refresh_token: bourse_tokens.refresh_token,
+            expires_in:    bourse_tokens.expires_in ?? 300,
+            token_type:    'Bearer',
+          });
+          return;
+        }
+        // Première liaison → PKCE avec pré-remplissage
+        if (navRef.isReady()) navRef.navigate('Login', { idp_hint: 'cfc-banque', login_hint: email });
+      })
+      .catch(() => {
+        if (navRef.isReady()) navRef.navigate('Login', {});
+      });
+  }, [status, pendingBanqueSsoToken]);
 
   // Afficher le splash pendant l'hydratation
   if (status === 'unknown') return <SplashScreen />;

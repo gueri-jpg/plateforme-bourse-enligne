@@ -145,7 +145,10 @@ export function LoginScreen() {
 
     fetch(`${CONFIG.BANQUE_DASHBOARD_URL}/bourse/sso-exchange?token=${encodeURIComponent(ssoToken)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then(({ email, existe, est_lie }: { email: string; existe: boolean; est_lie: boolean }) => {
+      .then(({ email, existe, est_lie, bourse_tokens }: {
+        email: string; existe: boolean; est_lie: boolean;
+        bourse_tokens?: { access_token: string; id_token?: string; refresh_token?: string; expires_in: number } | null;
+      }) => {
         setSsoExchanging(false);
 
         if (!existe) {
@@ -154,10 +157,19 @@ export function LoginScreen() {
           return;
         }
 
-        // Cas 1 & 2 : compte bourse existant (lié ou non)
-        // PKCE avec idpHint=cfc-banque — Keycloak gère la liaison automatiquement
-        // si est_lie=true : reconnexion transparente via l'IDP banque
-        // si est_lie=false : première liaison — Keycloak demandera la confirmation
+        // Cas 1 : comptes déjà liés + tokens directs → bypass total du PKCE
+        if (est_lie && bourse_tokens?.access_token) {
+          useAuth.getState().setTokens({
+            access_token:  bourse_tokens.access_token,
+            id_token:      bourse_tokens.id_token,
+            refresh_token: bourse_tokens.refresh_token,
+            expires_in:    bourse_tokens.expires_in,
+            token_type:    'Bearer',
+          });
+          return;
+        }
+
+        // Cas 2 : première liaison (est_lie=false) ou tokens non disponibles → PKCE
         openWebView(() => buildPkceAuthUrl({ loginHint: email, idpHint: 'cfc-banque' }), false);
       })
       .catch(() => {
@@ -167,6 +179,14 @@ export function LoginScreen() {
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // PKCE première liaison banque→bourse (idp_hint transmis par RootNavigator)
+  useEffect(() => {
+    const idpHint   = route.params?.idp_hint;
+    const loginHint = route.params?.login_hint;
+    if (!idpHint) return;
+    openWebView(() => buildPkceAuthUrl({ loginHint, idpHint }), false);
+  }, [route.params?.idp_hint, route.params?.login_hint, openWebView]);
 
   const closeWebView = useCallback(() => {
     setAuthUrl('');
