@@ -75,11 +75,15 @@ export function RootNavigator() {
   const pendingDepotRef = useRef<{ ref: string; status: string | null } | null>(null);
   // SSO banque → bourse : token one-time reçu dans le deep link
   const [pendingBanqueSsoToken, setPendingBanqueSsoToken] = useState<string | null>(null);
+  // Empêche le flash de LoginScreen pendant l'échange SSO
+  const [ssoExchanging, setSsoExchanging] = useState(false);
 
   // ── Traitement d'un deep link (appelé quand navRef est prêt) ──────────────
   const processUrl = useCallback((url: string) => {
     if (!navRef.isReady()) {
       pendingUrlRef.current = url;
+      // Marquer SSO en cours dès le cold start pour éviter le flash Login
+      if (url.startsWith('bourseenligne://sso') && extractSsoToken(url)) setSsoExchanging(true);
       return;
     }
 
@@ -90,8 +94,8 @@ export function RootNavigator() {
       if (s === 'authenticated') {
         navRef.navigate('Main');
       } else {
-        // Stocker pour échange après hydratation (même pattern que bourse→banque)
         setPendingBanqueSsoToken(token);
+        setSsoExchanging(true);
       }
 
     } else if (url.startsWith('bourseenligne://depot-confirm')) {
@@ -143,6 +147,7 @@ export function RootNavigator() {
     const token = pendingBanqueSsoToken;
     setPendingBanqueSsoToken(null);
     if (status === 'authenticated') {
+      setSsoExchanging(false);
       if (navRef.isReady()) navRef.navigate('Main');
       return;
     }
@@ -152,6 +157,7 @@ export function RootNavigator() {
         email: string; existe: boolean; est_lie: boolean;
         bourse_tokens?: { access_token: string; id_token?: string; refresh_token?: string; expires_in?: number };
       }) => {
+        setSsoExchanging(false);
         if (!existe) {
           if (navRef.isReady()) navRef.navigate('Login', {});
           return;
@@ -166,10 +172,10 @@ export function RootNavigator() {
           });
           return;
         }
-        // Compte inexistant ou Token Exchange impossible → login normal
         if (navRef.isReady()) navRef.navigate('Login', {});
       })
       .catch(() => {
+        setSsoExchanging(false);
         if (navRef.isReady()) navRef.navigate('Login', {});
       });
   }, [status, pendingBanqueSsoToken]);
@@ -188,6 +194,7 @@ export function RootNavigator() {
   }
 
   return (
+    <>
     <NavigationContainer ref={navRef} theme={navTheme} onReady={onNavReady}>
       <StatusBar style="light" />
       <Stack.Navigator
@@ -237,6 +244,16 @@ export function RootNavigator() {
         )}
       </Stack.Navigator>
     </NavigationContainer>
+    {/* Overlay : masque Login pendant l'échange SSO banque→bourse (évite le flash) */}
+    {ssoExchanging && status !== 'authenticated' && (
+      <View style={[styles.splash, StyleSheet.absoluteFillObject]}>
+        <StatusBar style="light" />
+        <Text style={styles.splashLogo}>📈</Text>
+        <Text style={styles.splashTitle}>BourseOnline</Text>
+        <ActivityIndicator color={C.accent} size="large" style={{ marginTop: 32 }} />
+      </View>
+    )}
+    </>
   );
 }
 
