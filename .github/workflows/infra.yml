@@ -80,19 +80,15 @@ jobs:
             --query "{name:name, location:location, id:id}" -o table
 
       # ── Vérification du Storage Account tfstate ────────────────────────────
-      # Le backend "azurerm" dans main.tf pointe sur stboursetfstate/rg-bourse-tfstate.
-      # Si ce Storage Account n'existe pas encore, terraform init échoue.
+      # Le backend "azurerm" dans main.tf pointe sur stcfcdevladw/rg-cfc-dev
+      # (même storage account que la banque, clé différente : bourse.terraform.tfstate)
       - name: Vérifier le Storage Account tfstate
         run: |
           if ! az storage account show \
-                --name stboursetfstate \
-                --resource-group rg-bourse-tfstate \
+                --name stcfcdevladw \
+                --resource-group rg-cfc-dev \
                 &>/dev/null; then
-            echo "::error::Le Storage Account 'stboursetfstate' (rg-bourse-tfstate) n'existe pas."
-            echo "::error::Créez-le manuellement :"
-            echo "::error::  az group create -n rg-bourse-tfstate -l 'West Europe'"
-            echo "::error::  az storage account create -n stboursetfstate -g rg-bourse-tfstate --sku Standard_LRS"
-            echo "::error::  az storage container create -n tfstate --account-name stboursetfstate"
+            echo "::error::Le Storage Account 'stcfcdevladw' (rg-cfc-dev) n'existe pas."
             exit 1
           fi
           echo "Storage Account tfstate OK."

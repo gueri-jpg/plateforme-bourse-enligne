@@ -6,8 +6,8 @@
 #   - Le provider azurerm avec les fonctionnalités requises
 #
 # Pré-requis :
-#   - Resource group "rg-bourse-tfstate" déjà existant sur Azure
-#   - Storage account "stboursetfstate" avec container "tfstate" déjà créés
+#   - Resource group "rg-cfc-dev" déjà existant sur Azure
+#   - Storage account "stcfcdevladw" avec container "tfstate" déjà créé
 #   - Commande : az login && az account set --subscription <id>
 # ==============================================================================
 
@@ -24,8 +24,8 @@ terraform {
   # Backend distant : le fichier tfstate est stocké dans Azure Blob Storage
   # pour permettre le travail en équipe et éviter les conflits d'état local.
   backend "azurerm" {
-    resource_group_name  = "rg-bourse-tfstate"
-    storage_account_name = "stboursetfstate"
+    resource_group_name  = "rg-cfc-dev"
+    storage_account_name = "stcfcdevladw"
     container_name       = "tfstate"
     key                  = "bourse.terraform.tfstate"
   }
