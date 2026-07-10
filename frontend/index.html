@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script>(function(){var p=new URLSearchParams(location.search);if(p.get("kc_idp_hint")||p.get("sso_token"))document.documentElement.style.visibility="hidden";})()</script>
+  <script>(function(){var p=new URLSearchParams(location.search);if(p.get("kc_idp_hint")||p.get("sso_token")||p.get("register"))document.documentElement.style.visibility="hidden";})()</script>
   <script>
   (function(){
     var _ssoToken = new URLSearchParams(location.search).get("sso_token");
@@ -659,6 +659,7 @@ async function ouvrirInscription() {
       code_challenge:        codeChallenge,
       code_challenge_method: "S256",
       state:                 etat,
+      prompt:                "login",
     });
     window.location.href = `${KEYCLOAK_REALM_URL}/protocol/openid-connect/registrations?${p.toString()}`;
   } catch (e) {
@@ -683,6 +684,12 @@ document.getElementById("btnModalClose").addEventListener("click", fermerModal);
 document.getElementById("modal-overlay").addEventListener("click", e => {
   if (e.target === document.getElementById("modal-overlay")) fermerModal();
 });
+
+// ?register=1 : provient de la banque (modal "no_account") → KC register direct
+if (new URLSearchParams(location.search).get("register") === "1") {
+  history.replaceState({}, "", "/");
+  ouvrirInscription().catch(() => { document.documentElement.style.visibility = ""; });
+}
 </script>
 
 <!-- Marché BVC en temps réel -->
