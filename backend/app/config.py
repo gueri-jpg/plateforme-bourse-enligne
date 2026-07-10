@@ -60,7 +60,7 @@ class Settings(BaseSettings):
 
     # Resend — envoi d'emails transactionnels (OTP SCA, notifications)
     RESEND_API_KEY: str = ""
-    EMAIL_FROM: str = "onboarding@resend.dev"
+    EMAIL_FROM: str = "noreply@cfassistance.org"
     # Plan gratuit Resend : forcer la destination vers l'email vérifié (laisser vide en prod)
     RESEND_OVERRIDE_TO: str = ""
 

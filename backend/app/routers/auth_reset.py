@@ -81,14 +81,12 @@ def _send_reset_email(to: str, first_name: str, otp_code: str) -> None:
         print(f"\n[RESET EMAIL MOCK] → {to}\nCode : {otp_code}\n{'-'*40}")
         return
 
-    recipient = settings.RESEND_OVERRIDE_TO or to
-
     import resend
     resend.api_key = settings.RESEND_API_KEY
     try:
         resend.Emails.send({
             "from": settings.EMAIL_FROM,
-            "to": [recipient],
+            "to": [to],
             "subject": subject,
             "html": html,
             "text": text,

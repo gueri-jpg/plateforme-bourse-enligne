@@ -43,13 +43,8 @@ provider "azurerm" {
 # Resource Group principal — contient tous les resources du projet
 # Nommage : rg-{project_name}-{environment}  ex: rg-bourse-prod
 # ------------------------------------------------------------------------------
-resource "azurerm_resource_group" "main" {
-  name     = "rg-${var.project_name}-${var.environment}"
-  location = var.location
-
-  tags = {
-    project     = var.project_name
-    environment = var.environment
-    managed_by  = "terraform"
-  }
+# Resource Group créé par le tuteur/l'administrateur avant le premier apply.
+# Référencé en data source — Terraform ne le crée ni ne le supprime jamais.
+data "azurerm_resource_group" "main" {
+  name = var.resource_group_name
 }

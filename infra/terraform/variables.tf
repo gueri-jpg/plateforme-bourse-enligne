@@ -12,6 +12,11 @@
 # Variables Azure générales
 # ------------------------------------------------------------------------------
 
+variable "resource_group_name" {
+  description = "Nom du Resource Group Azure pré-existant (créé par le tuteur/l'administrateur)"
+  type        = string
+}
+
 variable "location" {
   description = "Région Azure cible pour déployer toutes les ressources"
   type        = string

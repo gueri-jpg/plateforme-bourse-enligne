@@ -178,6 +178,10 @@ function buildPkceParams(): { params: URLSearchParams; codeVerifier: string; sta
 
 export function buildPkceAuthUrl(opts?: { loginHint?: string; idpHint?: string }): { url: string; codeVerifier: string; state: string } {
   const { params, codeVerifier, state } = buildPkceParams();
+  // offline_access → refresh token longue durée (30 j Keycloak) pour les flux SSO
+  // inter-app : après la première liaison, hydrate() renouvelle silencieusement
+  // sans jamais redemander d'authentification.
+  if (opts?.idpHint) params.set('scope', 'openid profile email offline_access');
   if (opts?.loginHint) params.append('login_hint', opts.loginHint);
   if (opts?.idpHint)   params.append('kc_idp_hint', opts.idpHint);
   return { url: `${AUTH_ENDPOINT}?${params}`, codeVerifier, state };

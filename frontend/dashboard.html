@@ -2141,23 +2141,43 @@ window.doCancelOrder = async function(orderId) {
   }
 };
 
-// ── Navigation vers la banque CFC (Scénario 5 : vérification suspension) ─────
+// ── Navigation vers la banque CFC (SSO web bourse → banque) ──────────────────
 async function _ouvrirBanque() {
   try {
     const token = await obtenirAccessTokenValide();
     if (token) {
-      const r = await fetch(`${BACKEND_API_BASE_URL}/api/sso/status-banque`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (r.ok) {
-        const st = await r.json();
-        if (!st.actif) {
-          showToast("Compte banque suspendu", st.raison || "Votre accès à la banque a été suspendu.", "error");
+      // Scénario 5 : vérifier suspension avant de naviguer
+      try {
+        const rSt = await fetch(`${BACKEND_API_BASE_URL}/api/sso/status-banque`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (rSt.ok) {
+          const st = await rSt.json();
+          if (!st.actif) {
+            showToast("Compte banque suspendu", st.raison || "Votre accès à la banque a été suspendu.", "error");
+            return;
+          }
+        }
+      } catch {}
+
+      // SSO web : générer un handoff token et rediriger vers le backend banque (302 direct → dashboard)
+      try {
+        const rHo = await fetch(`${BACKEND_API_BASE_URL}/api/sso/generate-handoff`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (rHo.ok) {
+          const { handoff_token } = await rHo.json();
+          fetch(BANQUE_FRONTEND_URL + "/bourse/log-retour", { method: "POST", mode: "no-cors" }).catch(() => {});
+          window.open(
+            `${BANQUE_FRONTEND_URL}/?sso_token=${encodeURIComponent(handoff_token)}`,
+            "_blank", "noopener"
+          );
           return;
         }
-      }
+      } catch {}
     }
   } catch {}
+  // Fallback : login manuel
   fetch(BANQUE_FRONTEND_URL + "/bourse/log-retour", { method: "POST", mode: "no-cors" }).catch(() => {});
   window.open(BANQUE_FRONTEND_URL + "/?action=login", "_blank", "noopener");
 }

@@ -67,3 +67,14 @@ htmlcov/
 # Node (si ajout frontend avec build step à l'avenir)
 # ============================================================
 node_modules/
+
+
+# ============================================================
+# Terraform
+# ============================================================
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfplan
+plan-*.txt

@@ -3,7 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script>(function(){if(new URLSearchParams(location.search).get("kc_idp_hint"))document.documentElement.style.visibility="hidden";})()</script>
+  <script>(function(){var p=new URLSearchParams(location.search);if(p.get("kc_idp_hint")||p.get("sso_token"))document.documentElement.style.visibility="hidden";})()</script>
+  <script>
+  (function(){
+    var _ssoToken = new URLSearchParams(location.search).get("sso_token");
+    if (!_ssoToken) return;
+    var _api = ["localhost","127.0.0.1"].includes(location.hostname) ? "http://localhost:8000" : "https://api.cfconsultancy.org";
+    history.replaceState({}, "", "/");
+    fetch(_api + "/api/sso/web-exchange?token=" + encodeURIComponent(_ssoToken))
+      .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function(d){
+        if (d.bourse_tokens && d.bourse_tokens.access_token) {
+          var exp = Date.now() + ((d.bourse_tokens.expires_in || 300) - 10) * 1000;
+          sessionStorage.setItem("bourse_access_token",  d.bourse_tokens.access_token);
+          sessionStorage.setItem("bourse_refresh_token", d.bourse_tokens.refresh_token || "");
+          sessionStorage.setItem("bourse_id_token",      d.bourse_tokens.id_token || "");
+          sessionStorage.setItem("bourse_expires_at",    String(exp));
+          window.location.replace("/dashboard.html");
+          return;
+        }
+        document.documentElement.style.visibility = "";
+      })
+      .catch(function(){ document.documentElement.style.visibility = ""; });
+  })();
+  </script>
   <title>BourseOnline &middot; Marché en Direct</title>
   <style>
     :root {

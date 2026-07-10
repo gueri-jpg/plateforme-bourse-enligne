@@ -1,0 +1,190 @@
+name: "Infrastructure — Terraform Provision (Bourse)"
+
+# Déclenchement MANUEL uniquement — infrastructure critique.
+# Lancer depuis GitHub → Actions → "Infrastructure — Terraform Provision (Bourse)" → Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      resource_group_name:
+        description: 'Resource Group Azure cible (créé par le tuteur)'
+        required: true
+        default: 'rg-bourse-dev'
+      location:
+        description: 'Région Azure'
+        required: true
+        default: 'West Europe'
+      aks_node_count:
+        description: 'Nombre de nœuds AKS (1–10)'
+        required: false
+        default: '2'
+      action:
+        description: 'Action Terraform'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+env:
+  # Secrets à configurer dans Settings → Secrets → Actions du repo GitHub :
+  #   AZURE_CLIENT_ID        → App Registration client ID (OIDC)
+  #   AZURE_TENANT_ID        → Tenant Azure
+  #   AZURE_SUBSCRIPTION_ID  → Subscription ID
+  #   TF_VAR_postgres_admin_password → mot de passe PostgreSQL (min 12 chars)
+  #
+  # Le backend Terraform (stboursetfstate) utilise les mêmes credentials OIDC.
+  ARM_CLIENT_ID:       ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_TENANT_ID:       ${{ secrets.AZURE_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_USE_OIDC:        "true"
+  # Transmis à Terraform via convention TF_VAR_* (jamais affiché en clair)
+  TF_VAR_postgres_admin_password: ${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}
+
+jobs:
+  terraform:
+    name: "Terraform ${{ inputs.action }} — ${{ inputs.resource_group_name }}"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # OIDC Azure
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Setup outils ────────────────────────────────────────────────────────
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.7"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # ── Vérification du Resource Group applicatif ──────────────────────────
+      - name: Vérifier le Resource Group cible
+        run: |
+          if ! az group show --name "${{ inputs.resource_group_name }}" &>/dev/null; then
+            echo "::error::Le Resource Group '${{ inputs.resource_group_name }}' n'existe pas."
+            echo "::error::Demandez à votre tuteur de le créer, puis relancez ce workflow."
+            exit 1
+          fi
+          echo "Resource Group '${{ inputs.resource_group_name }}' trouvé."
+          az group show --name "${{ inputs.resource_group_name }}" \
+            --query "{name:name, location:location, id:id}" -o table
+
+      # ── Vérification du Storage Account tfstate ────────────────────────────
+      # Le backend "azurerm" dans main.tf pointe sur stboursetfstate/rg-bourse-tfstate.
+      # Si ce Storage Account n'existe pas encore, terraform init échoue.
+      - name: Vérifier le Storage Account tfstate
+        run: |
+          if ! az storage account show \
+                --name stboursetfstate \
+                --resource-group rg-bourse-tfstate \
+                &>/dev/null; then
+            echo "::error::Le Storage Account 'stboursetfstate' (rg-bourse-tfstate) n'existe pas."
+            echo "::error::Créez-le manuellement :"
+            echo "::error::  az group create -n rg-bourse-tfstate -l 'West Europe'"
+            echo "::error::  az storage account create -n stboursetfstate -g rg-bourse-tfstate --sku Standard_LRS"
+            echo "::error::  az storage container create -n tfstate --account-name stboursetfstate"
+            exit 1
+          fi
+          echo "Storage Account tfstate OK."
+
+      # ── Vérification secret postgres ────────────────────────────────────────
+      - name: Vérifier le secret postgres
+        if: inputs.action != 'plan'
+        run: |
+          if [ -z "$TF_VAR_postgres_admin_password" ]; then
+            echo "::error::Le secret TF_VAR_POSTGRES_ADMIN_PASSWORD n'est pas configuré."
+            echo "::error::Ajoutez-le dans Settings → Secrets → Actions du repo."
+            exit 1
+          fi
+          if [ "${#TF_VAR_postgres_admin_password}" -lt 12 ]; then
+            echo "::error::Le mot de passe PostgreSQL doit contenir au moins 12 caractères."
+            exit 1
+          fi
+          echo "Secret postgres OK (longueur : ${#TF_VAR_postgres_admin_password} chars)."
+
+      # ── Terraform Init ──────────────────────────────────────────────────────
+      - name: Terraform Init
+        working-directory: infra/terraform
+        run: terraform init -input=false
+
+      # ── Terraform Validate ──────────────────────────────────────────────────
+      - name: Terraform Validate
+        working-directory: infra/terraform
+        run: terraform validate
+
+      # ── Terraform Plan ──────────────────────────────────────────────────────
+      - name: Terraform Plan
+        working-directory: infra/terraform
+        id: plan
+        run: |
+          terraform plan \
+            -input=false \
+            -var="resource_group_name=${{ inputs.resource_group_name }}" \
+            -var="location=${{ inputs.location }}" \
+            -var="aks_node_count=${{ inputs.aks_node_count }}" \
+            -out=tfplan \
+            -detailed-exitcode
+        continue-on-error: true
+
+      - name: Résumé du plan
+        run: |
+          case "${{ steps.plan.outcome }}" in
+            success)   echo "✅ Plan OK — aucun changement détecté." ;;
+            failure)   echo "❌ Plan en erreur." ; exit 1 ;;
+          esac
+
+      # ── Terraform Apply ─────────────────────────────────────────────────────
+      - name: Terraform Apply
+        if: inputs.action == 'apply'
+        working-directory: infra/terraform
+        run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Outputs Terraform
+        if: inputs.action == 'apply'
+        working-directory: infra/terraform
+        run: |
+          echo "### Outputs Terraform — Bourse (${{ inputs.resource_group_name }})" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          terraform output >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          ACR=$(terraform output -raw acr_login_server 2>/dev/null || echo "")
+          AKS=$(terraform output -raw aks_cluster_name 2>/dev/null || echo "")
+          RG=$(terraform output -raw resource_group_name 2>/dev/null || echo "")
+          PG=$(terraform output -raw postgres_fqdn 2>/dev/null || echo "")
+
+          if [ -n "$ACR" ]; then
+            echo "⚠️  **Prochaine étape** : mettre à jour le secret GitHub \`ACR_LOGIN_SERVER\` avec : \`$ACR\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -n "$AKS" ]; then
+            echo "**kubectl** : \`az aks get-credentials --resource-group $RG --name $AKS --admin\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -n "$PG" ]; then
+            echo "**PostgreSQL FQDN** : \`$PG\` — à renseigner dans le Helm values." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # ── Terraform Destroy (protection) ─────────────────────────────────────
+      - name: Terraform Destroy
+        if: inputs.action == 'destroy'
+        working-directory: infra/terraform
+        run: |
+          echo "::warning::DESTROY demandé — toute l'infrastructure bourse sera supprimée !"
+          terraform destroy \
+            -input=false \
+            -auto-approve \
+            -var="resource_group_name=${{ inputs.resource_group_name }}" \
+            -var="location=${{ inputs.location }}" \
+            -var="aks_node_count=${{ inputs.aks_node_count }}"

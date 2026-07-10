@@ -4,7 +4,7 @@
 
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import {
-  ActivityIndicator, View, Text, StyleSheet, Linking, Alert,
+  ActivityIndicator, AppState, View, Text, StyleSheet, Linking, Alert,
 } from 'react-native';
 import { NavigationContainer, DefaultTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator }          from '@react-navigation/native-stack';
@@ -71,6 +71,13 @@ export function RootNavigator() {
 
   // URL reçue avant que le NavigationContainer soit monté (cold start depuis deep link)
   const pendingUrlRef = useRef<string | null>(null);
+  // Vrai dès que NavigationContainer a été monté au moins une fois
+  // → empêche l'early return de le démonter si SSO arrive depuis le background
+  const navMountedRef = useRef(false);
+  // Cover affiché quand l'app passe en background (unauthenticated)
+  // → Android capture le cover comme thumbnail au lieu de LoginScreen
+  const [appStateCover, setAppStateCover] = useState(false);
+  const coverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Référence virement reçue sans être authentifié → traiter après login
   const pendingDepotRef = useRef<{ ref: string; status: string | null } | null>(null);
   // SSO banque → bourse : token one-time reçu dans le deep link
@@ -122,9 +129,37 @@ export function RootNavigator() {
     hydrate();
   }, [hydrate]);
 
+  // Cover background : empêche le thumbnail Android de montrer LoginScreen
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      const s = useAuth.getState().status;
+      if (next === 'background' && s !== 'authenticated') {
+        if (coverTimerRef.current) clearTimeout(coverTimerRef.current);
+        setAppStateCover(true);
+      } else if (next === 'active') {
+        // Délai pour laisser le deep link SSO arriver avant de lever le cover
+        coverTimerRef.current = setTimeout(() => setAppStateCover(false), 300);
+      }
+    });
+    return () => { sub.remove(); if (coverTimerRef.current) clearTimeout(coverTimerRef.current); };
+  }, []);
+
   // Écouter les deep links entrants
   useEffect(() => {
-    Linking.getInitialURL().then((url) => { if (url) processUrl(url); });
+    Linking.getInitialURL().then((url) => {
+      if (!url) return;
+      // Sur cold start : extraire le token SSO directement, sans attendre navRef
+      // (évite le flash LoginScreen : early return SplashScreen reste actif jusqu'à la fin de l'échange)
+      if (url.startsWith('bourseenligne://sso')) {
+        const token = extractSsoToken(url);
+        if (token && useAuth.getState().status !== 'authenticated') {
+          setPendingBanqueSsoToken(token);
+          setSsoExchanging(true);
+          return;
+        }
+      }
+      processUrl(url);
+    });
     const sub = Linking.addEventListener('url', ({ url }) => processUrl(url));
     return () => sub.remove();
   }, [processUrl]);
@@ -148,21 +183,16 @@ export function RootNavigator() {
     setPendingBanqueSsoToken(null);
     if (status === 'authenticated') {
       setSsoExchanging(false);
-      if (navRef.isReady()) navRef.navigate('Main');
       return;
     }
     fetch(`${CONFIG.BANQUE_DASHBOARD_URL}/bourse/sso-exchange?token=${encodeURIComponent(token)}`)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(({ email, existe, est_lie, bourse_tokens }: {
+      .then(({ bourse_tokens }: {
         email: string; existe: boolean; est_lie: boolean;
         bourse_tokens?: { access_token: string; id_token?: string; refresh_token?: string; expires_in?: number };
       }) => {
-        setSsoExchanging(false);
-        if (!existe) {
-          if (navRef.isReady()) navRef.navigate('Login', {});
-          return;
-        }
         if (bourse_tokens?.access_token) {
+          // setTokens → status=authenticated → early return lève → NavigationContainer monte sur Main
           useAuth.getState().setTokens({
             access_token:  bourse_tokens.access_token,
             id_token:      bourse_tokens.id_token,
@@ -170,22 +200,25 @@ export function RootNavigator() {
             expires_in:    bourse_tokens.expires_in ?? 300,
             token_type:    'Bearer',
           });
-          return;
         }
-        if (navRef.isReady()) navRef.navigate('Login', {});
+        // Lever le splash → NavigationContainer monte sur Login si pas de tokens
+        setSsoExchanging(false);
       })
       .catch(() => {
+        // Erreur réseau : lever le splash → NavigationContainer monte sur Login
         setSsoExchanging(false);
-        if (navRef.isReady()) navRef.navigate('Login', {});
       });
   }, [status, pendingBanqueSsoToken]);
 
-  // Afficher le splash pendant l'hydratation
-  if (status === 'unknown') return <SplashScreen />;
+  // Afficher le splash pendant l'hydratation OU pendant l'échange SSO cold-start
+  // navMountedRef garantit qu'on ne démonte pas NavigationContainer s'il était déjà monté (cas background)
+  if (status === 'unknown' || (ssoExchanging && status !== 'authenticated' && !navMountedRef.current)) return <SplashScreen />;
+
 
   // ── Callback appelé quand NavigationContainer est prêt ───────────────────
   // Traite l'URL en attente (cold start depuis un deep link)
   function onNavReady() {
+    navMountedRef.current = true;
     const pending = pendingUrlRef.current;
     if (pending) {
       pendingUrlRef.current = null;
@@ -244,13 +277,21 @@ export function RootNavigator() {
         )}
       </Stack.Navigator>
     </NavigationContainer>
-    {/* Overlay : masque Login pendant l'échange SSO banque→bourse (évite le flash) */}
+    {/* Overlay SSO : masque Login pendant le Token Exchange */}
     {ssoExchanging && status !== 'authenticated' && (
       <View style={[styles.splash, StyleSheet.absoluteFillObject]}>
         <StatusBar style="light" />
         <Text style={styles.splashLogo}>📈</Text>
         <Text style={styles.splashTitle}>BourseOnline</Text>
         <ActivityIndicator color={C.accent} size="large" style={{ marginTop: 32 }} />
+      </View>
+    )}
+    {/* Cover background : remplace le thumbnail Android quand l'app est en background sur LoginScreen */}
+    {appStateCover && status !== 'authenticated' && (
+      <View style={[styles.splash, StyleSheet.absoluteFillObject]}>
+        <StatusBar style="light" />
+        <Text style={styles.splashLogo}>📈</Text>
+        <Text style={styles.splashTitle}>BourseOnline</Text>
       </View>
     )}
     </>

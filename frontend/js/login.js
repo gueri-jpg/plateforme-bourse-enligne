@@ -16,8 +16,10 @@ import {
   KEYCLOAK_CLIENT_ID,
   REDIRECT_URI,
   STORAGE_KEYS,
+  BACKEND_API_BASE_URL,
 } from "./config.js";
 import { genererCodeVerifier, genererCodeChallenge, genererEtatAleatoire } from "./pkce.js";
+import { enregistrerTokens } from "./auth.js";
 
 const boutonLogin = document.getElementById("bouton-login");
 const messageErreur = document.getElementById("message-erreur");
@@ -27,15 +29,60 @@ if (parametresUrl.has("erreur")) {
   afficherErreur(parametresUrl.get("erreur"));
 }
 
-// kc_idp_hint : SSO automatique depuis l'app mobile banque
-const idpHint = parametresUrl.get("kc_idp_hint");
-
 boutonLogin.addEventListener("click", () => demarrerLoginKeycloak());
 
-// Déclenchement automatique si kc_idp_hint present dans l'URL
-if (idpHint) {
+// ── SSO web banque → bourse : handoff token → Token Exchange → sessionStorage ─
+const ssoToken = parametresUrl.get("sso_token");
+if (ssoToken) {
+  document.body.style.visibility = "hidden";
+  _echangerSsoToken(ssoToken);
+}
+
+// ── kc_idp_hint : SSO automatique depuis l'app mobile banque (fallback) ───────
+const idpHint = parametresUrl.get("kc_idp_hint");
+if (!ssoToken && idpHint) {
   document.body.style.visibility = "hidden";
   demarrerLoginKeycloak(idpHint);
+}
+
+async function _echangerSsoToken(token) {
+  try {
+    const r = await fetch(
+      `${BACKEND_API_BASE_URL}/api/sso/web-exchange?token=${encodeURIComponent(token)}`
+    );
+    if (!r.ok) {
+      document.body.style.visibility = "";
+      afficherErreur("Session SSO expirée. Veuillez vous connecter manuellement.");
+      return;
+    }
+    const data = await r.json();
+
+    if (data.bourse_tokens?.access_token) {
+      enregistrerTokens({
+        access_token:  data.bourse_tokens.access_token,
+        id_token:      data.bourse_tokens.id_token ?? "",
+        refresh_token: data.bourse_tokens.refresh_token ?? "",
+        expires_in:    data.bourse_tokens.expires_in ?? 300,
+      });
+      window.location.replace("/dashboard.html");
+      return;
+    }
+
+    if (!data.existe) {
+      document.body.style.visibility = "";
+      afficherErreur(
+        "Aucun compte BourseOnline associé à ce compte banque. Créez un compte pour accéder à la plateforme."
+      );
+      return;
+    }
+
+    // Compte existe mais Token Exchange indisponible → PKCE classique
+    document.body.style.visibility = "";
+    demarrerLoginKeycloak();
+  } catch {
+    document.body.style.visibility = "";
+    afficherErreur("Erreur SSO. Veuillez vous connecter manuellement.");
+  }
 }
 
 /**

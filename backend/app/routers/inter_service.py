@@ -71,14 +71,12 @@ def _send_otp_email(to: str, first_name: str, otp_code: str) -> None:
         print(f"\n[OTP EMAIL MOCK] → {to}\nCode : {otp_code}\n{'-'*40}")
         return
 
-    recipient = settings.RESEND_OVERRIDE_TO or to
-
     import resend
     resend.api_key = settings.RESEND_API_KEY
     try:
         resend.Emails.send({
             "from": settings.EMAIL_FROM,
-            "to": [recipient],
+            "to": [to],
             "subject": subject,
             "html": html,
             "text": text,
@@ -258,6 +256,113 @@ def exchange_handoff(
     if not entry or entry["expires_at"] < now:
         raise HTTPException(status_code=401, detail="Token SSO expiré ou invalide.")
     return {"email": entry["email"]}
+
+
+# ── Token Exchange — bypass PKCE pour comptes déjà liés ──────────────────────
+
+def _generate_tokens_for_user(user_id: str) -> dict | None:
+    """
+    Génère des tokens KC bourse pour un user via Token Exchange (impersonation).
+    Requiert KC_FEATURES=token-exchange et le rôle impersonation sur admin-tools.
+    Retourne None si l'opération échoue (fail-open → fallback PKCE côté mobile).
+    """
+    try:
+        token_url = f"{settings.keycloak_realm_url}/protocol/openid-connect/token"
+        # 1. Token service account admin-tools
+        r_sa = _requests.post(
+            token_url,
+            data={
+                "grant_type":    "client_credentials",
+                "client_id":     settings.KEYCLOAK_ADMIN_CLIENT_ID,
+                "client_secret": settings.KEYCLOAK_ADMIN_CLIENT_SECRET,
+            },
+            timeout=5,
+        )
+        if not r_sa.ok:
+            return None
+        sa_token = r_sa.json().get("access_token")
+        if not sa_token:
+            return None
+
+        # 2. Token Exchange → impersonation de l'utilisateur cible
+        r_ex = _requests.post(
+            token_url,
+            data={
+                "grant_type":           "urn:ietf:params:oauth:grant-type:token-exchange",
+                "client_id":            settings.KEYCLOAK_ADMIN_CLIENT_ID,
+                "client_secret":        settings.KEYCLOAK_ADMIN_CLIENT_SECRET,
+                "subject_token":        sa_token,
+                "subject_token_type":   "urn:ietf:params:oauth:token-type:access_token",
+                "requested_subject":    user_id,
+                "requested_token_type": "urn:ietf:params:oauth:token-type:refresh_token",
+                "scope":                "openid profile email offline_access",
+            },
+            timeout=5,
+        )
+        if not r_ex.ok:
+            return None
+        d = r_ex.json()
+        if not d.get("access_token"):
+            return None
+        return {
+            "access_token":  d["access_token"],
+            "id_token":      d.get("id_token"),
+            "refresh_token": d.get("refresh_token"),
+            "expires_in":    d.get("expires_in", 3600),
+        }
+    except Exception:
+        return None
+
+
+@router.get("/api/sso/web-exchange")
+def web_sso_exchange_banque(token: str):
+    """
+    Proxy web : échange un handoff_token banque → email + tokens KC bourse.
+    Appelé par le frontend bourse (même domaine → pas de CORS inter-origine).
+    Délègue à banque_backend/bourse/sso-exchange qui fait le Token Exchange KC.
+    """
+    try:
+        r = _requests.get(
+            f"{settings.BANQUE_API_URL}/bourse/sso-exchange",
+            params={"token": token},
+            timeout=5,
+        )
+        if r.status_code == 401:
+            raise HTTPException(401, "Token SSO expiré ou invalide.")
+        if not r.ok:
+            raise HTTPException(503, "Service banque indisponible.")
+        return r.json()
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(503, "Service banque indisponible.")
+
+
+@router.get("/api/sso/generate-tokens-for-user")
+def generate_tokens_for_user(
+    email: str,
+    x_inter_service_token: str = Header(None),
+):
+    """
+    (Inter-service) Génère des tokens bourse pour un utilisateur lié.
+    Appelé par le backend banque quand est_lie=True (bypass PKCE).
+    Retourne les tokens KC bourse ou 404 si l'utilisateur n'existe pas.
+    """
+    _check_inter_service(x_inter_service_token)
+    admin_token = _kc_admin_token()
+    r = _requests.get(
+        f"{settings.keycloak_admin_realm_url}/users",
+        params={"email": email, "exact": "true"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+        timeout=5,
+    )
+    if not r.ok or not r.json():
+        raise HTTPException(404, "Utilisateur bourse introuvable.")
+    user_id = r.json()[0]["id"]
+    tokens = _generate_tokens_for_user(user_id)
+    if tokens is None:
+        raise HTTPException(503, "Génération de tokens bourse impossible.")
+    return tokens
 
 
 # ── SCA — Authentification forte pour ordres (Scénario 3) ─────────────────────

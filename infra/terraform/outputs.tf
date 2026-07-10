@@ -1,15 +1,15 @@
-# ==============================================================================
-# outputs.tf — Valeurs exportées après terraform apply
+﻿# ==============================================================================
+# outputs.tf â€” Valeurs exportÃ©es aprÃ¨s terraform apply
 #
 # Ces outputs permettent :
-#   - De récupérer le kubeconfig AKS pour kubectl
-#   - De connaître l'URL de l'ACR pour pousser les images Docker
-#   - De connaître le FQDN PostgreSQL pour configurer le Helm chart
+#   - De rÃ©cupÃ©rer le kubeconfig AKS pour kubectl
+#   - De connaÃ®tre l'URL de l'ACR pour pousser les images Docker
+#   - De connaÃ®tre le FQDN PostgreSQL pour configurer le Helm chart
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
-# Kubeconfig AKS — fichier de configuration kubectl
-# Sensible : contient les certificats et credentials d'accès au cluster
+# Kubeconfig AKS â€” fichier de configuration kubectl
+# Sensible : contient les certificats et credentials d'accÃ¨s au cluster
 # Utilisation : terraform output -raw kube_config > ~/.kube/config-bourse
 # ------------------------------------------------------------------------------
 output "kube_config" {
@@ -19,7 +19,7 @@ output "kube_config" {
 }
 
 # ------------------------------------------------------------------------------
-# Login server de l'ACR — URL de base pour pousser/puller les images
+# Login server de l'ACR â€” URL de base pour pousser/puller les images
 # Exemple : acrbourseprood.azurecr.io
 # Utilisation dans le Helm chart via global.imageRegistry
 # ------------------------------------------------------------------------------
@@ -29,9 +29,9 @@ output "acr_login_server" {
 }
 
 # ------------------------------------------------------------------------------
-# FQDN PostgreSQL — adresse DNS privée du serveur PostgreSQL Flexible
+# FQDN PostgreSQL â€” adresse DNS privÃ©e du serveur PostgreSQL Flexible
 # Exemple : psql-bourse-prod.postgres.database.azure.com
-# À renseigner dans values.yaml > postgres.host
+# Ã€ renseigner dans values.yaml > postgres.host
 # ------------------------------------------------------------------------------
 output "postgres_fqdn" {
   description = "Nom de domaine complet (FQDN) du serveur PostgreSQL Azure Flexible Server"
@@ -39,16 +39,16 @@ output "postgres_fqdn" {
 }
 
 # ------------------------------------------------------------------------------
-# Nom du resource group principal — utile pour les commandes az CLI
+# Nom du resource group principal â€” utile pour les commandes az CLI
 # Exemple : rg-bourse-prod
 # ------------------------------------------------------------------------------
 output "resource_group_name" {
   description = "Nom du resource group Azure principal contenant toutes les ressources"
-  value       = azurerm_resource_group.main.name
+  value       = data.azurerm_resource_group.main.name
 }
 
 # ------------------------------------------------------------------------------
-# Nom du cluster AKS — utile pour az aks get-credentials
+# Nom du cluster AKS â€” utile pour az aks get-credentials
 # ------------------------------------------------------------------------------
 output "aks_cluster_name" {
   description = "Nom du cluster AKS pour la commande az aks get-credentials"
@@ -56,9 +56,10 @@ output "aks_cluster_name" {
 }
 
 # ------------------------------------------------------------------------------
-# Identité kubelet AKS — client_id nécessaire pour valider le role AcrPull
+# IdentitÃ© kubelet AKS â€” client_id nÃ©cessaire pour valider le role AcrPull
 # ------------------------------------------------------------------------------
 output "aks_kubelet_identity_object_id" {
-  description = "Object ID de l'identité managée kubelet (utilisée pour le rôle AcrPull)"
+  description = "Object ID de l'identitÃ© managÃ©e kubelet (utilisÃ©e pour le rÃ´le AcrPull)"
   value       = azurerm_kubernetes_cluster.main.kubelet_identity[0].object_id
 }
+
