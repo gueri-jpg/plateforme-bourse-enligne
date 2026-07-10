@@ -138,9 +138,10 @@ jobs:
 
       - name: Résumé du plan
         run: |
-          case "${{ steps.plan.outcome }}" in
-            success)   echo "✅ Plan OK — aucun changement détecté." ;;
-            failure)   echo "❌ Plan en erreur." ; exit 1 ;;
+          case "${{ steps.plan.outputs.exitcode }}" in
+            0) echo "✅ Plan OK — aucun changement détecté." ;;
+            2) echo "⚠️ Plan OK — des changements sont détectés (voir le plan ci-dessus)." ;;
+            *) echo "❌ Plan en erreur (code ${{ steps.plan.outputs.exitcode }})." ; exit 1 ;;
           esac
 
       # ── Terraform Apply ─────────────────────────────────────────────────────
