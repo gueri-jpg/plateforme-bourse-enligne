@@ -28,11 +28,12 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      backend:  ${{ steps.f.outputs.backend }}
-      frontend: ${{ steps.f.outputs.frontend }}
-      admin:    ${{ steps.f.outputs.admin }}
-      keycloak: ${{ steps.f.outputs.keycloak }}
-      kafka:    ${{ steps.f.outputs.kafka }}
+      backend:   ${{ steps.f.outputs.backend }}
+      frontend:  ${{ steps.f.outputs.frontend }}
+      admin:     ${{ steps.f.outputs.admin }}
+      keycloak:  ${{ steps.f.outputs.keycloak }}
+      kafka:     ${{ steps.f.outputs.kafka }}
+      bvc_relay: ${{ steps.f.outputs.bvc_relay }}
       mobile_native: ${{ steps.f.outputs.mobile_native }}
       mobile_js:     ${{ steps.f.outputs.mobile_js }}
     steps:
@@ -51,6 +52,8 @@ jobs:
               - 'keycloak/**'
             kafka:
               - 'kafka/**'
+            bvc_relay:
+              - 'serve.py'
             # Code natif → nouveau APK obligatoire
             mobile_native:
               - 'mobile/android/**'
@@ -79,14 +82,22 @@ jobs:
       contents: read
     if: |
       github.event_name == 'workflow_dispatch' ||
-      needs.changes.outputs.backend  == 'true' ||
-      needs.changes.outputs.frontend == 'true' ||
-      needs.changes.outputs.admin    == 'true' ||
-      needs.changes.outputs.keycloak == 'true' ||
-      needs.changes.outputs.kafka    == 'true'
+      needs.changes.outputs.backend   == 'true' ||
+      needs.changes.outputs.frontend  == 'true' ||
+      needs.changes.outputs.admin     == 'true' ||
+      needs.changes.outputs.keycloak  == 'true' ||
+      needs.changes.outputs.kafka     == 'true' ||
+      needs.changes.outputs.bvc_relay == 'true'
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Run backend tests
+        if: needs.changes.outputs.backend == 'true' && inputs.skip_tests != true
+        working-directory: backend
+        run: |
+          pip install -r requirements.txt
+          pytest tests/ -v
 
       - name: Azure login
         uses: azure/login@v2
@@ -148,6 +159,16 @@ jobs:
             ./kafka
           docker push $ACR/bourse-bvc-producer:${{ github.sha }}
           docker push $ACR/bourse-bvc-producer:latest
+
+      - name: Build & push BVC relay
+        if: needs.changes.outputs.bvc_relay == 'true'
+        run: |
+          docker build \
+            -t $ACR/bourse-bvc-relay:${{ github.sha }} \
+            -t $ACR/bourse-bvc-relay:latest \
+            -f infra/docker/bvc-relay.Dockerfile .
+          docker push $ACR/bourse-bvc-relay:${{ github.sha }}
+          docker push $ACR/bourse-bvc-relay:latest
 
       # ── Déploiement AKS ─────────────────────────────────────────────────────
       - name: Setup kubectl
@@ -251,6 +272,17 @@ jobs:
             exit 1
           fi
 
+      - name: Deploy BVC relay
+        if: needs.changes.outputs.bvc_relay == 'true'
+        run: |
+          kubectl set image deployment/bourse-platform-bvc-relay \
+            -n $NS bvc-relay=$ACR/bourse-bvc-relay:${{ github.sha }}
+          if ! kubectl rollout status deployment/bourse-platform-bvc-relay -n $NS --timeout=180s; then
+            echo "::error::Déploiement BVC relay échoué — rollback en cours..."
+            kubectl rollout undo deployment/bourse-platform-bvc-relay -n $NS
+            exit 1
+          fi
+
   # ── Mobile natif : nouveau APK — déclenchement MANUEL uniquement ─────────────
   # GitHub Actions → Run workflow → cocher "Construire un nouvel APK"
   # Quota EAS Free = 15 builds Android/mois — ne pas déclencher sur push.
@@ -282,12 +314,11 @@ jobs:
         run: eas build --platform android --profile preview --non-interactive
 
   # ── Mobile JS : OTA update via EAS Update ─────────────────────────────────
-  # Changements JS/UI → OTA update (pas besoin de nouvel APK).
-  # Tourne aussi quand des fichiers natifs changent (app.json, etc.)
-  # pour que les changements JS soient toujours déployés.
+  # Changements JS/UI uniquement → OTA update (pas besoin de nouvel APK).
+  # Si le natif a changé, build-mobile prend le relai — pas d'OTA inutile.
   update-mobile:
     needs: changes
-    if: needs.changes.outputs.mobile_js == 'true'
+    if: needs.changes.outputs.mobile_js == 'true' && needs.changes.outputs.mobile_native != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -321,6 +352,6 @@ jobs:
           EXPO_PUBLIC_MARKET_CLOSE_MIN: "30"
         run: |
           eas update \
-            --channel preview \
+            --channel production \
             --message "Deploy ${{ github.sha }}" \
             --non-interactive
