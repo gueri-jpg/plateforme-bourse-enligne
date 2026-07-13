@@ -253,3 +253,6 @@ secrets:
   resendApiKey: ""
   # Token partagé pour les appels inter-service banque ↔ bourse
   interServiceToken: "bourse-banque-inter-service-token-poc"
+  # Clé API Twelve Data — cotations marchés mondiaux (vide par défaut, injectée au déploiement)
+  twelveDataApiKey: ""
+  twelveDataRefreshSec: "60"
