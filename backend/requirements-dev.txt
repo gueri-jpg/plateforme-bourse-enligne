@@ -1,2 +1,3 @@
 -r requirements.txt
 schemathesis==3.38.9
+pytest==8.4.2
