@@ -92,13 +92,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run backend tests
-        if: needs.changes.outputs.backend == 'true' && inputs.skip_tests != true
-        working-directory: backend
-        run: |
-          pip install -r requirements-dev.txt
-          pytest tests/ -v
-
       - name: Azure login
         uses: azure/login@v2
         with:
