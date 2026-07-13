@@ -177,6 +177,12 @@ jobs:
             --admin \
             --overwrite-existing
 
+      - name: Patch secret — TWELVE_DATA_API_KEY
+        if: needs.changes.outputs.backend == 'true'
+        run: |
+          kubectl patch secret bourse-platform-secrets -n $NS \
+            -p "{\"stringData\":{\"TWELVE_DATA_API_KEY\":\"${{ secrets.TWELVE_DATA_API_KEY }}\",\"TWELVE_DATA_REFRESH_SEC\":\"60\"}}"
+
       - name: Deploy backend
         if: needs.changes.outputs.backend == 'true'
         run: |
