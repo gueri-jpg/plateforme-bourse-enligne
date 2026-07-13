@@ -96,7 +96,7 @@ jobs:
         if: needs.changes.outputs.backend == 'true' && inputs.skip_tests != true
         working-directory: backend
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
           pytest tests/ -v
 
       - name: Azure login
