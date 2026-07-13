@@ -1,0 +1,93 @@
+name: "Tests d'intégration — Bourse"
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Dépendances Python ─────────────────────────────────────────────────
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Installer les dépendances
+        working-directory: backend
+        run: pip install -r requirements-dev.txt
+
+      # ── Environnement CI (credentials éphémères, sans valeur en production) ─
+      - name: Créer le .env CI
+        run: |
+          cat > .env << 'EOF'
+          POSTGRES_USER=bourse_ci
+          POSTGRES_PASSWORD=bourse_ci_password
+          POSTGRES_DB=bourse_db
+          KC_ADMIN_USERNAME=admin
+          KC_ADMIN_PASSWORD=admin
+          RESEND_API_KEY=re_ci_dummy_not_real
+          EMAIL_FROM=ci@ci.local
+          SMTP_HOST=localhost
+          SMTP_PORT=1025
+          SMTP_FROM=ci@ci.local
+          SMTP_FROM_DISPLAY_NAME=CI
+          KEYCLOAK_ADMIN_CLIENT_SECRET=admin-tools-secret-a-changer
+          EOF
+
+      # ── Démarrage du stack (services nécessaires aux tests uniquement) ──────
+      # On ne démarre pas : admin-frontend, frontend, bvc-producer, bvc-relay
+      - name: Démarrer le stack (postgres + kafka + keycloak + backend)
+        run: docker compose up -d --build postgres kafka keycloak backend
+
+      - name: Attendre que l'API soit prête
+        run: |
+          echo "Attente démarrage des services (kafka + keycloak peuvent être lents)..."
+          for i in $(seq 1 120); do
+            if curl -sf http://localhost:8000/api/health; then
+              echo "✅ API prête"
+              exit 0
+            fi
+            echo "Tentative $i/120..."
+            sleep 5
+          done
+          echo "❌ API non disponible après 10 minutes"
+          docker compose logs backend --tail=50
+          exit 1
+
+      # ── Tests d'intégration Schemathesis ───────────────────────────────────
+      # Schemathesis lit le schéma OpenAPI 3.1 généré par FastAPI (/openapi.json)
+      # et teste automatiquement chaque endpoint. Vérifie : pas de 5xx,
+      # conformité des réponses au schéma.
+      - name: Tests d'intégration (Schemathesis)
+        run: |
+          schemathesis run http://localhost:8000/openapi.json \
+            --experimental=openapi-3.1 \
+            --checks all \
+            --validate-schema true \
+            --hypothesis-max-examples 25 \
+            2>&1 | tee integration-report.txt
+        continue-on-error: false
+
+      # ── Nettoyage ──────────────────────────────────────────────────────────
+      - name: Logs en cas d'échec
+        if: failure()
+        run: docker compose logs --tail=100
+
+      - name: Publier le rapport
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-report-bourse
+          path: integration-report.txt
+          retention-days: 7
+
+      - name: Arrêter le stack
+        if: always()
+        run: docker compose down -v
