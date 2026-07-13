@@ -58,11 +58,24 @@ async def poll_twelve_data() -> None:
         f"?symbol={_SYMBOL_LIST}"
         f"&apikey={settings.TWELVE_DATA_API_KEY}"
     )
+    print(f"[market_data] Démarrage du poll (intervalle={settings.TWELVE_DATA_REFRESH_SEC}s, {len(SYMBOLS)} symboles)")
     async with httpx.AsyncClient(timeout=15) as client:
         while True:
             try:
                 resp = await client.get(url)
                 raw = resp.json()
+
+                # 429 : quota journalier épuisé — on attend et on réessaie
+                if resp.status_code == 429 or raw.get("code") == 429:
+                    print(f"[market_data] Quota Twelve Data épuisé : {raw.get('message', '')} — prochain essai dans {settings.TWELVE_DATA_REFRESH_SEC}s")
+                    await asyncio.sleep(settings.TWELVE_DATA_REFRESH_SEC)
+                    continue
+
+                # Erreur générique retournée dans le corps JSON
+                if "code" in raw and raw.get("code") != 200:
+                    print(f"[market_data] Erreur API ({raw.get('code')}) : {raw.get('message', '')}")
+                    await asyncio.sleep(settings.TWELVE_DATA_REFRESH_SEC)
+                    continue
 
                 # Quand un seul symbole est demandé, l'API renvoie l'objet directement.
                 # Avec plusieurs symboles elle renvoie un dict keyed par symbole.
@@ -92,6 +105,8 @@ async def poll_twelve_data() -> None:
                     payload = json.dumps({"type": "market_global", "data": items})
                     await _broadcast(payload)
                     print(f"[market_data] {len(items)} instruments diffusés ({len(_clients)} client(s))")
+                else:
+                    print(f"[market_data] Aucune donnée valide reçue de Twelve Data")
 
             except Exception as exc:
                 print(f"[market_data] Erreur Twelve Data : {exc}")
