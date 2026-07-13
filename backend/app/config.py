@@ -77,6 +77,10 @@ class Settings(BaseSettings):
     KEYCLOAK_ADMIN_CLIENT_ID: str = "admin-tools"
     KEYCLOAK_ADMIN_CLIENT_SECRET: str = "admin-tools-secret-a-changer"
 
+    # Twelve Data — cotations marchés mondiaux (indices, forex, crypto, matières premières)
+    TWELVE_DATA_API_KEY: str = ""
+    TWELVE_DATA_REFRESH_SEC: int = 60
+
     # Role realm requis pour acceder aux endpoints /api/admin/...
     ROLE_ADMINISTRATEUR: str = "administrateur"
     # Roles autorises pour les endpoints "self-service" (/api/utilisateurs/moi/...)

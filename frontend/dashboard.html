@@ -371,6 +371,53 @@
     .mc-btn-confirm:hover:not(:disabled) { opacity:.85; }
     .mc-btn-confirm:disabled { opacity:.4; cursor:not-allowed; }
 
+    /* ── Marchés mondiaux ── */
+    .gm-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .gm-card {
+      background: linear-gradient(160deg, var(--panel), var(--panel2));
+      border: 1px solid var(--line); border-radius: 12px;
+      padding: 16px 18px; position: relative; overflow: hidden;
+      transition: border-color .2s;
+    }
+    .gm-card:hover { border-color: var(--accent); }
+    .gm-card-type {
+      font-size: 9px; text-transform: uppercase; letter-spacing: .7px;
+      color: var(--muted); font-weight: 600; margin-bottom: 4px;
+    }
+    .gm-card-label { font-size: 13px; font-weight: 600; color: var(--txt); margin-bottom: 8px; }
+    .gm-card-price {
+      font-size: 24px; font-weight: 700;
+      font-variant-numeric: tabular-nums; line-height: 1;
+    }
+    .gm-card-pct {
+      font-size: 13px; font-weight: 600;
+      margin-top: 6px; font-variant-numeric: tabular-nums;
+    }
+    .gm-card-sub {
+      font-size: 10px; color: var(--muted);
+      margin-top: 4px; font-variant-numeric: tabular-nums;
+    }
+    .gm-card-sym {
+      position: absolute; top: 12px; right: 14px;
+      font-size: 10px; color: var(--muted); font-weight: 500;
+      background: var(--panel2); border: 1px solid var(--line);
+      border-radius: 6px; padding: 2px 7px;
+    }
+    .gm-status {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--muted); margin-bottom: 16px;
+    }
+    .gm-status .dot { flex-shrink: 0; }
+    .gm-flash-up   { animation: gm-flash-up .6s ease; }
+    .gm-flash-down { animation: gm-flash-down .6s ease; }
+    @keyframes gm-flash-up   { 0%,100%{background:inherit} 30%{background:rgba(34,197,94,.2)} }
+    @keyframes gm-flash-down { 0%,100%{background:inherit} 30%{background:rgba(239,68,68,.2)} }
+
     /* ── Hamburger (mobile only) ── */
     .hamburger {
       display: none; background: none; border: none;
@@ -476,6 +523,9 @@
     <nav class="dash-sidebar">
       <button class="nav-item active" data-section="marche">
         <span class="nav-icon">📊</span> Marché
+      </button>
+      <button class="nav-item" data-section="marches-mondiaux">
+        <span class="nav-icon">🌍</span> Marchés mondiaux
       </button>
       <!-- Investisseur uniquement -->
       <button class="nav-item" data-section="watchlist" id="nav-watchlist" style="display:none">
@@ -584,6 +634,44 @@
             </table>
           </div>
         </div>
+      </div>
+
+      <!-- ── MARCHÉS MONDIAUX ── -->
+      <div class="dash-section" id="section-marches-mondiaux">
+        <div class="section-title">
+          Marchés Mondiaux
+          <span class="badge">Temps réel</span>
+        </div>
+
+        <div class="gm-status">
+          <span class="dot" id="gm-dot"></span>
+          <span id="gm-label">Connexion en cours…</span>
+          <span style="margin-left:auto;color:var(--muted)">Mis à jour : <strong id="gm-ts" style="color:var(--txt)">—</strong></span>
+        </div>
+
+        <!-- Indices -->
+        <div class="section-title" style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:500">
+          Indices
+        </div>
+        <div class="gm-grid" id="gm-grid-indices"></div>
+
+        <!-- Matières premières -->
+        <div class="section-title" style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:500">
+          Matières premières
+        </div>
+        <div class="gm-grid" id="gm-grid-matieres"></div>
+
+        <!-- Crypto -->
+        <div class="section-title" style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:500">
+          Cryptomonnaies
+        </div>
+        <div class="gm-grid" id="gm-grid-crypto"></div>
+
+        <!-- Forex -->
+        <div class="section-title" style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:500">
+          Forex
+        </div>
+        <div class="gm-grid" id="gm-grid-forex"></div>
       </div>
 
       <!-- ── WATCHLIST ── -->
@@ -2379,6 +2467,114 @@ window.supportSearch = function() {
     cette fonctionnalité nécessite l'endpoint <code>GET /api/admin/utilisateurs?q=${esc(q)}</code>
     (backend FastAPI + Keycloak Admin API). Contactez un administrateur pour la gestion des comptes.</span>`;
 };
+
+// ── Marchés mondiaux — WebSocket Twelve Data ──────────────────────────────
+(function () {
+  const GRIDS = {
+    "Indice":       "gm-grid-indices",
+    "Matière 1ère": "gm-grid-matieres",
+    "Crypto":       "gm-grid-crypto",
+    "Forex":        "gm-grid-forex",
+  };
+
+  const _prevPrices = {};
+  let _ws = null;
+
+  function fmtPrice(val, sym) {
+    if (sym.includes("/")) return val.toFixed(4);
+    return val.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+  }
+
+  function renderCard(item) {
+    const prev = _prevPrices[item.symbol];
+    const dir  = prev === undefined ? "" : item.price > prev ? "up" : item.price < prev ? "down" : "";
+    _prevPrices[item.symbol] = item.price;
+
+    const pctClass = item.pct > 0 ? "up" : item.pct < 0 ? "down" : "flat";
+    const pctSign  = item.pct > 0 ? "+" : "";
+    const flash    = dir === "up" ? "gm-flash-up" : dir === "down" ? "gm-flash-down" : "";
+
+    return `
+      <div class="gm-card ${flash}" id="gmc-${item.symbol.replace("/","-")}">
+        <div class="gm-card-sym">${esc(item.symbol)}</div>
+        <div class="gm-card-type">${esc(item.type)}</div>
+        <div class="gm-card-label">${esc(item.label)}</div>
+        <div class="gm-card-price ${pctClass}">${fmtPrice(item.price, item.symbol)}</div>
+        <div class="gm-card-pct ${pctClass}">${pctSign}${item.pct.toFixed(2)} %</div>
+        <div class="gm-card-sub">
+          O: ${fmtPrice(item.open, item.symbol)} &nbsp;
+          H: ${fmtPrice(item.high, item.symbol)} &nbsp;
+          L: ${fmtPrice(item.low, item.symbol)}
+        </div>
+      </div>`;
+  }
+
+  function updateGrids(data) {
+    const buckets = { "Indice": [], "Matière 1ère": [], "Crypto": [], "Forex": [] };
+    data.forEach(item => {
+      if (buckets[item.type] !== undefined) buckets[item.type].push(item);
+    });
+    for (const [type, gridId] of Object.entries(GRIDS)) {
+      const el = document.getElementById(gridId);
+      if (!el) continue;
+      const items = buckets[type];
+      if (items.length === 0) {
+        el.innerHTML = '<span style="color:var(--muted);font-size:12px">Aucune donnée</span>';
+      } else {
+        el.innerHTML = items.map(renderCard).join("");
+      }
+    }
+
+    const now = new Date();
+    document.getElementById("gm-ts").textContent =
+      now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  }
+
+  function setStatus(connected) {
+    const dot   = document.getElementById("gm-dot");
+    const label = document.getElementById("gm-label");
+    if (connected) {
+      dot.className   = "dot ok";
+      label.textContent = "Connecté — données en temps réel";
+    } else {
+      dot.className   = "dot err";
+      label.textContent = "Déconnecté — reconnexion…";
+    }
+  }
+
+  function connect() {
+    const proto = location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${proto}://${location.host}/ws/market-global`;
+    _ws = new WebSocket(wsUrl);
+
+    _ws.onopen = () => setStatus(true);
+
+    _ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type === "market_global" && Array.isArray(msg.data)) {
+          updateGrids(msg.data);
+        }
+      } catch (_) {}
+    };
+
+    _ws.onclose = () => {
+      setStatus(false);
+      setTimeout(connect, 5000);
+    };
+
+    _ws.onerror = () => _ws.close();
+  }
+
+  // Démarre la connexion uniquement quand la section est visible
+  document.querySelectorAll(".nav-item[data-section='marches-mondiaux']").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (!_ws || _ws.readyState === WebSocket.CLOSED || _ws.readyState === WebSocket.CLOSING) {
+        connect();
+      }
+    });
+  });
+})();
 
 // Initial renders
 updateMarketBadge();
