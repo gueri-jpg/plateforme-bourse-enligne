@@ -15,12 +15,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import ws_market
 from app.config import settings
-from app.routers import otp_utilisateur, parametres_devise, parametres_otp, parametres_securite, portefeuille, ordres_bourse, inter_service, auth_reset
+from app.routers import otp_utilisateur, parametres_devise, parametres_otp, parametres_securite, portefeuille, ordres_bourse, inter_service, auth_reset, market_data
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ws_market.start_kafka_thread()
+    market_data.start_polling()
     yield
 
 app = FastAPI(
@@ -66,6 +67,7 @@ app.include_router(portefeuille.router)
 app.include_router(ordres_bourse.router)
 app.include_router(inter_service.router)
 app.include_router(auth_reset.router)
+app.include_router(market_data.router)
 
 
 @app.get("/api/health", tags=["Supervision"])
