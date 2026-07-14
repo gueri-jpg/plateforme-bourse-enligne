@@ -6,10 +6,10 @@
   <title>BourseOnline · Trading</title>
   <style>
     :root {
-      --bg:      #070b1c; --bg2:    #0b1020; --panel:  #111733;
-      --panel2:  #0e1430; --txt:    #e7ecff; --muted:  #8a93b8;
-      --line:    #1f2a52; --up:     #22c55e; --down:   #ef4444;
-      --flat:    #9ca3af; --accent: #60a5fa; --accent2:#818cf8;
+      --bg:      #f4f6f8; --bg2:    #eef1f5; --panel:  #ffffff;
+      --panel2:  #f1f4f8; --txt:    #1e293b; --muted:  #64748b;
+      --line:    #e2e8f0; --up:     #16a34a; --down:   #dc2626;
+      --flat:    #9ca3af; --accent: #2563eb; --accent2:#3b82f6;
       --gold:    #f59e0b; --sidebar:160px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,50 +24,50 @@
     /* ── Header ── */
     .dash-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 20px; background: var(--panel);
-      border-bottom: 1px solid var(--line); gap: 16px; flex-wrap: nowrap;
+      padding: 0 20px; background: #2d3748;
+      border-bottom: 1px solid rgba(255,255,255,.1); gap: 16px; flex-wrap: nowrap;
     }
     .dash-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
     .dash-logo svg { width: 28px; height: 28px; flex-shrink: 0; }
     .dash-logo span { color: var(--accent); }
-    .dash-status { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--muted); }
+    .dash-status { display: flex; align-items: center; gap: 12px; font-size: 12px; color: rgba(255,255,255,.7); }
     .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
       background: var(--flat); margin-right: 4px; vertical-align: middle; }
     .dot.ok   { background: var(--up);   box-shadow: 0 0 6px var(--up); }
     .dot.warn { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
     .dot.err  { background: var(--down); box-shadow: 0 0 6px var(--down); }
     .dash-user { display: flex; align-items: center; gap: 10px; }
-    .user-chip { background: var(--panel2); border: 1px solid var(--line);
-      border-radius: 8px; padding: 5px 12px; font-size: 12px; color: var(--muted); }
-    .user-chip strong { color: var(--txt); }
-    .btn-sm { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line);
-      background: var(--panel2); color: var(--txt); cursor: pointer;
-      font-size: 12px; font-family: inherit; transition: border-color .15s; }
-    .btn-sm:hover { border-color: var(--accent); }
+    .user-chip { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+      border-radius: 8px; padding: 5px 12px; font-size: 12px; color: rgba(255,255,255,.8); }
+    .user-chip strong { color: #fff; }
+    .btn-sm { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.15); color: #fff; cursor: pointer;
+      font-size: 12px; font-family: inherit; transition: border-color .15s, background .15s; }
+    .btn-sm:hover { border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.25); }
     .btn-danger { border-color: var(--down); color: var(--down); }
     .btn-danger:hover { background: rgba(239,68,68,.08); }
 
     /* ── Sidebar nav ── */
     .dash-sidebar {
-      background: var(--panel); border-right: 1px solid var(--line);
+      background: #2d3748; border-right: 1px solid rgba(255,255,255,.1);
       padding: 12px 0; display: flex; flex-direction: column; gap: 2px;
       overflow-y: auto; min-height: 0;
     }
     .nav-item {
       display: flex; align-items: center; gap: 10px;
       padding: 10px 16px; cursor: pointer; border: none;
-      background: none; color: var(--muted); font-family: inherit;
+      background: none; color: rgba(255,255,255,.72); font-family: inherit;
       font-size: 13px; font-weight: 500; transition: background .12s, color .12s;
       border-left: 3px solid transparent; text-align: left; width: 100%;
     }
-    .nav-item:hover { background: rgba(96,165,250,.06); color: var(--txt); }
-    .nav-item.active { background: rgba(96,165,250,.1); color: var(--accent);
-      border-left-color: var(--accent); }
+    .nav-item:hover { background: rgba(255,255,255,.1); color: #fff; }
+    .nav-item.active { background: rgba(255,255,255,.18); color: #fbbf24;
+      border-left-color: #fbbf24; }
     .nav-item .nav-icon { font-size: 16px; min-width: 20px; text-align: center; }
-    .nav-divider { height: 1px; background: var(--line); margin: 8px 12px; }
+    .nav-divider { height: 1px; background: rgba(255,255,255,.15); margin: 8px 12px; }
 
     /* ── Content area ── */
-    .dash-content { overflow: auto; position: relative; min-height: 0; }
+    .dash-content { overflow: auto; position: relative; min-height: 0; background: #f8fafc; }
     .dash-section { display: none; padding: 20px; animation: fadeIn .15s ease; }
     .dash-section.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
@@ -88,11 +88,11 @@
     /* ── Sections header ── */
     .section-title {
       font-size: 16px; font-weight: 600; margin-bottom: 16px;
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 10px; color: #1e293b;
     }
     .section-title .badge {
       display: inline-block; padding: 2px 10px; border-radius: 999px;
-      font-size: 11px; background: rgba(96,165,250,.12); color: var(--accent);
+      font-size: 11px; background: rgba(37,99,235,.12); color: #2563eb;
       font-weight: 500;
     }
 
@@ -118,7 +118,7 @@
       font-size: 10px; text-transform: uppercase; letter-spacing: .5px;
       position: sticky; top: 0; z-index: 1; }
     tbody tr { transition: background .1s; cursor: pointer; }
-    tbody tr:hover { background: rgba(96,165,250,.06); }
+    tbody tr:hover { background: rgba(0,0,0,.06); }
     tbody tr:last-child td { border-bottom: none; }
     .scroll-table { max-height: 55vh; overflow: auto; }
 
@@ -129,9 +129,9 @@
     .flash-down { background: rgba(239,68,68,.15) !important; }
 
     /* ── Sector row ── */
-    .sector-row td { background: #080d22; color: var(--accent);
+    .sector-row td { background: #1e3a8a; color: #fbbf24;
       font-size: 10px; text-transform: uppercase; letter-spacing: .5px;
-      border-top: 1px solid var(--line); cursor: default; }
+      border-top: 1px solid #e2e8f0; cursor: default; }
 
     /* ── Star button ── */
     .star-btn { background: none; border: none; cursor: pointer;
@@ -320,14 +320,14 @@
 
     /* ── Bande déroulante (ticker) ── */
     .ticker-outer {
-      overflow:hidden; background:#060a1a; border-bottom:1px solid var(--line);
+      overflow:hidden; background:#1a202c; border-bottom:1px solid rgba(255,255,255,.08);
       height:30px; display:flex; align-items:center; position:relative; flex-shrink:0;
     }
     .ticker-outer::before, .ticker-outer::after {
       content:''; position:absolute; top:0; bottom:0; width:40px; z-index:2; pointer-events:none;
     }
-    .ticker-outer::before { left:0; background:linear-gradient(90deg,#060a1a,transparent); }
-    .ticker-outer::after  { right:0; background:linear-gradient(-90deg,#060a1a,transparent); }
+    .ticker-outer::before { left:0; background:linear-gradient(90deg,#1a202c,transparent); }
+    .ticker-outer::after  { right:0; background:linear-gradient(-90deg,#1a202c,transparent); }
     .ticker-inner {
       display:flex; white-space:nowrap; width:max-content;
       animation:ticker-scroll 80s linear infinite;
@@ -338,9 +338,9 @@
       100% { transform:translateX(-50%); }
     }
     .t-item { display:inline-flex; align-items:center; gap:6px;
-      padding:0 18px; font-size:11px; border-right:1px solid var(--line); height:30px; }
-    .t-name  { color:var(--accent); font-weight:600; }
-    .t-price { color:var(--txt); font-variant-numeric:tabular-nums; }
+      padding:0 18px; font-size:11px; border-right:1px solid rgba(255,255,255,.15); height:30px; }
+    .t-name  { color:#fbbf24; font-weight:600; }
+    .t-price { color:#fff; font-variant-numeric:tabular-nums; }
     .t-var   { font-variant-numeric:tabular-nums; }
     .t-var.up { color:var(--up); } .t-var.down { color:var(--down); } .t-var.flat { color:var(--flat); }
 
@@ -370,6 +370,51 @@
     .mc-btn-confirm.vente { background:var(--down); color:#fff; }
     .mc-btn-confirm:hover:not(:disabled) { opacity:.85; }
     .mc-btn-confirm:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* ── Tableau de bord ── */
+    .tdb-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+    .tdb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .tdb-header h2 { font-size: 20px; font-weight: 700; }
+    .tdb-header-actions { display: flex; align-items: center; gap: 10px; }
+    .tdb-search-input { background: #fff; border: 1px solid #e2e8f0; color: #1e293b; border-radius: 8px; padding: 8px 14px 8px 32px; font-size: 13px; width: 240px; outline: none; }
+    .tdb-search-input:focus { border-color: #2563eb; }
+    .tdb-search-input::placeholder { color: #94a3b8; }
+    .tdb-search-wrap { position: relative; }
+    .tdb-search-wrap::before { content: "🔍"; position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 12px; pointer-events: none; }
+    .tdb-order-btn { background: #7B1D3A; color: #fff; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .tdb-order-btn:hover { opacity: .88; }
+    .tdb-card-pf { background: linear-gradient(135deg, #5C1629 0%, #7B1D3A 100%); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+    .tdb-pf-label { font-size: 10px; color: rgba(255,255,255,.75); text-transform: uppercase; letter-spacing: .6px; }
+    .tdb-pf-total { font-size: 2.4rem; font-weight: 700; letter-spacing: -1px; margin: 6px 0 16px; color: #fff; }
+    .tdb-pf-meta { display: flex; gap: 0; border-top: 1px solid rgba(255,255,255,.2); padding-top: 16px; }
+    .tdb-pf-meta-item { flex: 1; padding-right: 16px; }
+    .tdb-pf-meta-item:not(:last-child) { border-right: 1px solid rgba(255,255,255,.2); margin-right: 16px; }
+    .tdb-pf-meta-item .mlabel { font-size: 10px; color: rgba(255,255,255,.75); text-transform: uppercase; letter-spacing: .5px; }
+    .tdb-pf-meta-item .mvalue { font-size: 14px; font-weight: 600; margin-top: 4px; color: #fff; }
+    .tdb-section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+    .tdb-section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .tdb-section-head h3 { font-size: 13px; font-weight: 600; }
+    .tdb-section-head a, .tdb-section-head .tdb-link { font-size: 12px; color: #7B1D3A; text-decoration: none; cursor: pointer; background: none; border: none; }
+    .tdb-wl-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+    .tdb-wl-row:last-child { border-bottom: none; }
+    .tdb-wl-row:hover { opacity: .8; }
+    .tdb-wl-ticker { font-weight: 700; font-size: 13px; }
+    .tdb-wl-name { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .tdb-idx-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line); }
+    .tdb-idx-row:last-child { border-bottom: none; }
+    .tdb-idx-name { font-size: 13px; font-weight: 600; }
+    .tdb-idx-val { font-size: 13px; font-weight: 600; }
+    .tdb-tx-table { width: 100%; font-size: 12px; border-collapse: collapse; }
+    .tdb-tx-table th { color: var(--muted); font-weight: 500; text-align: left; padding: 4px 6px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+    .tdb-tx-table td { padding: 9px 6px; border-top: 1px solid var(--line); }
+    .tdb-muted { color: var(--muted); font-size: 13px; text-align: center; padding: 20px 0; }
+    .tdb-search-wrap { position: relative; }
+    .tdb-dd { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.15); z-index: 500; display: none; overflow: hidden; }
+    .tdb-dd-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; font-size: 13px; color: #1e293b; }
+    .tdb-dd-item:hover { background: #f1f5f9; }
+    .tdb-dd-ticker { font-weight: 700; flex: 1; }
+    .tdb-dd-price { color: #64748b; font-size: 12px; }
+    @media (max-width:900px) { .tdb-grid { grid-template-columns: 1fr; } .tdb-search-input { width: 160px; } }
 
     /* ── Marchés mondiaux ── */
     .gm-grid {
@@ -466,6 +511,97 @@
       /* Stock detail panel full width */
       .stock-panel { width: 100%; }
     }
+
+    /* ── Thème : fond blanc + bordeaux ciblé — surcharges contextuelles ── */
+
+    /* Logo et éléments header (fond bleu) */
+    .dash-logo { color: #fff; }
+    .dash-logo span { color: #fbbf24; }
+    .hamburger { color: #fff; }
+
+    /* btn-danger sur fond bleu */
+    .btn-danger { border-color: rgba(248,113,113,.8); color: rgba(248,113,113,.9); }
+    .btn-danger:hover { background: rgba(248,113,113,.15); }
+
+    /* ── Cartes bordeaux — uniquement .tdb-card-pf et #ct-card ── */
+    /* Les variables CSS héritées par les inline styles sont surchargées en scope */
+    #ct-card {
+      background: linear-gradient(135deg, #5C1629 0%, #7B1D3A 100%);
+      border-color: rgba(255,255,255,.12);
+      color: #fff;
+      --muted:  rgba(255,255,255,.65);
+      --line:   rgba(255,255,255,.18);
+      --txt:    #fff;
+      --accent: #fbbf24;
+      --panel:  rgba(255,255,255,.1);
+      --panel2: rgba(255,255,255,.1);
+    }
+    #ct-card .btn-sm {
+      background: rgba(255,255,255,.15);
+      border-color: rgba(255,255,255,.3);
+      color: #fff;
+    }
+    #ct-card .btn-sm:hover { background: rgba(255,255,255,.25); }
+
+    /* ── Tables & éléments sur cartes blanches ── */
+    tbody tr:hover { background: rgba(37,99,235,.04); }
+
+    /* Search bar dans Marché BVC */
+    .search-bar { background: var(--panel); border-bottom: 1px solid var(--line); }
+    .search-bar input { background: var(--panel2); color: var(--txt); border-color: var(--line); }
+    .search-bar input::placeholder { color: var(--muted); }
+    .search-bar input:focus { border-color: var(--accent); }
+
+    /* Carnet d'ordres filtres */
+    .carnet-filter { background: var(--panel); border-color: var(--line); color: var(--muted); }
+    .carnet-filter:hover { border-color: #7B1D3A; color: #7B1D3A; }
+    .carnet-filter.active { background: rgba(123,29,58,.08); border-color: #7B1D3A; color: #7B1D3A; font-weight: 600; }
+
+    /* Market badge */
+    .market-badge.open   { background: rgba(22,163,74,.08); color: #16a34a; border-color: rgba(22,163,74,.3); }
+    .market-badge.closed { background: rgba(245,158,11,.08); color: #b45309; border-color: rgba(180,83,9,.3); }
+
+    /* Modal de confirmation */
+    .modal-confirm-card { background: #fff; border-color: #e2e8f0; color: #1e293b; }
+    .modal-confirm-body { color: #64748b; }
+    .modal-confirm-body strong { color: #1e293b; }
+    .mc-btn-cancel { background: #f1f5f9; border-color: #e2e8f0; color: #1e293b; }
+    .mc-btn-cancel:hover { border-color: #2563eb; }
+    .modal-confirm-overlay { background: rgba(15,23,42,.65); }
+
+    /* Toast */
+    .toast { background: #fff; border-color: #e2e8f0; color: #1e293b; }
+    .toast-msg { color: #64748b; }
+
+    /* Stock detail panel (slide-in) */
+    .stock-panel { background: #fff; border-left-color: #e2e8f0; }
+    .stock-panel-header { border-bottom-color: #e2e8f0; }
+    .stock-panel-sector { color: #64748b; }
+    .panel-close { color: #64748b; }
+    .panel-close:hover { color: #1e293b; }
+    .dl-item dt { color: #64748b; }
+    .dl-item dd { color: #1e293b; }
+
+    /* Formulaire d'ordre (fond blanc) */
+    .form-row label { color: #64748b; }
+    .form-row select, .form-row input[type="number"], .form-row input[type="text"] {
+      background: var(--panel2); border-color: var(--line); color: var(--txt); }
+    .form-row select:focus, .form-row input:focus { border-color: var(--accent); }
+    .radio-group label { background: var(--panel2); border-color: var(--line); color: var(--muted); }
+    .radio-group input[type="radio"]:checked + label { border-color: var(--accent); color: var(--accent); background: rgba(37,99,235,.06); }
+    .order-summary { background: var(--panel2); border-color: var(--line); }
+
+    /* Admin blocks */
+    .admin-form-row label { color: #64748b; }
+    .admin-form-row input, .admin-form-row select {
+      background: var(--panel2); border-color: var(--line); color: var(--txt); }
+    .admin-form-row input:focus, .admin-form-row select:focus { border-color: var(--accent); }
+    .admin-status.ok { color: #16a34a; }
+    .admin-status.err { color: #dc2626; }
+
+    /* code inline */
+    code { background: rgba(37,99,235,.08); color: #2563eb; }
+
   </style>
 </head>
 <body>
@@ -521,6 +657,9 @@
 
     <!-- ══════════════════════════════════════ SIDEBAR ══════════════════════ -->
     <nav class="dash-sidebar">
+      <button class="nav-item" data-section="tableau-bord" id="nav-tableau-bord" style="display:none">
+        <span class="nav-icon">🏠</span> Tableau de bord
+      </button>
       <button class="nav-item" data-section="portefeuille" id="nav-portefeuille" style="display:none">
         <span class="nav-icon">💼</span> Portefeuille
       </button>
@@ -558,6 +697,80 @@
     <div class="dash-content" id="dash-content">
 
       <!-- ── MARCHÉ ── -->
+      <!-- ══ Tableau de bord ══ -->
+      <div class="dash-section" id="section-tableau-bord">
+        <div class="tdb-header">
+          <h2>Tableau de bord</h2>
+          <div class="tdb-header-actions">
+            <div class="tdb-search-wrap">
+              <input class="tdb-search-input" type="text" id="tdb-search" placeholder="Rechercher une action..." autocomplete="off">
+              <div class="tdb-dd" id="tdb-search-dropdown"></div>
+            </div>
+            <button class="tdb-order-btn" onclick="goToSection('ordres')">+ Passer un ordre</button>
+          </div>
+        </div>
+        <div class="tdb-grid">
+          <!-- colonne principale -->
+          <div>
+            <div class="tdb-card-pf">
+              <div class="tdb-pf-label">Valeur totale du portefeuille</div>
+              <div class="tdb-pf-total" id="tdb-pf-total">—</div>
+              <div class="tdb-pf-meta">
+                <div class="tdb-pf-meta-item">
+                  <div class="mlabel">Plus-value latente</div>
+                  <div class="mvalue" id="tdb-pf-pl">—</div>
+                </div>
+                <div class="tdb-pf-meta-item">
+                  <div class="mlabel">Valeur marché</div>
+                  <div class="mvalue" id="tdb-pf-mkt">—</div>
+                </div>
+                <div class="tdb-pf-meta-item">
+                  <div class="mlabel">Liquidités dispo.</div>
+                  <div class="mvalue" id="tdb-pf-balance">—</div>
+                </div>
+              </div>
+            </div>
+            <div class="tdb-section">
+              <div class="tdb-section-head">
+                <h3>Ma watchlist</h3>
+                <button class="tdb-link" onclick="goToSection('watchlist')">Voir tout →</button>
+              </div>
+              <div id="tdb-wl-list"><p class="tdb-muted">Aucune valeur en watchlist.</p></div>
+            </div>
+            <div class="tdb-section">
+              <div class="tdb-section-head">
+                <h3>Dernières transactions</h3>
+                <button class="tdb-link" onclick="goToSection('carnet')">Voir l'historique complet →</button>
+              </div>
+              <div style="overflow-x:auto">
+                <table class="tdb-tx-table">
+                  <thead><tr><th>Date</th><th>Action</th><th>Type</th><th>Qté</th><th>Prix unitaire</th><th>Total</th><th>Statut</th></tr></thead>
+                  <tbody id="tdb-tx-list"><tr><td colspan="7" class="tdb-muted">Aucune transaction.</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- sidebar droite -->
+          <div>
+            <div class="tdb-section">
+              <div class="tdb-section-head">
+                <h3 style="text-transform:uppercase;font-size:10px;letter-spacing:.6px;color:var(--muted)">Indices boursiers</h3>
+              </div>
+              <div class="tdb-idx-row"><span class="tdb-idx-name">MASI</span><span id="tdb-masi" class="tdb-idx-val">—</span><span id="tdb-masi-pct" class="flat" style="font-size:12px;font-weight:600">—</span></div>
+              <div class="tdb-idx-row"><span class="tdb-idx-name">MADEX</span><span id="tdb-madex" class="tdb-idx-val">—</span><span id="tdb-madex-pct" class="flat" style="font-size:12px;font-weight:600">—</span></div>
+              <div class="tdb-idx-row"><span class="tdb-idx-name">MASI 20</span><span id="tdb-masi20" class="tdb-idx-val">—</span><span id="tdb-masi20-pct" class="flat" style="font-size:12px;font-weight:600">—</span></div>
+            </div>
+            <div class="tdb-section">
+              <div class="tdb-section-head">
+                <h3>Top mouvements</h3>
+                <span style="font-size:10px;background:rgba(96,165,250,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-weight:600">MASI</span>
+              </div>
+              <div id="tdb-top-mouvements"><p class="tdb-muted">En attente de données…</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="dash-section active" id="section-marche">
         <div class="section-title">
           Marché Actions · BVC
@@ -1269,14 +1482,14 @@ if (isAdmin) {
 
 // Affichage conditionnel des sections selon le rôle
 if (isInvestor) {
-  ["nav-watchlist","nav-portefeuille","nav-ordres","nav-historique"]
+  ["nav-tableau-bord","nav-watchlist","nav-portefeuille","nav-ordres","nav-historique"]
     .forEach(id => document.getElementById(id).style.display = "flex");
-  // Page d'accueil investisseur = Portefeuille
+  // Page d'accueil investisseur = Tableau de bord
   document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
   document.querySelectorAll(".dash-section").forEach(s => s.classList.remove("active"));
-  document.getElementById("nav-portefeuille").classList.add("active");
-  document.getElementById("section-portefeuille").classList.add("active");
-  // renderPortfolio() est appelé plus bas, après l'initialisation de mkt
+  document.getElementById("nav-tableau-bord").classList.add("active");
+  document.getElementById("section-tableau-bord").classList.add("active");
+  // renderTableauBord() est appelé plus bas, après l'initialisation de mkt
 }
 if (isAdmin)   document.getElementById("nav-admin").style.display = "flex";
 if (isSupport) document.getElementById("nav-assistance").style.display = "flex";
@@ -1298,10 +1511,11 @@ document.querySelectorAll(".nav-item[data-section]").forEach(btn => {
     document.getElementById("section-" + btn.dataset.section).classList.add("active");
     const dc = document.querySelector(".dash-content");
     if (dc) dc.scrollTop = 0;
-    if (btn.dataset.section === "portefeuille") renderPortfolio();
-    if (btn.dataset.section === "watchlist")    renderWatchlist();
-    if (btn.dataset.section === "carnet")       renderHistorique();
-    if (btn.dataset.section === "ordres")       renderOrdreForm();
+    if (btn.dataset.section === "tableau-bord")  renderTableauBord();
+    if (btn.dataset.section === "portefeuille")  renderPortfolio();
+    if (btn.dataset.section === "watchlist")     renderWatchlist();
+    if (btn.dataset.section === "carnet")        renderHistorique();
+    if (btn.dataset.section === "ordres")        renderOrdreForm();
   });
 });
 
@@ -1356,8 +1570,8 @@ const mkt = {
   overview: {},
 };
 
-// Rendu initial du portefeuille si l'investisseur atterrit dessus directement
-if (isInvestor) renderPortfolio();
+// Rendu initial du tableau de bord (après init de mkt)
+if (isInvestor) renderTableauBord();
 
 // ── WebSocket ─────────────────────────────────────────────────────────────────
 const WS_URL = (location.port === "80" || location.port === "443" || location.port === "")
@@ -1478,6 +1692,7 @@ function applySnapshot(donnees) {
   renderMarket();
   renderWatchlistLive();
   renderPortfolioLive();
+  renderTableauBord();
   updateOrderPrice();
   document.getElementById("mkt-count").textContent = st.length + " valeurs";
 
@@ -1657,6 +1872,155 @@ window.toggleStar = function(name, btn) {
   btn.classList.toggle("starred", added);
   showToast(added ? "Ajouté à la watchlist" : "Retiré", name, added?"success":"");
 };
+
+// ── Tableau de bord ──────────────────────────────────────────────────────────
+function renderTableauBord() {
+  if (!isInvestor) return;
+  const pf = _pfState;
+
+  // Valorisation totale
+  const total = pf.valorisation_totale || (pf.balance + pf.valeur_marche);
+  document.getElementById("tdb-pf-total").textContent = fmtN(total, 2) + " MAD";
+  document.getElementById("tdb-pf-balance").textContent = fmtN(pf.balance, 2) + " MAD";
+  document.getElementById("tdb-pf-mkt").textContent = fmtN(pf.valeur_marche, 2) + " MAD";
+
+  // Plus-value latente (positions × prix live vs prix moyen)
+  let totalPl = 0, totalCost = 0;
+  for (const pos of pf.positions) {
+    const live = mkt.rows.find(r => r.name === pos.name);
+    const cur = live?.price ?? pos.avgPrice;
+    const cost = pos.qty * pos.avgPrice;
+    totalPl  += pos.qty * cur - cost;
+    totalCost += cost;
+  }
+  const plPct = totalCost ? totalPl / totalCost * 100 : 0;
+  const plEl  = document.getElementById("tdb-pf-pl");
+  plEl.textContent = (totalPl >= 0 ? "+" : "") + fmtN(totalPl, 2) + " MAD  (" + (plPct >= 0 ? "+" : "") + fmtN(plPct, 2) + " %)";
+  plEl.className = "mvalue " + cls(totalPl);
+
+  // MASI
+  const ov = mkt.overview;
+  if (ov?.masi) {
+    document.getElementById("tdb-masi").textContent = fmtN(ov.masi.value, 2);
+    const pEl = document.getElementById("tdb-masi-pct");
+    pEl.textContent = isNaN(ov.masi.varJ) ? "—" : (ov.masi.varJ >= 0 ? "+" : "") + fmtN(ov.masi.varJ, 2) + " %";
+    pEl.className = cls(ov.masi.varJ);
+  }
+
+  // Top mouvements (5 plus grands écarts %)
+  const topMovers = [...mkt.rows].filter(r => !isNaN(r.pct))
+    .sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, 5);
+  document.getElementById("tdb-top-mouvements").innerHTML = topMovers.length
+    ? topMovers.map(r => `
+        <div class="tdb-idx-row" style="cursor:pointer" onclick="selectStock('${esc(r.name)}');goToSection('marche')">
+          <div>
+            <div class="tdb-idx-name">${esc(r.name.substring(0,3).toUpperCase())}</div>
+            <div style="font-size:11px;color:var(--muted)">${esc(r.name)}</div>
+          </div>
+          <span class="tdb-idx-val">${fmtN(r.price, 2)}</span>
+          <span class="${cls(r.pct)}" style="font-size:12px;font-weight:600">${r.pct >= 0 ? "+" : ""}${fmtN(r.pct, 2)} %</span>
+        </div>`).join("")
+    : '<p class="tdb-muted">En attente de données…</p>';
+
+  // Watchlist
+  const wlNames = getWatchlist();
+  const wlItems = mkt.rows.filter(r => wlNames.has ? wlNames.has(r.name) : wlNames.includes(r.name)).slice(0, 5);
+  document.getElementById("tdb-wl-list").innerHTML = wlItems.length
+    ? wlItems.map(r => `
+        <div class="tdb-wl-row" onclick="selectStock('${esc(r.name)}');goToSection('marche')">
+          <div>
+            <div class="tdb-wl-ticker">${esc(r.name)}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:600;font-size:13px">${fmtN(r.price, 2)} MAD</div>
+            <div class="${cls(r.pct)}" style="font-size:12px">${r.pct >= 0 ? "+" : ""}${fmtN(r.pct, 2)} %</div>
+          </div>
+        </div>`).join("")
+    : '<p class="tdb-muted">Aucune valeur en watchlist. Ajoutez des valeurs depuis l\'onglet Marché.</p>';
+
+  // Dernières transactions
+  const sBadge = s => {
+    const cfg = { execute: ["rgba(34,197,94,.12)", "#22c55e", "Exécuté"], en_attente: ["rgba(245,158,11,.12)", "#f59e0b", "En attente"], annule: ["rgba(239,68,68,.12)", "#ef4444", "Annulé"] };
+    const [bg, color, label] = cfg[s] || ["rgba(148,163,184,.12)", "#94a3b8", s];
+    return `<span class="badge-status" style="background:${bg};color:${color}">${label}</span>`;
+  };
+  const recent = [...(_ordresState || [])].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+  document.getElementById("tdb-tx-list").innerHTML = recent.length
+    ? recent.map(o => {
+        const px    = o.prix_execution ?? o.prix_limite ?? null;
+        const total = o.montant_total  ?? (px != null ? px * (o.quantite || 0) : null);
+        const d     = o.date ? new Date(o.date).toLocaleDateString("fr-FR", {day:"2-digit",month:"short",year:"numeric"}) : "—";
+        return `<tr>
+          <td>${d}</td>
+          <td style="font-weight:500">${esc(o.instrument || "—")}</td>
+          <td><span class="${o.sens === "achat" ? "up" : "down"}">${o.sens === "achat" ? "Achat" : "Vente"}</span></td>
+          <td>${o.sens === "achat" ? "+" : ""}${o.quantite || 0}</td>
+          <td>${fmtN(typeof px === "number" ? px : NaN, 2)} MAD</td>
+          <td>${fmtN(typeof total === "number" ? total : NaN, 2)} MAD</td>
+          <td>${sBadge(o.statut)}</td>
+        </tr>`;
+      }).join("")
+    : `<tr><td colspan="7" class="tdb-muted">Aucune transaction.</td></tr>`;
+}
+
+window.goToSection = function(name) {
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".dash-section").forEach(s => s.classList.remove("active"));
+  const btn = document.querySelector(`.nav-item[data-section="${name}"]`);
+  if (btn) btn.classList.add("active");
+  const sec = document.getElementById("section-" + name);
+  if (sec) sec.classList.add("active");
+  const dc = document.querySelector(".dash-content");
+  if (dc) dc.scrollTop = 0;
+  if (name === "portefeuille")  renderPortfolio();
+  if (name === "watchlist")     renderWatchlist();
+  if (name === "carnet")        renderHistorique();
+  if (name === "ordres")        renderOrdreForm();
+  if (name === "tableau-bord")  renderTableauBord();
+}
+
+// ── Recherche avec dropdown ───────────────────────────────────────────────────
+{
+  const input  = document.getElementById("tdb-search");
+  const dropdown = document.getElementById("tdb-search-dropdown");
+
+  function showDropdown(val) {
+    const q = val.trim().toLowerCase();
+    if (!q) { dropdown.style.display = "none"; return; }
+    const matches = mkt.rows.filter(r => r.name.toLowerCase().includes(q)).slice(0, 7);
+    if (!matches.length) { dropdown.style.display = "none"; return; }
+    dropdown.innerHTML = matches.map(r =>
+      `<div class="tdb-dd-item" data-name="${esc(r.name)}">
+         <span class="tdb-dd-ticker">${esc(r.name)}</span>
+         <span class="tdb-dd-price">${fmtN(r.price, 2)} MAD</span>
+         <span class="${cls(r.pct)}" style="font-size:11px;font-weight:600">${r.pct >= 0 ? "+" : ""}${fmtN(r.pct, 2)} %</span>
+       </div>`
+    ).join("");
+    dropdown.querySelectorAll(".tdb-dd-item").forEach(el => {
+      el.addEventListener("mousedown", e => {
+        e.preventDefault();
+        selectStock(el.dataset.name);
+        window.goToSection("marche");
+        input.value = "";
+        dropdown.style.display = "none";
+      });
+    });
+    dropdown.style.display = "block";
+  }
+
+  input.addEventListener("input", () => showDropdown(input.value));
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      const q = input.value.trim().toLowerCase();
+      const found = mkt.rows.find(r => r.name.toLowerCase().includes(q));
+      if (found) { selectStock(found.name); window.goToSection("marche"); }
+      input.value = "";
+      dropdown.style.display = "none";
+    }
+    if (e.key === "Escape") { dropdown.style.display = "none"; input.value = ""; }
+  });
+  input.addEventListener("blur", () => setTimeout(() => { dropdown.style.display = "none"; }, 150));
+}
 
 function renderWatchlist() {
   const wl = getWatchlist();
