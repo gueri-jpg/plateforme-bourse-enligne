@@ -521,6 +521,9 @@
 
     <!-- ══════════════════════════════════════ SIDEBAR ══════════════════════ -->
     <nav class="dash-sidebar">
+      <button class="nav-item" data-section="portefeuille" id="nav-portefeuille" style="display:none">
+        <span class="nav-icon">💼</span> Portefeuille
+      </button>
       <button class="nav-item active" data-section="marche">
         <span class="nav-icon">📊</span> Marché
       </button>
@@ -530,9 +533,6 @@
       <!-- Investisseur uniquement -->
       <button class="nav-item" data-section="watchlist" id="nav-watchlist" style="display:none">
         <span class="nav-icon">⭐</span> Watchlist
-      </button>
-      <button class="nav-item" data-section="portefeuille" id="nav-portefeuille" style="display:none">
-        <span class="nav-icon">💼</span> Portefeuille
       </button>
       <button class="nav-item" data-section="ordres" id="nav-ordres" style="display:none">
         <span class="nav-icon">🔄</span> Passer un ordre
@@ -1224,7 +1224,7 @@ async function chargerPortefeuille() {
         cours_actuel: p.cours_actuel ? parseFloat(p.cours_actuel) : null,
         sector: "—",
       })),
-      devise: data.devise || "MAD",
+      devise: "MAD",
       mouvements: data.mouvements || [],
     };
   } catch (e) {
@@ -1271,6 +1271,12 @@ if (isAdmin) {
 if (isInvestor) {
   ["nav-watchlist","nav-portefeuille","nav-ordres","nav-historique"]
     .forEach(id => document.getElementById(id).style.display = "flex");
+  // Page d'accueil investisseur = Portefeuille
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".dash-section").forEach(s => s.classList.remove("active"));
+  document.getElementById("nav-portefeuille").classList.add("active");
+  document.getElementById("section-portefeuille").classList.add("active");
+  // renderPortfolio() est appelé plus bas, après l'initialisation de mkt
 }
 if (isAdmin)   document.getElementById("nav-admin").style.display = "flex";
 if (isSupport) document.getElementById("nav-assistance").style.display = "flex";
@@ -1349,6 +1355,9 @@ const mkt = {
   prev: new Map(),   // name -> last price (for flash)
   overview: {},
 };
+
+// Rendu initial du portefeuille si l'investisseur atterrit dessus directement
+if (isInvestor) renderPortfolio();
 
 // ── WebSocket ─────────────────────────────────────────────────────────────────
 const WS_URL = (location.port === "80" || location.port === "443" || location.port === "")
