@@ -24,7 +24,7 @@
     /* ── Header ── */
     .dash-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 20px; background: #2d3748;
+      padding: 0 20px; background: #ffff;
       border-bottom: 1px solid rgba(255,255,255,.1); gap: 16px; flex-wrap: nowrap;
     }
     .dash-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
@@ -49,20 +49,20 @@
 
     /* ── Sidebar nav ── */
     .dash-sidebar {
-      background: #2d3748; border-right: 1px solid rgba(255,255,255,.1);
+      background: #ffff; border-right: 1px solid rgba(255,255,255,.1);
       padding: 12px 0; display: flex; flex-direction: column; gap: 2px;
       overflow-y: auto; min-height: 0;
     }
     .nav-item {
       display: flex; align-items: center; gap: 10px;
       padding: 10px 16px; cursor: pointer; border: none;
-      background: none; color: rgba(255,255,255,.72); font-family: inherit;
+      background: none; color: rgba(0,0,0,.72); font-family: inherit;
       font-size: 13px; font-weight: 500; transition: background .12s, color .12s;
       border-left: 3px solid transparent; text-align: left; width: 100%;
     }
-    .nav-item:hover { background: rgba(255,255,255,.05); color: #fff; }
-    .nav-item.active { background: rgba(123,29,58,.35); color: #fbbf24;
-      border-left-color: #fbbf24; }
+    .nav-item:hover { background: rgba(123, 29, 29, 0); color: #fb2424; }
+    .nav-item.active { background: rgba(123, 29, 29, 0.014); color: #fb2424;
+      border-left-color: #000; }
     .nav-item .nav-icon { font-size: 16px; min-width: 20px; text-align: center; }
     .nav-divider { height: 1px; background: rgba(255,255,255,.07); margin: 8px 12px; }
 
@@ -473,7 +473,7 @@
     /* ── Sidebar overlay backdrop (mobile) ── */
     #sidebar-overlay {
       display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.6); z-index: 99;
+      background: rgba(0, 0, 0, 0); z-index: 99;
     }
     #sidebar-overlay.open { display: block; }
 
@@ -493,7 +493,7 @@
         transition: transform .25s ease;
         border-right: 1px solid var(--line);
       }
-      .dash-sidebar.open { transform: none; box-shadow: 4px 0 24px rgba(0,0,0,.5); }
+      .dash-sidebar.open { transform: none; box-shadow: 4px 0 24px rgba(0, 0, 0, 0); }
 
       /* Tables scroll horizontally */
       .box { overflow-x: auto; }
