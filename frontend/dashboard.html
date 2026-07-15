@@ -6,7 +6,7 @@
   <title>BourseOnline · Trading</title>
   <style>
     :root {
-      --bg:      #f4f6f8; --bg2:    #eef1f5; --panel:  #ffffff;
+      --bg:      #2d3748; --bg2:    #374151; --panel:  #ffffff;
       --panel2:  #f1f4f8; --txt:    #1e293b; --muted:  #64748b;
       --line:    #e2e8f0; --up:     #16a34a; --down:   #dc2626;
       --flat:    #9ca3af; --accent: #2563eb; --accent2:#3b82f6;
@@ -37,13 +37,13 @@
     .dot.warn { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
     .dot.err  { background: var(--down); box-shadow: 0 0 6px var(--down); }
     .dash-user { display: flex; align-items: center; gap: 10px; }
-    .user-chip { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+    .user-chip { background: transparent; border: 1px solid rgba(255,255,255,.2);
       border-radius: 8px; padding: 5px 12px; font-size: 12px; color: rgba(255,255,255,.8); }
     .user-chip strong { color: #fff; }
-    .btn-sm { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,.3);
-      background: rgba(255,255,255,.15); color: #fff; cursor: pointer;
+    .btn-sm { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2);
+      background: transparent; color: rgba(255,255,255,.85); cursor: pointer;
       font-size: 12px; font-family: inherit; transition: border-color .15s, background .15s; }
-    .btn-sm:hover { border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.25); }
+    .btn-sm:hover { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.06); }
     .btn-danger { border-color: var(--down); color: var(--down); }
     .btn-danger:hover { background: rgba(239,68,68,.08); }
 
@@ -60,14 +60,14 @@
       font-size: 13px; font-weight: 500; transition: background .12s, color .12s;
       border-left: 3px solid transparent; text-align: left; width: 100%;
     }
-    .nav-item:hover { background: rgba(255,255,255,.1); color: #fff; }
-    .nav-item.active { background: rgba(255,255,255,.18); color: #fbbf24;
+    .nav-item:hover { background: rgba(255,255,255,.05); color: #fff; }
+    .nav-item.active { background: rgba(123,29,58,.35); color: #fbbf24;
       border-left-color: #fbbf24; }
     .nav-item .nav-icon { font-size: 16px; min-width: 20px; text-align: center; }
-    .nav-divider { height: 1px; background: rgba(255,255,255,.15); margin: 8px 12px; }
+    .nav-divider { height: 1px; background: rgba(255,255,255,.07); margin: 8px 12px; }
 
     /* ── Content area ── */
-    .dash-content { overflow: auto; position: relative; min-height: 0; background: #f8fafc; }
+    .dash-content { overflow: auto; position: relative; min-height: 0; background: #ffffff; }
     .dash-section { display: none; padding: 20px; animation: fadeIn .15s ease; }
     .dash-section.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
@@ -320,14 +320,14 @@
 
     /* ── Bande déroulante (ticker) ── */
     .ticker-outer {
-      overflow:hidden; background:#1a202c; border-bottom:1px solid rgba(255,255,255,.08);
+      overflow:hidden; background:#232b3a; border-bottom:1px solid rgba(255,255,255,.08);
       height:30px; display:flex; align-items:center; position:relative; flex-shrink:0;
     }
     .ticker-outer::before, .ticker-outer::after {
       content:''; position:absolute; top:0; bottom:0; width:40px; z-index:2; pointer-events:none;
     }
-    .ticker-outer::before { left:0; background:linear-gradient(90deg,#1a202c,transparent); }
-    .ticker-outer::after  { right:0; background:linear-gradient(-90deg,#1a202c,transparent); }
+    .ticker-outer::before { left:0; background:linear-gradient(90deg,#232b3a,transparent); }
+    .ticker-outer::after  { right:0; background:linear-gradient(-90deg,#232b3a,transparent); }
     .ticker-inner {
       display:flex; white-space:nowrap; width:max-content;
       animation:ticker-scroll 80s linear infinite;
@@ -520,8 +520,8 @@
     .hamburger { color: #fff; }
 
     /* btn-danger sur fond bleu */
-    .btn-danger { border-color: rgba(248,113,113,.8); color: rgba(248,113,113,.9); }
-    .btn-danger:hover { background: rgba(248,113,113,.15); }
+    .btn-danger { border-color: rgba(248,113,113,.5); color: rgba(248,113,113,.85); background: transparent; }
+    .btn-danger:hover { background: rgba(248,113,113,.08); }
 
     /* ── Cartes bordeaux — uniquement .tdb-card-pf et #ct-card ── */
     /* Les variables CSS héritées par les inline styles sont surchargées en scope */
