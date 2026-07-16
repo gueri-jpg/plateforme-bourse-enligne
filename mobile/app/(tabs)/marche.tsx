@@ -1,9 +1,9 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View, Text, TextInput, StyleSheet,
-  TouchableOpacity, Modal, ScrollView, Alert,
+  TouchableOpacity, Modal, ScrollView, Alert, StatusBar,
 } from 'react-native';
-// @ts-ignore — route créée dans la même session
+// @ts-ignore
 import { useRouter } from 'expo-router';
 import { useMarketData, Stock } from '../../hooks/useMarketData';
 import {
@@ -11,36 +11,50 @@ import {
   checkPendingOrders,
 } from '../../services/trading';
 
-const C = {
-  bg: '#070b1c', panel: '#111733', panel2: '#0e1430',
-  txt: '#e7ecff', muted: '#8a93b8', line: '#1f2a52',
-  up: '#22c55e', down: '#ef4444', flat: '#9ca3af',
-  accent: '#60a5fa', gold: '#f59e0b',
-};
+// ── Tokens ────────────────────────────────────────────────────────────────────
+const BG       = '#f8fafc';
+const WHITE    = '#ffffff';
+const DARK     = '#1e293b';
+const MUTED    = '#64748b';
+const LINE     = '#e2e8f0';
+const BORDEAUX = '#7B1D3A';
+const MASI_BG  = '#1a050c';
+const UP       = '#16a34a';
+const DOWN     = '#dc2626';
+const FLAT     = '#64748b';
+const GOLD     = '#d97706';
 
-function fmtN(x: number | null | undefined, dp = 2) {
-  if (x === null || x === undefined || isNaN(x as number)) return '—';
-  return (x as number).toLocaleString('fr-FR', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+// ── Utilitaires ───────────────────────────────────────────────────────────────
+function fmtN(x: number | null | undefined, dp = 2): string {
+  if (x == null || isNaN(x as number)) return '—';
+  return (x as number).toLocaleString('fr-FR', {
+    minimumFractionDigits: dp, maximumFractionDigits: dp,
+  });
 }
-
-function varColor(pct: number) {
-  return isNaN(pct) ? C.flat : pct > 0 ? C.up : pct < 0 ? C.down : C.flat;
+function varColor(pct: number): string {
+  return isNaN(pct) ? FLAT : pct > 0 ? UP : pct < 0 ? DOWN : FLAT;
 }
-function varLabel(pct: number) {
+function varSign(pct: number): string {
   if (isNaN(pct)) return '—';
-  const sign = pct > 0 ? '▲ ' : pct < 0 ? '▼ ' : '● ';
-  return `${sign}${Math.abs(pct).toFixed(2)}%`;
+  const sign = pct > 0 ? '↗ +' : pct < 0 ? '↘ ' : '● ';
+  return `${sign}${Math.abs(pct).toFixed(2)} %`;
+}
+function varBadge(pct: number): string {
+  if (isNaN(pct)) return '—';
+  const sign = pct > 0 ? '+' : '';
+  return `${sign}${pct.toFixed(2)} %`;
 }
 
 type SortKey = 'sector' | 'var_desc' | 'var_asc' | 'vol_desc' | 'name';
 const SORTS: { key: SortKey; label: string }[] = [
-  { key: 'sector',   label: 'Secteur' },
-  { key: 'var_desc', label: 'Var. ↓' },
-  { key: 'var_asc',  label: 'Var. ↑' },
+  { key: 'sector',   label: 'Secteur'  },
+  { key: 'var_desc', label: 'Var. ↓'  },
+  { key: 'var_asc',  label: 'Var. ↑'  },
   { key: 'vol_desc', label: 'Volume ↓' },
-  { key: 'name',     label: 'Nom' },
+  { key: 'name',     label: 'Nom'      },
 ];
 
+// ── Modal détail action ───────────────────────────────────────────────────────
 function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: {
   stock: Stock;
   onClose: () => void;
@@ -48,29 +62,33 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
   isStarred: boolean;
   onToggleStar: () => void;
 }) {
+  const pColor = varColor(stock.pct);
   return (
     <Modal visible animationType="slide" transparent onRequestClose={onClose}>
-      <View style={modal.overlay}>
-        <View style={modal.card}>
-          <View style={modal.header}>
+      <View style={md.overlay}>
+        <View style={md.sheet}>
+          {/* Handle */}
+          <View style={md.handle} />
+
+          <View style={md.header}>
             <View style={{ flex: 1 }}>
-              <Text style={modal.name}>{stock.name}</Text>
-              <Text style={modal.sector}>{stock.sector}</Text>
+              <Text style={md.name}>{stock.name}</Text>
+              <Text style={md.sector}>{stock.sector}</Text>
             </View>
-            <TouchableOpacity onPress={onToggleStar} style={modal.star}>
-              <Text style={{ fontSize: 24, color: isStarred ? C.gold : C.muted }}>{isStarred ? '★' : '☆'}</Text>
+            <TouchableOpacity onPress={onToggleStar} style={md.iconBtn}>
+              <Text style={{ fontSize: 22, color: isStarred ? GOLD : LINE }}>{isStarred ? '★' : '☆'}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={onClose} style={modal.close}>
-              <Text style={{ color: C.muted, fontSize: 20 }}>✕</Text>
+            <TouchableOpacity onPress={onClose} style={md.iconBtn}>
+              <Text style={{ color: MUTED, fontSize: 20 }}>✕</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={modal.priceRow}>
-            <Text style={modal.price}>{fmtN(stock.price, 2)} MAD</Text>
-            <Text style={[modal.var, { color: varColor(stock.pct) }]}>{varLabel(stock.pct)}</Text>
+          <View style={md.priceRow}>
+            <Text style={md.price}>{fmtN(stock.price, 2)} MAD</Text>
+            <Text style={[md.pct, { color: pColor }]}>{varSign(stock.pct)}</Text>
           </View>
 
-          <View style={modal.grid}>
+          <View style={md.grid}>
             {[
               ['Ouverture', fmtN(stock.open)],
               ['+ Haut',    fmtN(stock.high)],
@@ -79,25 +97,25 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
               ['Ask',       fmtN(stock.ask)],
               ['Vol. MAD',  fmtN(stock.volMAD, 0)],
             ].map(([label, val]) => (
-              <View key={label} style={modal.gridItem}>
-                <Text style={modal.gridLabel}>{label}</Text>
-                <Text style={modal.gridVal}>{val}</Text>
+              <View key={label} style={md.gridItem}>
+                <Text style={md.gridLabel}>{label}</Text>
+                <Text style={md.gridVal}>{val}</Text>
               </View>
             ))}
           </View>
 
-          <View style={modal.actions}>
+          <View style={md.actions}>
             <TouchableOpacity
-              style={[modal.btn, { borderColor: C.up, backgroundColor: 'rgba(34,197,94,0.1)' }]}
+              style={[md.btn, { borderColor: UP + '66', backgroundColor: UP + '12' }]}
               onPress={() => onOrder(stock, 'achat')}
             >
-              <Text style={{ color: C.up, fontWeight: '700', fontSize: 15 }}>📈 Acheter</Text>
+              <Text style={{ color: UP, fontWeight: '700', fontSize: 15 }}>Acheter</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[modal.btn, { borderColor: C.down, backgroundColor: 'rgba(239,68,68,0.1)' }]}
+              style={[md.btn, { borderColor: DOWN + '66', backgroundColor: DOWN + '12' }]}
               onPress={() => onOrder(stock, 'vente')}
             >
-              <Text style={{ color: C.down, fontWeight: '700', fontSize: 15 }}>📉 Vendre</Text>
+              <Text style={{ color: DOWN, fontWeight: '700', fontSize: 15 }}>Vendre</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -106,26 +124,28 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
   );
 }
 
+// ── Écran Marchés ─────────────────────────────────────────────────────────────
 export default function MarcheScreen() {
   const { stocks, overview, status, lastUpdate } = useMarketData();
-  const router = useRouter();
+  const router   = useRouter();
+  const open     = isMarketOpen();
+
   const [query,     setQuery]     = useState('');
   const [sort,      setSort]      = useState<SortKey>('sector');
   const [showSort,  setShowSort]  = useState(false);
   const [selected,  setSelected]  = useState<Stock | null>(null);
   const [watchlist, setWatchlist] = useState<string[]>([]);
-  const open = isMarketOpen();
 
-  useEffect(() => {
-    getWatchlist().then(setWatchlist);
-  }, []);
+  useEffect(() => { getWatchlist().then(setWatchlist); }, []);
 
   useEffect(() => {
     if (stocks.length > 0) {
       checkPendingOrders(stocks).then(executed => {
         if (executed.length > 0) {
           Alert.alert('Ordres exécutés ✓',
-            executed.map(o => `${o.direction === 'achat' ? 'Achat' : 'Vente'} ${o.qty}×${o.name} @ ${fmtN(o.price)} MAD`).join('\n')
+            executed.map(o =>
+              `${o.direction === 'achat' ? 'Achat' : 'Vente'} ${o.qty}×${o.name} @ ${fmtN(o.price)} MAD`
+            ).join('\n')
           );
         }
       });
@@ -150,11 +170,9 @@ export default function MarcheScreen() {
   const topUp   = useMemo(() => [...stocks].filter(s => !isNaN(s.pct)).sort((a, b) => b.pct - a.pct).slice(0, 3), [stocks]);
   const topDown = useMemo(() => [...stocks].filter(s => !isNaN(s.pct)).sort((a, b) => a.pct - b.pct).slice(0, 3), [stocks]);
 
-  const up  = stocks.filter(s => s.pct > 0).length;
-  const dn  = stocks.filter(s => s.pct < 0).length;
-  const fl  = stocks.filter(s => !isNaN(s.pct) && s.pct === 0).length;
-
-  const statusColor = status === 'connected' ? C.up : status === 'connecting' ? C.gold : C.down;
+  const up = stocks.filter(s => s.pct > 0).length;
+  const dn = stocks.filter(s => s.pct < 0).length;
+  const fl = stocks.filter(s => !isNaN(s.pct) && s.pct === 0).length;
 
   const handleToggleStar = useCallback(async (name: string) => {
     const added = await toggleWatchlist(name);
@@ -166,135 +184,158 @@ export default function MarcheScreen() {
     router.push({ pathname: '/(tabs)/ordres' as any, params: { stock: s.name, direction: dir } });
   }, [router]);
 
-  const renderStock = ({ item }: { item: Stock }) => (
-    <TouchableOpacity style={s.row} onPress={() => setSelected(item)}>
-      <TouchableOpacity style={s.starBtn} onPress={() => handleToggleStar(item.name)}>
-        <Text style={{ fontSize: 16, color: watchlist.includes(item.name) ? C.gold : C.muted, opacity: watchlist.includes(item.name) ? 1 : 0.4 }}>
-          {watchlist.includes(item.name) ? '★' : '☆'}
-        </Text>
-      </TouchableOpacity>
-      <View style={s.rowLeft}>
-        <Text style={s.name} numberOfLines={1}>{item.name}</Text>
-        <Text style={s.sector} numberOfLines={1}>{item.sector}</Text>
-      </View>
-      <View style={s.rowRight}>
-        <Text style={s.price}>{fmtN(item.price)} MAD</Text>
-        <Text style={[s.var, { color: varColor(item.pct) }]}>{varLabel(item.pct)}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
   return (
-    <View style={s.container}>
-      <ScrollView stickyHeaderIndices={[]} showsVerticalScrollIndicator={false}>
-        {/* Status */}
-        <View style={s.statusBar}>
-          <View style={[s.dot, { backgroundColor: statusColor }]} />
-          <Text style={s.statusTxt}>{status === 'connected' ? 'En direct' : status === 'connecting' ? 'Connexion…' : 'Déconnecté'}</Text>
-          <Text style={[s.mktBadge, { color: open ? C.up : C.gold }]}>
-            {open ? '● Marché ouvert' : '● Marché fermé'}
-          </Text>
-        </View>
+    <View style={s.root}>
+      <StatusBar barStyle="dark-content" backgroundColor={WHITE} />
 
-        {/* MASI */}
-        {overview.masi !== null && (
-          <View style={s.masiCard}>
-            <Text style={s.masiLabel}>MASI</Text>
-            <Text style={s.masiValue}>{fmtN(overview.masi)}</Text>
-            <Text style={[s.masiVar, { color: varColor(overview.masiVarJ ?? NaN) }]}>
-              {varLabel(overview.masiVarJ ?? NaN)}
+      {/* ── En-tête blanc ── */}
+      <View style={s.header}>
+        <Text style={s.headerTitle}>Marchés</Text>
+        <View style={s.headerChips}>
+          <View style={s.chip}>
+            <View style={[s.chipDot, { backgroundColor: status === 'connected' ? UP : status === 'connecting' ? GOLD : DOWN }]} />
+            <Text style={[s.chipTxt, { color: status === 'connected' ? UP : status === 'connecting' ? GOLD : DOWN }]}>
+              {status === 'connected' ? 'En direct' : status === 'connecting' ? 'Connexion…' : 'Déconnecté'}
             </Text>
-            {lastUpdate && <Text style={s.masiTs}>Maj : {lastUpdate.toLocaleTimeString('fr-FR')}</Text>}
           </View>
-        )}
-
-        {/* KPI row */}
-        <View style={s.cardsRow}>
-          <View style={s.card}>
-            <Text style={s.cardLabel}>Volume MAD</Text>
-            <Text style={s.cardValue} numberOfLines={1}>{fmtN(overview.vol, 0)}</Text>
-          </View>
-          <View style={s.card}>
-            <Text style={s.cardLabel}>Capitalisation</Text>
-            <Text style={s.cardValue} numberOfLines={1}>{fmtN((overview.capi ?? 0) / 1e9, 1)} Mds</Text>
-          </View>
-          <View style={s.card}>
-            <Text style={s.cardLabel}>Largeur</Text>
-            <Text style={s.cardValue}>
-              <Text style={{ color: C.up }}>{up}</Text>
-              <Text style={{ color: C.muted }}>/</Text>
-              <Text style={{ color: C.down }}>{dn}</Text>
-              <Text style={{ color: C.muted }}>/</Text>
-              <Text style={{ color: C.flat }}>{fl}</Text>
+          <View style={s.chip}>
+            <View style={[s.chipDot, { backgroundColor: open ? UP : GOLD }]} />
+            <Text style={[s.chipTxt, { color: open ? UP : GOLD }]}>
+              {open ? 'Marché ouvert' : 'Marché fermé'}
             </Text>
           </View>
         </View>
+      </View>
 
-        {/* Top movers */}
+      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+
+        {/* ── Carte MASI ── */}
+        <View style={s.masiCard}>
+          <Text style={s.masiLabel}>MASI · INDICE PRINCIPAL</Text>
+          <Text style={s.masiValue}>{fmtN(overview.masi, 2)}</Text>
+          <View style={s.masiBottom}>
+            <Text style={[s.masiVar, { color: (overview.masiVarJ ?? 0) >= 0 ? '#86efac' : '#fca5a5' }]}>
+              {varSign(overview.masiVarJ ?? NaN)}
+            </Text>
+            {lastUpdate && (
+              <Text style={s.masiTs}>Maj {lastUpdate.toLocaleTimeString('fr-FR')}</Text>
+            )}
+          </View>
+        </View>
+
+        {/* ── 3 KPI ── */}
+        <View style={s.kpiRow}>
+          <View style={s.kpiCard}>
+            <Text style={s.kpiLabel}>VOLUME MAD</Text>
+            <Text style={s.kpiValue} numberOfLines={1}>{fmtN(overview.vol, 0)}</Text>
+          </View>
+          <View style={s.kpiCard}>
+            <Text style={s.kpiLabel}>CAPITALISATION</Text>
+            <Text style={s.kpiValue} numberOfLines={1}>{fmtN((overview.capi ?? 0) / 1e9, 1)} Mds</Text>
+          </View>
+          <View style={s.kpiCard}>
+            <Text style={s.kpiLabel}>LARGEUR</Text>
+            <Text style={s.kpiValue}>
+              <Text style={{ color: UP }}>{up}</Text>
+              <Text style={{ color: MUTED }}>/</Text>
+              <Text style={{ color: DOWN }}>{dn}</Text>
+              <Text style={{ color: MUTED }}>/</Text>
+              <Text style={{ color: FLAT }}>{fl}</Text>
+            </Text>
+          </View>
+        </View>
+
+        {/* ── Hausses / Baisses ── */}
         {stocks.length > 0 && (
-          <View style={s.moversRow}>
-            <View style={[s.movers, { flex: 1 }]}>
-              <Text style={s.moversTitle}>▲ Hausses</Text>
+          <View style={s.moversCard}>
+            <View style={s.moversCol}>
+              <Text style={s.moversTitle}>↗ HAUSSES</Text>
               {topUp.map(st => (
                 <TouchableOpacity key={st.name} style={s.moverRow} onPress={() => setSelected(st)}>
                   <Text style={s.moverName} numberOfLines={1}>{st.name}</Text>
-                  <Text style={{ color: C.up, fontSize: 12 }}>+{st.pct.toFixed(2)}%</Text>
+                  <Text style={{ color: UP, fontSize: 12, fontWeight: '600' }}>+{st.pct.toFixed(2)} %</Text>
                 </TouchableOpacity>
               ))}
             </View>
-            <View style={{ width: 1, backgroundColor: C.line }} />
-            <View style={[s.movers, { flex: 1 }]}>
-              <Text style={[s.moversTitle, { color: C.down }]}>▼ Baisses</Text>
+            <View style={s.moversDivider} />
+            <View style={s.moversCol}>
+              <Text style={[s.moversTitle, { color: DOWN }]}>↘ BAISSES</Text>
               {topDown.map(st => (
                 <TouchableOpacity key={st.name} style={s.moverRow} onPress={() => setSelected(st)}>
                   <Text style={s.moverName} numberOfLines={1}>{st.name}</Text>
-                  <Text style={{ color: C.down, fontSize: 12 }}>{st.pct.toFixed(2)}%</Text>
+                  <Text style={{ color: DOWN, fontSize: 12, fontWeight: '600' }}>{st.pct.toFixed(2)} %</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
         )}
 
-        {/* Search + sort */}
+        {/* ── Recherche + tri ── */}
         <View style={s.searchRow}>
-          <TextInput
-            style={s.search}
-            placeholder="Filtrer (ATW, IAM…)"
-            placeholderTextColor={C.muted}
-            value={query}
-            onChangeText={setQuery}
-          />
+          <View style={s.searchWrap}>
+            <Text style={s.searchIcon}>🔍</Text>
+            <TextInput
+              style={s.searchInput}
+              placeholder="Filtrer (ATW, IAM…)"
+              placeholderTextColor={MUTED}
+              value={query}
+              onChangeText={setQuery}
+            />
+          </View>
           <TouchableOpacity style={s.sortBtn} onPress={() => setShowSort(!showSort)}>
-            <Text style={{ color: C.accent, fontSize: 12 }}>
-              {SORTS.find(x => x.key === sort)?.label ?? 'Tri'} ▾
-            </Text>
+            <Text style={s.sortTxt}>{SORTS.find(x => x.key === sort)?.label ?? 'Tri'} ▾</Text>
           </TouchableOpacity>
         </View>
 
         {showSort && (
           <View style={s.sortMenu}>
             {SORTS.map(opt => (
-              <TouchableOpacity key={opt.key} style={s.sortOption}
-                onPress={() => { setSort(opt.key); setShowSort(false); }}>
-                <Text style={{ color: sort === opt.key ? C.accent : C.txt, fontSize: 13 }}>{opt.label}</Text>
+              <TouchableOpacity
+                key={opt.key}
+                style={[s.sortOption, opt.key === sort && s.sortOptionActive]}
+                onPress={() => { setSort(opt.key); setShowSort(false); }}
+              >
+                <Text style={{ color: opt.key === sort ? BORDEAUX : DARK, fontSize: 13, fontWeight: opt.key === sort ? '700' : '400' }}>
+                  {opt.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         )}
 
-        {/* Stock list */}
-        {filtered.map((item, idx) => (
-          <View key={item.name}>
-            {renderStock({ item })}
-            {idx < filtered.length - 1 && <View style={s.sep} />}
-          </View>
-        ))}
-
-        {filtered.length === 0 && (
-          <Text style={s.empty}>
-            {status === 'connecting' ? 'Connexion WebSocket…' : 'Aucune valeur'}
-          </Text>
-        )}
+        {/* ── Liste des valeurs ── */}
+        <View style={s.listCard}>
+          {filtered.length === 0 ? (
+            <Text style={s.empty}>
+              {status === 'connecting' ? 'Connexion WebSocket…' : 'Aucune valeur trouvée'}
+            </Text>
+          ) : filtered.map((item, idx) => (
+            <View key={item.name}>
+              <TouchableOpacity style={s.row} onPress={() => setSelected(item)}>
+                <TouchableOpacity
+                  style={s.starBtn}
+                  onPress={() => handleToggleStar(item.name)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text style={{ fontSize: 18, color: watchlist.includes(item.name) ? GOLD : LINE }}>
+                    {watchlist.includes(item.name) ? '★' : '☆'}
+                  </Text>
+                </TouchableOpacity>
+                <View style={s.rowLeft}>
+                  <Text style={s.stockName} numberOfLines={1}>{item.name}</Text>
+                  <Text style={s.stockSector} numberOfLines={1}>{item.sector}</Text>
+                </View>
+                <View style={s.rowRight}>
+                  <Text style={s.stockPrice}>{fmtN(item.price, 2)} MAD</Text>
+                  <View style={[s.varBadge, { backgroundColor: varColor(item.pct) + '18', borderColor: varColor(item.pct) + '44' }]}>
+                    <Text style={[s.varTxt, { color: varColor(item.pct) }]}>{varBadge(item.pct)}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+              {idx < filtered.length - 1 && <View style={s.sep} />}
+            </View>
+          ))}
+        </View>
       </ScrollView>
 
       {selected && (
@@ -310,58 +351,123 @@ export default function MarcheScreen() {
   );
 }
 
+// ── Styles écran ──────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: C.bg },
-  statusBar:   { flexDirection: 'row', alignItems: 'center', padding: 10, backgroundColor: C.panel, gap: 8 },
-  dot:         { width: 8, height: 8, borderRadius: 4 },
-  statusTxt:   { fontSize: 12, color: C.muted, flex: 1 },
-  mktBadge:    { fontSize: 11, fontWeight: '600' },
-  masiCard:    { margin: 12, padding: 16, backgroundColor: C.panel, borderRadius: 12, borderWidth: 1, borderColor: C.line },
-  masiLabel:   { fontSize: 11, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  masiValue:   { fontSize: 28, fontWeight: '700', color: C.txt, marginVertical: 4 },
-  masiVar:     { fontSize: 14, fontWeight: '600' },
-  masiTs:      { fontSize: 11, color: C.muted, marginTop: 4 },
-  cardsRow:    { flexDirection: 'row', gap: 8, marginHorizontal: 12, marginBottom: 8 },
-  card:        { flex: 1, backgroundColor: C.panel, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: C.line },
-  cardLabel:   { fontSize: 9, color: C.muted, textTransform: 'uppercase', marginBottom: 3 },
-  cardValue:   { fontSize: 13, fontWeight: '600', color: C.txt },
-  moversRow:   { flexDirection: 'row', marginHorizontal: 12, marginBottom: 8, backgroundColor: C.panel, borderRadius: 10, borderWidth: 1, borderColor: C.line, overflow: 'hidden' },
-  movers:      { padding: 10 },
-  moversTitle: { fontSize: 11, fontWeight: '700', color: C.up, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
-  moverRow:    { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 },
-  moverName:   { fontSize: 12, color: C.txt, flex: 1, marginRight: 8 },
-  searchRow:   { flexDirection: 'row', marginHorizontal: 12, marginBottom: 4, gap: 8, alignItems: 'center' },
-  search:      { flex: 1, backgroundColor: C.panel, borderRadius: 10, padding: 10, fontSize: 13, color: C.txt, borderWidth: 1, borderColor: C.line },
-  sortBtn:     { backgroundColor: C.panel, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: C.line },
-  sortMenu:    { marginHorizontal: 12, backgroundColor: C.panel, borderRadius: 10, borderWidth: 1, borderColor: C.line, marginBottom: 4, overflow: 'hidden' },
-  sortOption:  { paddingVertical: 10, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: C.line },
-  row:         { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16 },
-  starBtn:     { marginRight: 10 },
-  rowLeft:     { flex: 1 },
-  rowRight:    { alignItems: 'flex-end' },
-  name:        { fontSize: 14, fontWeight: '600', color: C.txt },
-  sector:      { fontSize: 11, color: C.muted, marginTop: 2 },
-  price:       { fontSize: 14, color: C.txt },
-  var:         { fontSize: 12, marginTop: 2 },
-  sep:         { height: 1, backgroundColor: C.line, marginLeft: 16 },
-  empty:       { padding: 40, textAlign: 'center', color: C.muted },
+  root:   { flex: 1, backgroundColor: BG },
+  scroll: { flex: 1 },
+
+  // En-tête
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: WHITE, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14,
+    borderBottomWidth: 1, borderBottomColor: LINE,
+  },
+  headerTitle: { fontSize: 20, fontWeight: '800', color: DARK },
+  headerChips: { flexDirection: 'row', gap: 10 },
+  chip:        { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  chipDot:     { width: 7, height: 7, borderRadius: 4 },
+  chipTxt:     { fontSize: 11, fontWeight: '600' },
+
+  // Carte MASI
+  masiCard: {
+    margin: 16, borderRadius: 16, padding: 20,
+    backgroundColor: MASI_BG,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3, shadowRadius: 12, elevation: 8,
+  },
+  masiLabel:  { color: 'rgba(255,255,255,.55)', fontSize: 11, fontWeight: '600', letterSpacing: 0.5, marginBottom: 10 },
+  masiValue:  { color: WHITE, fontSize: 32, fontWeight: '800', marginBottom: 8 },
+  masiBottom: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  masiVar:    { fontSize: 15, fontWeight: '700' },
+  masiTs:     { color: 'rgba(255,255,255,.4)', fontSize: 11 },
+
+  // 3 KPI
+  kpiRow:  { flexDirection: 'row', paddingHorizontal: 16, gap: 10, marginBottom: 12 },
+  kpiCard: {
+    flex: 1, backgroundColor: WHITE, borderRadius: 12,
+    borderWidth: 1, borderColor: LINE, padding: 12,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 3, elevation: 2,
+  },
+  kpiLabel: { fontSize: 9, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 5 },
+  kpiValue: { fontSize: 13, fontWeight: '700', color: DARK },
+
+  // Movers
+  moversCard: {
+    flexDirection: 'row', marginHorizontal: 16, marginBottom: 12,
+    backgroundColor: WHITE, borderRadius: 12,
+    borderWidth: 1, borderColor: LINE,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 3, elevation: 2,
+    overflow: 'hidden',
+  },
+  moversCol:     { flex: 1, padding: 14 },
+  moversDivider: { width: 1, backgroundColor: LINE, marginVertical: 10 },
+  moversTitle:   { fontSize: 11, fontWeight: '800', color: UP, marginBottom: 10, letterSpacing: 0.5 },
+  moverRow:      { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
+  moverName:     { fontSize: 12, color: DARK, flex: 1, marginRight: 6, fontWeight: '500' },
+
+  // Recherche
+  searchRow:  { flexDirection: 'row', marginHorizontal: 16, marginBottom: 8, gap: 10, alignItems: 'center' },
+  searchWrap: {
+    flex: 1, flexDirection: 'row', alignItems: 'center',
+    backgroundColor: WHITE, borderRadius: 10,
+    borderWidth: 1, borderColor: LINE, paddingHorizontal: 10,
+  },
+  searchIcon:  { fontSize: 14, marginRight: 6, opacity: 0.5 },
+  searchInput: { flex: 1, paddingVertical: 10, fontSize: 13, color: DARK },
+  sortBtn: {
+    backgroundColor: WHITE, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10,
+    borderWidth: 1, borderColor: LINE,
+  },
+  sortTxt: { color: DARK, fontSize: 12, fontWeight: '600' },
+  sortMenu: {
+    marginHorizontal: 16, backgroundColor: WHITE, borderRadius: 10,
+    borderWidth: 1, borderColor: LINE, marginBottom: 8, overflow: 'hidden',
+  },
+  sortOption:       { paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: LINE },
+  sortOptionActive: { backgroundColor: BORDEAUX + '08' },
+
+  // Liste
+  listCard: {
+    marginHorizontal: 16, backgroundColor: WHITE, borderRadius: 14,
+    borderWidth: 1, borderColor: LINE,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
+    overflow: 'hidden',
+  },
+  row:       { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 14 },
+  starBtn:   { marginRight: 10 },
+  rowLeft:   { flex: 1 },
+  rowRight:  { alignItems: 'flex-end' },
+  stockName:   { fontSize: 14, fontWeight: '700', color: DARK },
+  stockSector: { fontSize: 11, color: MUTED, marginTop: 2 },
+  stockPrice:  { fontSize: 14, fontWeight: '600', color: DARK, marginBottom: 4 },
+  varBadge:    { borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1 },
+  varTxt:      { fontSize: 11, fontWeight: '600' },
+  sep:         { height: 1, backgroundColor: LINE, marginLeft: 46 },
+  empty:       { padding: 40, textAlign: 'center', color: MUTED, fontSize: 14 },
 });
 
-const modal = StyleSheet.create({
-  overlay:   { flex: 1, backgroundColor: 'rgba(5,8,20,0.8)', justifyContent: 'flex-end' },
-  card:      { backgroundColor: C.panel, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, borderWidth: 1, borderColor: C.line },
-  header:    { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
-  name:      { fontSize: 18, fontWeight: '700', color: C.txt },
-  sector:    { fontSize: 12, color: C.muted, marginTop: 2 },
-  star:      { padding: 4, marginRight: 8 },
-  close:     { padding: 4 },
-  priceRow:  { flexDirection: 'row', alignItems: 'baseline', gap: 12, marginBottom: 16 },
-  price:     { fontSize: 26, fontWeight: '700', color: C.txt },
-  var:       { fontSize: 16, fontWeight: '600' },
-  grid:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  gridItem:  { width: '30%', backgroundColor: C.panel2, borderRadius: 8, padding: 10 },
-  gridLabel: { fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  gridVal:   { fontSize: 14, fontWeight: '600', color: C.txt, marginTop: 3 },
-  actions:   { flexDirection: 'row', gap: 10 },
-  btn:       { flex: 1, borderWidth: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+// ── Styles modal ──────────────────────────────────────────────────────────────
+const md = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  sheet: {
+    backgroundColor: WHITE, borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    padding: 20, paddingTop: 12,
+  },
+  handle:   { width: 36, height: 4, backgroundColor: LINE, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
+  header:   { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16 },
+  name:     { fontSize: 18, fontWeight: '700', color: DARK },
+  sector:   { fontSize: 12, color: MUTED, marginTop: 3 },
+  iconBtn:  { padding: 6, marginLeft: 8 },
+  priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 12, marginBottom: 16 },
+  price:    { fontSize: 26, fontWeight: '800', color: DARK },
+  pct:      { fontSize: 16, fontWeight: '600' },
+  grid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
+  gridItem: { width: '30%', backgroundColor: BG, borderRadius: 8, padding: 10, borderWidth: 1, borderColor: LINE },
+  gridLabel:{ fontSize: 9, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  gridVal:  { fontSize: 13, fontWeight: '700', color: DARK },
+  actions:  { flexDirection: 'row', gap: 10, paddingBottom: 8 },
+  btn:      { flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
 });
