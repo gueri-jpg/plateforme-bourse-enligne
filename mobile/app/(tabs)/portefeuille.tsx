@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 // @ts-ignore
 import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useMenu } from './menu-context';
 import { getPortfolio, getOrders, Portfolio, Order, resetPortfolio } from '../../services/trading';
 import { useMarketData } from '../../hooks/useMarketData';
 import { CONFIG } from '../../constants/config';
@@ -46,6 +48,7 @@ interface CompteInfo { ref: string; iban: string; statut: string }
 
 // ── Écran ─────────────────────────────────────────────────────────────────────
 export default function PortefeuilleScreen() {
+  const openMenu = useMenu();
   const [portfolio,    setPortfolio]    = useState<Portfolio>({ balance: 0, positions: [] });
   const [history,      setHistory]      = useState<Order[]>([]);
   const [compteInfo,   setCompteInfo]   = useState<CompteInfo | null>(null);
@@ -86,7 +89,7 @@ export default function PortefeuilleScreen() {
   const alimenter = useCallback(async () => {
     try {
       const token = await getValidAccessToken();
-      if (!token) { Alert.alert('Non connecté', 'Connectez-vous d'abord.'); return; }
+      if (!token) { Alert.alert('Non connecté', "Connectez-vous d'abord."); return; }
       const resp = await fetch(`${CONFIG.API_BASE_URL}/api/portefeuille/comptes-titres`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -128,6 +131,9 @@ export default function PortefeuilleScreen() {
 
       {/* ── En-tête blanc ── */}
       <View style={s.header}>
+        <TouchableOpacity onPress={openMenu} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Ionicons name="menu-outline" size={26} color={DARK} />
+        </TouchableOpacity>
         <Text style={s.headerTitle}>Mon portefeuille</Text>
         <TouchableOpacity style={s.alimenterBtn} onPress={alimenter}>
           <Text style={s.alimenterTxt}>+ Alimenter</Text>

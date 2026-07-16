@@ -6,10 +6,12 @@ import {
 } from 'react-native';
 // @ts-ignore
 import { useRouter, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useMarketData } from '../../hooks/useMarketData';
 import { getPortfolio, type Portfolio } from '../../services/trading';
 import { getValidAccessToken, decodeJwt } from '../../services/auth';
 import { CONFIG } from '../../constants/config';
+import { useMenu } from './menu-context';
 
 // ── Tokens design ─────────────────────────────────────────────────────────────
 const BORDEAUX = '#7B1D3A';
@@ -98,6 +100,7 @@ function VarBadge({ pct }: { pct: number | null }) {
 // ── Écran Accueil ─────────────────────────────────────────────────────────────
 export default function AccueilScreen() {
   const router     = useRouter();
+  const openMenu   = useMenu();
   const { overview, stocks } = useMarketData();
   const globalItems = useGlobalMarkets();
 
@@ -166,7 +169,7 @@ export default function AccueilScreen() {
         ],
       );
     } catch (err: any) {
-      Alert.alert('Erreur', err.message || 'Impossible d'accéder au compte titres.');
+      Alert.alert('Erreur', err.message || "Impossible d'accéder au compte titres.");
     }
   }
 
@@ -193,8 +196,8 @@ export default function AccueilScreen() {
             <Text style={s.greetingMuted}>Bonjour,</Text>
             <Text style={s.greetingName}>{userName}</Text>
           </View>
-          <TouchableOpacity style={s.bell} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Text style={s.bellIcon}>🔔</Text>
+          <TouchableOpacity onPress={openMenu} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={s.bell}>
+            <Ionicons name="menu-outline" size={26} color={DARK} />
           </TouchableOpacity>
         </View>
 

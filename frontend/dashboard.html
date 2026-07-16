@@ -63,7 +63,8 @@
     .nav-item:hover { background: rgba(123, 29, 29, 0); color: #fb2424; }
     .nav-item.active { background: rgba(123, 29, 29, 0.014); color: #fb2424;
       border-left-color: #000; }
-    .nav-item .nav-icon { font-size: 16px; min-width: 20px; text-align: center; }
+    .nav-item .nav-icon { width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .nav-item .nav-icon svg { width: 18px; height: 18px; display: block; }
     .nav-divider { height: 1px; background: rgba(255,255,255,.07); margin: 8px 12px; }
 
     /* ── Content area ── */
@@ -320,14 +321,14 @@
 
     /* ── Bande déroulante (ticker) ── */
     .ticker-outer {
-      overflow:hidden; background:#232b3a; border-bottom:1px solid rgba(255,255,255,.08);
+      overflow:hidden; background:#7B1D3A; border-bottom:1px solid rgba(255,255,255,.15);
       height:30px; display:flex; align-items:center; position:relative; flex-shrink:0;
     }
     .ticker-outer::before, .ticker-outer::after {
       content:''; position:absolute; top:0; bottom:0; width:40px; z-index:2; pointer-events:none;
     }
-    .ticker-outer::before { left:0; background:linear-gradient(90deg,#232b3a,transparent); }
-    .ticker-outer::after  { right:0; background:linear-gradient(-90deg,#232b3a,transparent); }
+    .ticker-outer::before { left:0; background:linear-gradient(90deg,#7B1D3A,transparent); }
+    .ticker-outer::after  { right:0; background:linear-gradient(-90deg,#7B1D3A,transparent); }
     .ticker-inner {
       display:flex; white-space:nowrap; width:max-content;
       animation:ticker-scroll 80s linear infinite;
@@ -658,38 +659,38 @@
     <!-- ══════════════════════════════════════ SIDEBAR ══════════════════════ -->
     <nav class="dash-sidebar">
       <button class="nav-item" data-section="tableau-bord" id="nav-tableau-bord" style="display:none">
-        <span class="nav-icon">🏠</span> Tableau de bord
+        <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5L10 2l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V8.5z"/><path d="M7 18v-5h6v5"/></svg></span> Tableau de bord
       </button>
       <button class="nav-item" data-section="portefeuille" id="nav-portefeuille" style="display:none">
-        <span class="nav-icon">💼</span> Portefeuille
+        <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="11" rx="2"/><path d="M7 7V5a2 2 0 014 0v2"/><line x1="2" y1="12" x2="18" y2="12"/></svg></span> Portefeuille
       </button>
       <button class="nav-item active" data-section="marche">
-        <span class="nav-icon">📊</span> Marché
+        <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V11M8 17V5M12 17V8M16 17V3"/></svg></span> Marché
       </button>
       <button class="nav-item" data-section="marches-mondiaux">
-        <span class="nav-icon">🌍</span> Marchés mondiaux
+        <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><path d="M2 10h16"/><path d="M10 2c-2.5 2.5-4 5-4 8s1.5 5.5 4 8"/><path d="M10 2c2.5 2.5 4 5 4 8s-1.5 5.5-4 8"/></svg></span> Marchés mondiaux
       </button>
       <!-- Investisseur uniquement -->
       <button class="nav-item" data-section="watchlist" id="nav-watchlist" style="display:none">
-        <span class="nav-icon">⭐</span> Watchlist
+        <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2l2.3 5.3H18l-4.5 3.2 1.7 5.5L10 12.8l-5.2 3.2 1.7-5.5L2 7.3h5.7L10 2z"/></svg></span> Watchlist
       </button>
       <button class="nav-item" data-section="ordres" id="nav-ordres" style="display:none">
-        <span class="nav-icon">🔄</span> Passer un ordre
+        <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l3 3-3 3"/><path d="M6 7h11"/><path d="M6 16l-3-3 3-3"/><path d="M14 13H3"/></svg></span> Passer un ordre
       </button>
       <button class="nav-item" data-section="carnet" id="nav-historique" style="display:none">
-        <span class="nav-icon">📓</span> Mon carnet
+        <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="12" height="16" rx="2"/><path d="M7 7h6M7 11h6M7 15h3"/></svg></span> Mon carnet
       </button>
       <!-- Support client uniquement -->
       <button class="nav-item" data-section="assistance" id="nav-assistance" style="display:none">
-        <span class="nav-icon">🎧</span> Assistance clients
+        <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10V9a6 6 0 0112 0v1"/><rect x="3" y="10" width="3" height="5" rx="1"/><rect x="14" y="10" width="3" height="5" rx="1"/><path d="M17 15v1a3 3 0 01-3 3h-2"/></svg></span> Assistance clients
       </button>
       <div class="nav-divider"></div>
       <button class="nav-item" data-section="profil">
-        <span class="nav-icon">👤</span> Mon profil
+        <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="7" r="4"/><path d="M2.5 18a8 8 0 0115 0"/></svg></span> Mon profil
       </button>
       <!-- Administrateur uniquement -->
       <button class="nav-item" data-section="admin" id="nav-admin" style="display:none">
-        <span class="nav-icon">⚙️</span> Admin
+        <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.5"/><path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.6 4.6l1.1 1.1M14.3 14.3l1.1 1.1M15.4 4.6l-1.1 1.1M5.7 14.3l-1.1 1.1"/></svg></span> Admin
       </button>
     </nav>
 

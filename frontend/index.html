@@ -30,25 +30,25 @@
   <title>BourseOnline &middot; Marché en Direct</title>
   <style>
     :root {
-      --bg:       #070b1c;
-      --bg2:      #0b1020;
-      --panel:    #111733;
-      --panel2:   #0e1430;
-      --txt:      #e7ecff;
-      --muted:    #8a93b8;
-      --line:     #1f2a52;
-      --up:       #22c55e;
-      --down:     #ef4444;
+      --bg:       #ffffff;
+      --bg2:      #f8fafc;
+      --panel:    #ffffff;
+      --panel2:   #f1f5f9;
+      --txt:      #1e293b;
+      --muted:    #64748b;
+      --line:     #e2e8f0;
+      --up:       #16a34a;
+      --down:     #dc2626;
       --flat:     #9ca3af;
-      --accent:   #60a5fa;
-      --accent2:  #818cf8;
-      --gold:     #f59e0b;
+      --accent:   #7B1D3A;
+      --accent2:  #9d2449;
+      --gold:     #d97706;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
-      background: linear-gradient(170deg, #050812 0%, #0b1020 50%, #070b1c 100%);
+      background: #ffffff;
       color: var(--txt);
       font-family: -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
       min-height: 100vh;
@@ -68,9 +68,10 @@
       display: flex; align-items: center; justify-content: space-between;
       gap: 16px; flex-wrap: wrap;
       padding: 14px 28px;
-      background: rgba(7, 11, 28, .85);
+      background: rgba(255,255,255,.95);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--line);
+      box-shadow: 0 1px 8px rgba(0,0,0,.06);
     }
 
     .header-brand {
@@ -108,13 +109,13 @@
     .btn:hover { border-color: var(--accent); }
 
     .btn-login {
-      background: linear-gradient(135deg, #1d4ed8, #2563eb);
-      border-color: #3b82f6; color: #fff;
-      box-shadow: 0 0 16px rgba(59,130,246,.35);
+      background: linear-gradient(135deg, #5C1629, #7B1D3A);
+      border-color: #7B1D3A; color: #fff;
+      box-shadow: 0 4px 14px rgba(123,29,58,.35);
     }
     .btn-login:hover {
-      background: linear-gradient(135deg, #1e40af, #1d4ed8);
-      box-shadow: 0 0 24px rgba(59,130,246,.5);
+      background: linear-gradient(135deg, #4a1020, #6b1830);
+      box-shadow: 0 6px 20px rgba(123,29,58,.5);
     }
 
     select.ctrl {
@@ -131,14 +132,14 @@
     }
     .hero-badge {
       display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(96,165,250,.12); border: 1px solid rgba(96,165,250,.3);
+      background: rgba(123,29,58,.08); border: 1px solid rgba(123,29,58,.25);
       border-radius: 999px; padding: 4px 14px; font-size: 12px;
-      color: var(--accent); margin-bottom: 20px;
+      color: #7B1D3A; margin-bottom: 20px;
     }
     .hero h2 {
       font-size: clamp(26px, 4vw, 44px); font-weight: 700;
       line-height: 1.15; max-width: 700px;
-      background: linear-gradient(135deg, #e7ecff 30%, #60a5fa);
+      background: linear-gradient(135deg, #1e293b 30%, #7B1D3A);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text;
     }
@@ -149,30 +150,30 @@
     .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; justify-content: center; }
     .btn-hero {
       padding: 12px 24px; font-size: 14px; font-weight: 600;
-      background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+      background: linear-gradient(135deg, #5C1629, #7B1D3A);
       border: none; border-radius: 10px; color: #fff;
       cursor: pointer; font-family: inherit;
-      box-shadow: 0 4px 20px rgba(59,130,246,.4);
+      box-shadow: 0 4px 20px rgba(123,29,58,.4);
       transition: transform .15s, box-shadow .15s;
     }
-    .btn-hero:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(59,130,246,.55); }
+    .btn-hero:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(123,29,58,.55); }
     .btn-ghost {
       padding: 12px 24px; font-size: 14px; font-weight: 500;
-      background: transparent; border: 1px solid var(--line);
-      border-radius: 10px; color: var(--txt);
+      background: transparent; border: 1px solid rgba(123,29,58,.4);
+      border-radius: 10px; color: #7B1D3A;
       cursor: pointer; font-family: inherit;
-      transition: border-color .15s;
+      transition: border-color .15s, background .15s;
     }
-    .btn-ghost:hover { border-color: var(--accent); }
+    .btn-ghost:hover { border-color: #7B1D3A; background: rgba(123,29,58,.05); }
     .btn-register {
       padding: 12px 24px; font-size: 14px; font-weight: 600;
-      background: linear-gradient(135deg, #059669, #10b981);
+      background: linear-gradient(135deg, #5C1629, #7B1D3A);
       border: none; border-radius: 10px; color: #fff;
       cursor: pointer; font-family: inherit;
-      box-shadow: 0 4px 20px rgba(16,185,129,.35);
+      box-shadow: 0 4px 20px rgba(123,29,58,.35);
       transition: transform .15s, box-shadow .15s;
     }
-    .btn-register:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(16,185,129,.55); }
+    .btn-register:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(123,29,58,.55); }
 
     /* ── Main content ── */
     main { max-width: 1500px; margin: 0 auto; padding: 0 24px 80px; }
@@ -189,11 +190,11 @@
       padding: 18px 20px; position: relative; overflow: hidden;
       transition: background .8s ease, border-color .2s;
     }
-    .card:hover { border-color: rgba(96,165,250,.35); }
+    .card:hover { border-color: rgba(123,29,58,.35); }
     .card::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      opacity: .5;
+      background: linear-gradient(90deg, #7B1D3A, #c53b6c);
+      opacity: .6;
     }
     .card h3 {
       font-size: 11px; color: var(--muted); font-weight: 500;
@@ -334,14 +335,14 @@
 
     /* ── Bande déroulante (ticker) ── */
     .ticker-outer {
-      overflow:hidden; background:#060a1a; border-bottom:1px solid var(--line);
+      overflow:hidden; background:#7B1D3A; border-bottom:1px solid rgba(255,255,255,.15);
       height:34px; display:flex; align-items:center; position:relative;
     }
     .ticker-outer::before, .ticker-outer::after {
       content:''; position:absolute; top:0; bottom:0; width:48px; z-index:2; pointer-events:none;
     }
-    .ticker-outer::before { left:0; background:linear-gradient(90deg,#060a1a,transparent); }
-    .ticker-outer::after  { right:0; background:linear-gradient(-90deg,#060a1a,transparent); }
+    .ticker-outer::before { left:0; background:linear-gradient(90deg,#7B1D3A,transparent); }
+    .ticker-outer::after  { right:0; background:linear-gradient(-90deg,#7B1D3A,transparent); }
     .ticker-inner {
       display:flex; white-space:nowrap; width:max-content;
       animation:ticker-scroll 80s linear infinite;
@@ -353,12 +354,12 @@
     }
     .t-item { display:inline-flex; align-items:center; gap:7px;
       padding:0 22px; font-size:12px; border-right:1px solid var(--line); height:34px; }
-    .t-name  { color:var(--accent); font-weight:600; letter-spacing:.2px; }
-    .t-price { color:var(--txt); font-variant-numeric:tabular-nums; }
+    .t-name  { color:#000000; font-weight:700; letter-spacing:.2px; }
+    .t-price { color:#ffffff; font-variant-numeric:tabular-nums; }
     .t-var   { font-variant-numeric:tabular-nums; }
-    .t-var.up   { color:var(--up);   }
-    .t-var.down { color:var(--down); }
-    .t-var.flat { color:var(--flat); }
+    .t-var.up   { color:#86efac; }
+    .t-var.down { color:#fca5a5; }
+    .t-var.flat { color:rgba(255,255,255,.6); }
 
     /* ── Responsive ── */
     @media (max-width: 640px) {
@@ -421,9 +422,6 @@
 
 <!-- ============================================================ HERO -->
 <section class="hero">
-  <div class="hero-badge">
-    <span class="dot ok"></span> Données en direct &middot; Bourse de Casablanca
-  </div>
   <div id="market-badge" class="market-badge closed" style="margin-bottom:8px">
     ● Vérification horaires…
   </div>

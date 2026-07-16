@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 // @ts-ignore
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useMenu } from './menu-context';
 import { useMarketData, Stock } from '../../hooks/useMarketData';
 import {
   isMarketOpen, toggleWatchlist, getWatchlist,
@@ -126,6 +128,7 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
 
 // ── Écran Marchés ─────────────────────────────────────────────────────────────
 export default function MarcheScreen() {
+  const openMenu = useMenu();
   const { stocks, overview, status, lastUpdate } = useMarketData();
   const router   = useRouter();
   const open     = isMarketOpen();
@@ -205,6 +208,9 @@ export default function MarcheScreen() {
             </Text>
           </View>
         </View>
+        <TouchableOpacity onPress={openMenu} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Ionicons name="menu-outline" size={26} color={DARK} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
