@@ -1,12 +1,24 @@
 """Router ordres : passer, lister et annuler des ordres boursiers."""
 import uuid
+from datetime import datetime
 from typing import Annotated
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, model_validator
 
 from app.auth import UtilisateurAuthentifie, investisseur_requis
 from app.db import get_connection, get_dict_cursor
+
+_CASABLANCA = ZoneInfo("Africa/Casablanca")
+
+def _marche_ouvert() -> bool:
+    """BVC ouverte lundi-vendredi 09h00-15h30 heure de Casablanca."""
+    now = datetime.now(tz=_CASABLANCA)
+    if now.weekday() >= 5:
+        return False
+    mins = now.hour * 60 + now.minute
+    return 540 <= mins < 930
 
 router = APIRouter(prefix="/api/ordres", tags=["Ordres"])
 
@@ -171,7 +183,7 @@ def passer_ordre(
 
             # Pour les ordres au marché : prix_limite doit être NULL (contrainte DB)
             db_prix_limite = data.prix_limite if data.type_ordre == "limite" else None
-            statut_initial = "execute" if data.type_ordre == "marche" else "en_attente"
+            statut_initial = "execute" if (data.type_ordre == "marche" and _marche_ouvert()) else "en_attente"
 
             cur.execute(
                 """INSERT INTO ordres.ordres
@@ -247,13 +259,12 @@ def passer_ordre(
         conn.commit()
 
     verb = "d'achat" if data.sens == "achat" else "de vente"
-    msg = (
-        f"Ordre {verb} de {data.quantite} × {data.instrument_code} exécuté "
-        f"à {prix_exec:.2f} MAD."
-        if statut_initial == "execute"
-        else f"Ordre limité {verb} de {data.quantite} × {data.instrument_code} "
-        f"transmis (seuil : {prix_exec:.2f} MAD)."
-    )
+    if statut_initial == "execute":
+        msg = f"Ordre {verb} de {data.quantite} × {data.instrument_code} exécuté à {prix_exec:.2f} MAD."
+    elif data.type_ordre == "marche":
+        msg = f"Marché fermé — ordre {verb} de {data.quantite} × {data.instrument_code} sera exécuté à l'ouverture."
+    else:
+        msg = f"Ordre limité {verb} de {data.quantite} × {data.instrument_code} transmis (seuil : {prix_exec:.2f} MAD)."
 
     return {
         "id": ordre_id,

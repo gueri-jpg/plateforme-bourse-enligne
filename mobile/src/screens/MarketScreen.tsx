@@ -7,7 +7,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View, Text, TextInput, StyleSheet,
-  TouchableOpacity, Modal, ScrollView, Alert, FlatList,
+  TouchableOpacity, Modal, ScrollView, Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -19,10 +19,10 @@ import {
 import type { MainTabParamList } from '../navigation/types';
 
 const C = {
-  bg: '#070b1c', panel: '#111733', panel2: '#0e1430',
-  txt: '#e7ecff', muted: '#8a93b8', line: '#1f2a52',
-  up: '#22c55e', down: '#ef4444', flat: '#9ca3af',
-  accent: '#60a5fa', gold: '#f59e0b',
+  bg: '#f8fafc', panel: '#ffffff', panel2: '#f1f5f9',
+  txt: '#0f172a', muted: '#64748b', line: '#e2e8f0',
+  up: '#16a34a', down: '#dc2626', flat: '#9ca3af',
+  accent: '#7B1D3A', gold: '#f59e0b',
 };
 
 function fmtN(x: number | null | undefined, dp = 2) {
@@ -57,7 +57,7 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
   onToggleStar: () => void;
 }) {
   return (
-    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible animationType="fade" transparent onRequestClose={onClose}>
       <View style={modal.overlay}>
         <View style={modal.card}>
           <View style={modal.header}>
@@ -121,11 +121,13 @@ export function MarketScreen() {
   const { stocks, overview, status, lastUpdate } = useMarketData();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
 
-  const [query,     setQuery]     = useState('');
-  const [sort,      setSort]      = useState<SortKey>('sector');
-  const [showSort,  setShowSort]  = useState(false);
-  const [selected,  setSelected]  = useState<Stock | null>(null);
-  const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [query,         setQuery]         = useState('');
+  const [sort,          setSort]          = useState<SortKey>('sector');
+  const [showSort,      setShowSort]      = useState(false);
+  const [selected,      setSelected]      = useState<Stock | null>(null);
+  const [watchlist,     setWatchlist]     = useState<string[]>([]);
+  const [expandHausses, setExpandHausses] = useState(false);
+  const [expandBaisses, setExpandBaisses] = useState(false);
   const open = isMarketOpen();
 
   // Charger la watchlist au montage
@@ -167,12 +169,10 @@ export function MarketScreen() {
     }
   }, [stocks, query, sort]);
 
-  const topUp   = useMemo(() => [...stocks].filter(s => !isNaN(s.pct)).sort((a, b) => b.pct - a.pct).slice(0, 3), [stocks]);
-  const topDown = useMemo(() => [...stocks].filter(s => !isNaN(s.pct)).sort((a, b) => a.pct - b.pct).slice(0, 3), [stocks]);
-
-  const up = stocks.filter(s => s.pct > 0).length;
-  const dn = stocks.filter(s => s.pct < 0).length;
-  const fl = stocks.filter(s => !isNaN(s.pct) && s.pct === 0).length;
+  const allUp   = useMemo(() => [...stocks].filter(s => !isNaN(s.pct) && s.pct > 0).sort((a, b) => b.pct - a.pct), [stocks]);
+  const allDown = useMemo(() => [...stocks].filter(s => !isNaN(s.pct) && s.pct < 0).sort((a, b) => a.pct - b.pct), [stocks]);
+  const topUp   = allUp.slice(0, 3);
+  const topDown = allDown.slice(0, 3);
 
   const statusColor = status === 'connected' ? C.up : status === 'connecting' ? C.gold : C.down;
 
@@ -250,40 +250,65 @@ export function MarketScreen() {
               {fmtN((overview.capi ?? 0) / 1e9, 1)} Mds
             </Text>
           </View>
-          <View style={s.card}>
-            <Text style={s.cardLabel}>Largeur</Text>
-            <Text style={s.cardValue}>
-              <Text style={{ color: C.up }}>{up}</Text>
-              <Text style={{ color: C.muted }}>/</Text>
-              <Text style={{ color: C.down }}>{dn}</Text>
-              <Text style={{ color: C.muted }}>/</Text>
-              <Text style={{ color: C.flat }}>{fl}</Text>
-            </Text>
-          </View>
         </View>
 
         {/* Tops et flops */}
         {stocks.length > 0 && (
-          <View style={s.moversRow}>
-            <View style={[s.movers, { flex: 1 }]}>
-              <Text style={s.moversTitle}>▲ Hausses</Text>
-              {topUp.map(st => (
-                <TouchableOpacity key={st.name} style={s.moverRow} onPress={() => setSelected(st)}>
-                  <Text style={s.moverName} numberOfLines={1}>{st.name}</Text>
-                  <Text style={{ color: C.up, fontSize: 12 }}>+{st.pct.toFixed(2)}%</Text>
-                </TouchableOpacity>
-              ))}
+          <View style={{ marginHorizontal: 12, marginBottom: 8 }}>
+            {/* Cartes côte à côte */}
+            <View style={s.moversRow}>
+              <TouchableOpacity
+                style={[s.moverCard, expandHausses && s.moverCardActive]}
+                onPress={() => { setExpandHausses(v => !v); setExpandBaisses(false); }}
+                activeOpacity={0.75}
+              >
+                <Text style={s.moversTitle}>▲ Hausses</Text>
+                <View style={s.moverHeaderRight}>
+                  <Text style={[s.moverCount, { color: C.up }]}>{allUp.length}</Text>
+                  <Text style={[s.moverChevron, expandHausses && s.moverChevronOpen]}>▾</Text>
+                </View>
+                {topUp.map(st => (
+                  <View key={st.name} style={s.moverPreviewRow}>
+                    <Text style={s.moverName} numberOfLines={1}>{st.name}</Text>
+                    <Text style={{ color: C.up, fontSize: 11, fontWeight: '600' }}>+{st.pct.toFixed(2)}%</Text>
+                  </View>
+                ))}
+              </TouchableOpacity>
+
+              <View style={{ width: 1, backgroundColor: C.line }} />
+
+              <TouchableOpacity
+                style={[s.moverCard, expandBaisses && s.moverCardActive]}
+                onPress={() => { setExpandBaisses(v => !v); setExpandHausses(false); }}
+                activeOpacity={0.75}
+              >
+                <Text style={[s.moversTitle, { color: C.down }]}>▼ Baisses</Text>
+                <View style={s.moverHeaderRight}>
+                  <Text style={[s.moverCount, { color: C.down }]}>{allDown.length}</Text>
+                  <Text style={[s.moverChevron, expandBaisses && s.moverChevronOpen]}>▾</Text>
+                </View>
+                {topDown.map(st => (
+                  <View key={st.name} style={s.moverPreviewRow}>
+                    <Text style={s.moverName} numberOfLines={1}>{st.name}</Text>
+                    <Text style={{ color: C.down, fontSize: 11, fontWeight: '600' }}>{st.pct.toFixed(2)}%</Text>
+                  </View>
+                ))}
+              </TouchableOpacity>
             </View>
-            <View style={{ width: 1, backgroundColor: C.line }} />
-            <View style={[s.movers, { flex: 1 }]}>
-              <Text style={[s.moversTitle, { color: C.down }]}>▼ Baisses</Text>
-              {topDown.map(st => (
-                <TouchableOpacity key={st.name} style={s.moverRow} onPress={() => setSelected(st)}>
-                  <Text style={s.moverName} numberOfLines={1}>{st.name}</Text>
-                  <Text style={{ color: C.down, fontSize: 12 }}>{st.pct.toFixed(2)}%</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+
+            {/* Liste déroulante sous les deux cartes */}
+            {(expandHausses || expandBaisses) && (
+              <View style={s.moverDropdown}>
+                {(expandHausses ? allUp : allDown).map(st => (
+                  <TouchableOpacity key={st.name} style={s.moverRow} onPress={() => setSelected(st)}>
+                    <Text style={s.moverName} numberOfLines={1}>{st.name}</Text>
+                    <Text style={{ color: expandHausses ? C.up : C.down, fontSize: 12, fontWeight: '600' }}>
+                      {expandHausses ? '+' : ''}{st.pct.toFixed(2)}%
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
         )}
 
@@ -363,11 +388,18 @@ const s = StyleSheet.create({
   card:        { flex: 1, backgroundColor: C.panel, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: C.line },
   cardLabel:   { fontSize: 9, color: C.muted, textTransform: 'uppercase', marginBottom: 3 },
   cardValue:   { fontSize: 13, fontWeight: '600', color: C.txt },
-  moversRow:   { flexDirection: 'row', marginHorizontal: 12, marginBottom: 8, backgroundColor: C.panel, borderRadius: 10, borderWidth: 1, borderColor: C.line, overflow: 'hidden' },
-  movers:      { padding: 10 },
-  moversTitle: { fontSize: 11, fontWeight: '700', color: C.up, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
-  moverRow:    { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 },
-  moverName:   { fontSize: 12, color: C.txt, flex: 1, marginRight: 8 },
+  moversRow:         { flexDirection: 'row', backgroundColor: C.panel, borderRadius: 10, borderWidth: 1, borderColor: C.line, overflow: 'hidden' },
+  moverCard:         { flex: 1, padding: 10 },
+  moverCardActive:   { backgroundColor: '#f8fafc' },
+  moverHeaderRight:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
+  moverCount:        { fontSize: 12, fontWeight: '700' },
+  moverChevron:      { fontSize: 14, color: C.muted },
+  moverChevronOpen:  { transform: [{ rotate: '180deg' }] },
+  moversTitle:       { fontSize: 11, fontWeight: '700', color: C.up, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  moverPreviewRow:   { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 },
+  moverDropdown:     { backgroundColor: C.panel, borderWidth: 1, borderTopWidth: 0, borderColor: C.line, borderBottomLeftRadius: 10, borderBottomRightRadius: 10, overflow: 'hidden' },
+  moverRow:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 9, borderTopWidth: 1, borderTopColor: C.line },
+  moverName:         { fontSize: 12, color: C.txt, flex: 1, marginRight: 8 },
   searchRow:   { flexDirection: 'row', marginHorizontal: 12, marginBottom: 4, gap: 8, alignItems: 'center' },
   search:      { flex: 1, backgroundColor: C.panel, borderRadius: 10, padding: 10, fontSize: 13, color: C.txt, borderWidth: 1, borderColor: C.line },
   sortBtn:     { backgroundColor: C.panel, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: C.line },
@@ -386,8 +418,8 @@ const s = StyleSheet.create({
 });
 
 const modal = StyleSheet.create({
-  overlay:   { flex: 1, backgroundColor: 'rgba(5,8,20,0.8)', justifyContent: 'flex-end' },
-  card:      { backgroundColor: C.panel, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, borderWidth: 1, borderColor: C.line },
+  overlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', paddingHorizontal: 20 },
+  card:      { backgroundColor: C.panel, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: C.line },
   header:    { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
   name:      { fontSize: 18, fontWeight: '700', color: C.txt },
   sector:    { fontSize: 12, color: C.muted, marginTop: 2 },
