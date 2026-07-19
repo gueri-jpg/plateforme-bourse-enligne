@@ -67,10 +67,18 @@ export interface Stock {
 
 export function isMarketOpen(): boolean {
   try {
-    const casaStr = new Date().toLocaleString('en-US', { timeZone: 'Africa/Casablanca' });
-    const casa = new Date(casaStr);
-    const day  = casa.getDay();
-    const mins = casa.getHours() * 60 + casa.getMinutes();
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Africa/Casablanca',
+      weekday:  'short',
+      hour:     'numeric',
+      minute:   'numeric',
+      hour12:   false,
+    });
+    const parts: Record<string, string> = {};
+    fmt.formatToParts(new Date()).forEach(p => { parts[p.type] = p.value; });
+    const DAY_MAP: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    const day  = DAY_MAP[parts.weekday] ?? -1;
+    const mins = parseInt(parts.hour) * 60 + parseInt(parts.minute);
     return day >= 1 && day <= 5 && mins >= 540 && mins < 930;
   } catch { return false; }
 }
