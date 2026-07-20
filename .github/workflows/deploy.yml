@@ -282,6 +282,47 @@ jobs:
             exit 1
           fi
 
+  # ── Tests fonctionnels E2E (Selenium) ────────────────────────────────────────
+  # Exécutés après le déploiement réussi, contre la production.
+  # Créent un compte bourse réel → vérifient tout le flux utilisateur.
+  tests-fonctionnels:
+    needs: deploy
+    if: needs.deploy.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements-fonctionnels.txt
+
+      - name: Installer les dépendances (Selenium + pytest)
+        working-directory: backend
+        run: pip install -r requirements-fonctionnels.txt
+
+      - name: Installer Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Tests fonctionnels bourse (Selenium E2E)
+        working-directory: backend
+        env:
+          BOURSE_BASE_URL: https://bourse.cfconsultancy.org
+          PYTHONPATH: .
+        run: |
+          pytest tests/fonctionnels/ -v --tb=short 2>&1 | tee fonctionnels-report.txt
+
+      - name: Publier le rapport
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fonctionnels-report-bourse
+          path: backend/fonctionnels-report.txt
+          retention-days: 7
+
   # ── Mobile natif : nouveau APK — déclenchement MANUEL uniquement ─────────────
   # GitHub Actions → Run workflow → cocher "Construire un nouvel APK"
   # Quota EAS Free = 15 builds Android/mois — ne pas déclencher sur push.
