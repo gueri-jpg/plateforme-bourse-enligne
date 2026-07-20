@@ -134,14 +134,6 @@ def passer_ordre(
     utilisateur: Annotated[UtilisateurAuthentifie, Depends(investisseur_requis)],
 ):
     """Place un ordre d'achat ou de vente."""
-    # Scénario 3 : SCA obligatoire avant tout ordre (y compris après SSO banque→bourse)
-    from app.routers.inter_service import sca_valide_pour
-    if not sca_valide_pour(utilisateur.email):
-        raise HTTPException(
-            status_code=403,
-            detail={"code": "sca_requis", "message": "Authentification forte requise avant de passer un ordre."},
-        )
-
     with get_connection() as conn:
         compte_id = _get_compte_id(conn, utilisateur.keycloak_user_id)
         if not compte_id:

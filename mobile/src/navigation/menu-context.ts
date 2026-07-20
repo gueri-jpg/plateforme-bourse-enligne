@@ -1,4 +1,6 @@
 import { createContext, useContext } from 'react';
 
-export const MenuContext = createContext<() => void>(() => {});
+export type DrawerSide = 'left' | 'right';
+
+export const MenuContext = createContext<(side?: DrawerSide) => void>(() => {});
 export const useMenu = () => useContext(MenuContext);

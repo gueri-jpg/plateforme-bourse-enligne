@@ -16,10 +16,12 @@ export type RootStackParamList = {
 // ── Bottom Tabs principaux ────────────────────────────────────────────────────
 // Chaque onglet et ses éventuels paramètres
 export type MainTabParamList = {
+  Accueil:     undefined;                                           // Dashboard
   Marche:      undefined;                                           // Liste des valeurs BVC
   Favoris:     undefined;                                           // Watchlist
-  Ordre:       { stock?: string; direction?: 'achat' | 'vente' };  // Passer un ordre (pré-rempli depuis Marché/Favoris)
-  Carnet:      undefined;                                           // Carnet d'ordres
+  Ordre:       { stock?: string; direction?: 'achat' | 'vente' };  // Passer un ordre
+  Carnet:      undefined;                                           // Carnet d'ordres (drawer)
   Portefeuille:undefined;                                           // Portefeuille et valorisation
-  Profil:      undefined;                                           // Profil et déconnexion
+  Profil:      undefined;                                           // Profil (drawer)
+  Securite:    undefined;                                           // Sécurité (drawer)
 };
