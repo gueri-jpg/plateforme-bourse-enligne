@@ -8,6 +8,7 @@ import {
   Alert, ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { ScreenHeader } from '../components/ScreenHeader';
 import {
   fetchOrdres, cancelOrdre,
   OrdreBackend, StatutOrdre,
@@ -15,9 +16,9 @@ import {
 } from '../api/portfolio';
 
 const C = {
-  bg: '#070b1c', panel: '#111733', panel2: '#0e1430',
-  txt: '#e7ecff', muted: '#8a93b8', line: '#1f2a52',
-  up: '#22c55e', down: '#ef4444', accent: '#60a5fa', gold: '#f59e0b', flat: '#9ca3af',
+  bg: '#f8fafc', panel: '#ffffff', panel2: '#f1f5f9',
+  txt: '#0f172a', muted: '#64748b', line: '#e2e8f0',
+  up: '#16a34a', down: '#dc2626', accent: '#7B1D3A', gold: '#f59e0b', flat: '#9ca3af',
 };
 
 function fmtN(x: number | null | undefined, dp = 2) {
@@ -179,6 +180,7 @@ export function CarnetScreen() {
 
   return (
     <View style={s.container}>
+      <ScreenHeader title="Carnet d'ordres" />
       {/* Filtres */}
       <View style={s.filters}>
         {FILTERS.map(f => (
@@ -228,7 +230,7 @@ export function CarnetScreen() {
 
 const s = StyleSheet.create({
   container:       { flex: 1, backgroundColor: C.bg },
-  filters:         { flexDirection: 'row', padding: 10, paddingTop: 48, gap: 6, flexWrap: 'wrap', backgroundColor: C.panel, borderBottomWidth: 1, borderBottomColor: C.line },
+  filters:         { flexDirection: 'row', padding: 10, paddingTop: 10, gap: 6, flexWrap: 'wrap', backgroundColor: C.panel, borderBottomWidth: 1, borderBottomColor: C.line },
   filterBtn:       { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.panel2 },
   filterBtnActive: { borderColor: C.accent, backgroundColor: 'rgba(96,165,250,0.1)' },
   filterTxt:       { fontSize: 12, color: C.muted },

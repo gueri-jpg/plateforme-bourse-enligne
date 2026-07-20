@@ -11,9 +11,9 @@ import { useAuth } from '../store/useAuth';
 import { decodeJwt } from '../api/auth';
 
 const C = {
-  bg: '#070b1c', panel: '#111733', panel2: '#0e1430',
-  txt: '#e7ecff', muted: '#8a93b8', line: '#1f2a52',
-  accent: '#60a5fa', gold: '#f59e0b', down: '#ef4444', up: '#22c55e',
+  bg: '#f8fafc', panel: '#ffffff', panel2: '#f1f5f9',
+  txt: '#0f172a', muted: '#64748b', line: '#e2e8f0',
+  accent: '#7B1D3A', gold: '#f59e0b', down: '#dc2626', up: '#16a34a',
 };
 
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {

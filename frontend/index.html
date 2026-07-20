@@ -27,7 +27,7 @@
       .catch(function(){ document.documentElement.style.visibility = ""; });
   })();
   </script>
-  <title>BourseOnline &middot; Marché en Direct</title>
+  <title> </title>
   <style>
     :root {
       --bg:       #ffffff;
@@ -96,7 +96,7 @@
     .dot.warn { background: var(--gold); color: var(--gold); }
     .dot.err  { background: var(--down); color: var(--down); }
 
-    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 
     .btn {
       display: inline-flex; align-items: center; gap: 6px;
@@ -335,8 +335,8 @@
 
     /* ── Bande déroulante (ticker) ── */
     .ticker-outer {
-      overflow:hidden; background:#7B1D3A; border-bottom:1px solid rgba(255,255,255,.15);
-      height:34px; display:flex; align-items:center; position:relative;
+      overflow:hidden; background: #000; border-bottom:1px solid rgba(255,255,255,.15);
+      height:52px; display:flex; align-items:center; position:relative;
     }
     .ticker-outer::before, .ticker-outer::after {
       content:''; position:absolute; top:0; bottom:0; width:48px; z-index:2; pointer-events:none;
@@ -352,11 +352,12 @@
       0%   { transform:translateX(0); }
       100% { transform:translateX(-50%); }
     }
-    .t-item { display:inline-flex; align-items:center; gap:7px;
-      padding:0 22px; font-size:12px; border-right:1px solid var(--line); height:34px; }
-    .t-name  { color:#000000; font-weight:700; letter-spacing:.2px; }
-    .t-price { color:#ffffff; font-variant-numeric:tabular-nums; }
-    .t-var   { font-variant-numeric:tabular-nums; }
+    .t-item { display:inline-flex; flex-direction:column; justify-content:center; align-items:flex-start;
+      gap:2px; padding:0 22px; font-size:12px; border-right:1px solid var(--line); height:52px; }
+    .t-name   { color:#fff; font-weight:700; letter-spacing:.2px; line-height:1.2; }
+    .t-values { display:flex; align-items:center; gap:6px; line-height:1.2; }
+    .t-price  { color:#ffffff; font-variant-numeric:tabular-nums; }
+    .t-var    { font-variant-numeric:tabular-nums; }
     .t-var.up   { color:#86efac; }
     .t-var.down { color:#fca5a5; }
     .t-var.flat { color:rgba(255,255,255,.6); }
@@ -375,8 +376,8 @@
 
 <!-- ============================================================ HEADER -->
 <header>
-  <div class="header-brand">
-    <!-- Logo SVG candlestick -->
+<!--
+<div class="header-brand">
     <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="6"  y="10" width="5" height="12" rx="1" fill="#22c55e"/>
       <line x1="8.5"  y1="6"  x2="8.5"  y2="10" stroke="#22c55e" stroke-width="1.5"/>
@@ -389,25 +390,27 @@
       <line x1="24.5" y1="22" x2="24.5" y2="26" stroke="#22c55e" stroke-width="1.5"/>
     </svg>
     <h1>BourseOnline <span>&middot; Live</span></h1>
-  </div>
+</div>
+-->
 
-  <div class="header-status">
-    <span><span class="dot" id="dot"></span><span id="state">en attente&hellip;</span></span>
-    <span>Maj&nbsp;: <strong id="lastUpdate">—</strong></span>
-    <span>Latence&nbsp;: <strong id="latency">—</strong></span>
+  
+
+  <!-- Éléments fonctionnels masqués (utilisés par le JS temps réel) -->
+  <div style="display:none">
+    <span id="dot"></span>
+    <span id="state"></span>
+    <strong id="lastUpdate"></strong>
+    <strong id="latency"></strong>
+    <select id="interval">
+      <option value="5000">5 s</option>
+      <option value="10000" selected>10 s</option>
+      <option value="20000">20 s</option>
+      <option value="60000">1 min</option>
+    </select>
+    <button id="btnRefresh"></button>
   </div>
 
   <div class="header-actions">
-    <label class="small" style="display:flex;align-items:center;gap:6px">
-      Cadence
-      <select id="interval" class="ctrl">
-        <option value="5000">5 s</option>
-        <option value="10000" selected>10 s</option>
-        <option value="20000">20 s</option>
-        <option value="60000">1 min</option>
-      </select>
-    </label>
-    <button id="btnRefresh" class="btn">&#8635; Actualiser</button>
     <button id="btnDashboard" class="btn btn-login" style="display:none" onclick="window.location.href='dashboard.html'">📊 Mon espace</button>
     <button id="btnLogin"   class="btn btn-login">&#128274; Se connecter</button>
   </div>
@@ -1080,8 +1083,8 @@ function applySnapshot(data) {
   mkt.rows = st;
   renderRows();
   $("lastUpdate").textContent = new Date().toLocaleTimeString("fr-FR");
-  $("latency").textContent    = "WebSocket";
-  setStatus("ok", st.length ? `WebSocket · ${st.length} valeurs` : "WebSocket (partiel)");
+  $("latency").textContent    = "";
+  setStatus("ok", st.length ? ` ` : "WebSocket (partiel)");
 }
 
 function connectWS() {
@@ -1175,8 +1178,10 @@ function renderTicker(stocks) {
       const varStr = isNaN(s.pct) ? '—' : sign + Math.abs(s.pct).toFixed(2) + '%';
       return `<span class="t-item">
         <span class="t-name">${esc(s.name)}</span>
-        <span class="t-price">${fmtNum(s.price, 2)} MAD</span>
-        <span class="t-var ${c}">${varStr}</span>
+        <span class="t-values">
+          <span class="t-price">${fmtNum(s.price, 2)} MAD</span>
+          <span class="t-var ${c}">${varStr}</span>
+        </span>
       </span>`;
     }).join('');
   inner.innerHTML = items + items; // double pour boucle continue

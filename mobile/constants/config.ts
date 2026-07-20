@@ -1,13 +1,13 @@
-// ============================================================================
-// config.ts — URLs et constantes de configuration
+﻿// ============================================================================
+// config.ts â€” URLs et constantes de configuration
 //
 // Deux modes :
 //  - Dev local  : EXPO_PUBLIC_BACKEND_IP + ports (via mobile/.env)
 //  - Production : EXPO_PUBLIC_API_URL + EXPO_PUBLIC_KEYCLOAK_URL (via eas.json)
 // ============================================================================
 
-// Production (eas.json preview/production) → URL complètes https://
-// Dev local (.env) → IP + ports
+// Production (eas.json preview/production) â†’ URL complÃ¨tes https://
+// Dev local (.env) â†’ IP + ports
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
   ?? `http://${process.env.EXPO_PUBLIC_BACKEND_IP ?? '172.20.10.5'}:${process.env.EXPO_PUBLIC_BACKEND_PORT ?? '8000'}`;
 
@@ -19,7 +19,8 @@ const WS_BASE_URL = API_BASE_URL.replace(/^https:\/\//, 'wss://').replace(/^http
 
 export const CONFIG = {
   API_BASE_URL,
-  WS_MARKET_URL: `${WS_BASE_URL}/ws/market`,
+  WS_MARKET_URL:  `${WS_BASE_URL}/ws/market`,
+  WS_GLOBAL_URL:  `${WS_BASE_URL}/ws/market-global`,
 
   KEYCLOAK_BASE_URL:  KC_BASE_URL,
   KEYCLOAK_REALM:     process.env.EXPO_PUBLIC_KEYCLOAK_REALM     ?? 'bourse-en-ligne',
@@ -32,13 +33,16 @@ export const CONFIG = {
   BANQUE_DASHBOARD_URL: process.env.EXPO_PUBLIC_BANQUE_DASHBOARD_URL ?? 'https://banquedigitale.cfconsultancy.org',
 } as const;
 
+// Version affichÃ©e dans l'UI â€” mettre Ã  jour Ã  chaque OTA (vit dans le bundle JS)
+export const APP_VERSION = '1.0.18';
+
 export const KEYCLOAK_DISCOVERY = {
   authorizationEndpoint: `${CONFIG.KEYCLOAK_BASE_URL}/realms/${CONFIG.KEYCLOAK_REALM}/protocol/openid-connect/auth`,
   tokenEndpoint:         `${CONFIG.KEYCLOAK_BASE_URL}/realms/${CONFIG.KEYCLOAK_REALM}/protocol/openid-connect/token`,
   revocationEndpoint:    `${CONFIG.KEYCLOAK_BASE_URL}/realms/${CONFIG.KEYCLOAK_REALM}/protocol/openid-connect/logout`,
 };
 
-// Clés pour AsyncStorage (préfixées pour éviter les collisions)
+// ClÃ©s pour AsyncStorage (prÃ©fixÃ©es pour Ã©viter les collisions)
 export const SECURE_KEYS = {
   ACCESS_TOKEN:  'bourse_access_token',
   REFRESH_TOKEN: 'bourse_refresh_token',

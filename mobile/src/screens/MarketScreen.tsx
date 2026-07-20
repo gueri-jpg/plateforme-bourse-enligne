@@ -8,10 +8,12 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View, Text, TextInput, StyleSheet,
   TouchableOpacity, Modal, ScrollView, Alert,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useMarketData, Stock } from '../../hooks/useMarketData';
+import { ScreenHeader } from '../components/ScreenHeader';
 import {
   isMarketOpen, toggleWatchlist, getWatchlist,
   checkPendingOrders,
@@ -101,13 +103,13 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
               style={[modal.btn, { borderColor: C.up, backgroundColor: 'rgba(34,197,94,0.1)' }]}
               onPress={() => onOrder(stock, 'achat')}
             >
-              <Text style={{ color: C.up, fontWeight: '700', fontSize: 15 }}>📈 Acheter</Text>
+              <Text style={{ color: C.up, fontWeight: '700', fontSize: 15 }}>Acheter</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[modal.btn, { borderColor: C.down, backgroundColor: 'rgba(239,68,68,0.1)' }]}
               onPress={() => onOrder(stock, 'vente')}
             >
-              <Text style={{ color: C.down, fontWeight: '700', fontSize: 15 }}>📉 Vendre</Text>
+              <Text style={{ color: C.down, fontWeight: '700', fontSize: 15 }}>Vendre</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -118,7 +120,7 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
 
 // ── Écran principal ──────────────────────────────────────────────────────────
 export function MarketScreen() {
-  const { stocks, overview, status, lastUpdate } = useMarketData();
+  const { stocks, overview, status } = useMarketData();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
 
   const [query,         setQuery]         = useState('');
@@ -157,7 +159,9 @@ export function MarketScreen() {
     if (query) {
       const q = query.toLowerCase();
       arr = arr.filter(s =>
-        s.name.toLowerCase().includes(q) || s.sector.toLowerCase().includes(q)
+        s.name.toLowerCase().includes(q) ||
+        s.sector.toLowerCase().includes(q) ||
+        s.ticker.toLowerCase().includes(q)
       );
     }
     switch (sort) {
@@ -211,8 +215,12 @@ export function MarketScreen() {
   ), [watchlist, handleToggleStar]);
 
   return (
-    <View style={s.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView
+      style={s.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScreenHeader title="Marchés" />
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Barre de statut connexion */}
         <View style={s.statusBar}>
           <View style={[s.dot, { backgroundColor: statusColor }]} />
@@ -224,6 +232,8 @@ export function MarketScreen() {
           </Text>
         </View>
 
+        {/* Masqué pendant la recherche pour remonter la barre en haut */}
+        {!query && (<>
         {/* Indice MASI */}
         {overview.masi !== null && (
           <View style={s.masiCard}>
@@ -232,9 +242,7 @@ export function MarketScreen() {
             <Text style={[s.masiVar, { color: varColor(overview.masiVarJ ?? NaN) }]}>
               {varLabel(overview.masiVarJ ?? NaN)}
             </Text>
-            {lastUpdate && (
-              <Text style={s.masiTs}>Maj : {lastUpdate.toLocaleTimeString('fr-FR')}</Text>
-            )}
+
           </View>
         )}
 
@@ -311,6 +319,7 @@ export function MarketScreen() {
             )}
           </View>
         )}
+        </>)}
 
         {/* Recherche + tri */}
         <View style={s.searchRow}>
@@ -369,7 +378,7 @@ export function MarketScreen() {
           onToggleStar={() => handleToggleStar(selected.name)}
         />
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

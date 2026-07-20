@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewNavigation } from 'react-native-webview';
 import { StatusBar } from 'expo-status-bar';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -16,12 +17,12 @@ import type { RootStackParamList } from '../navigation/types';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const C = {
-  bg:    '#070b1c',
-  panel: '#111733',
-  txt:   '#e7ecff',
-  muted: '#8a93b8',
-  line:  '#1f2a52',
-  accent:'#60a5fa',
+  bg:    '#ffffff',
+  panel: '#f4f4f4',
+  txt:   '#111111',
+  muted: '#555555',
+  line:  '#dddddd',
+  accent:'#800020',
   gold:  '#f59e0b',
   red:   '#ef4444',
   green: '#22c55e',
@@ -253,25 +254,25 @@ export function LoginScreen() {
   // ── Rendu ─────────────────────────────────────────────────────────────────
   return (
     <View style={s.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
 
       {/* ── Page d'accueil ── */}
       <View style={s.hero}>
         <View style={s.logoCircle}>
-          <Text style={s.logoIcon}>📈</Text>
+          <MaterialCommunityIcons name="trending-up" size={40} color="#111111" />
         </View>
-        <Text style={s.logoText}>Bourse<Text style={{ color: C.accent }}>Online</Text></Text>
+        <Text style={s.logoText}>CF<Text style={{ color: C.accent }}>Bourse</Text></Text>
         <Text style={s.tagline}>Investissez sur la Bourse de Casablanca</Text>
       </View>
 
       <View style={s.features}>
         {[
-          { icon: '📊', label: 'Cours en temps réel' },
-          { icon: '💼', label: 'Gestion de portefeuille' },
-          { icon: '🔒', label: 'Sécurisé & confidentiel' },
+          { icon: 'chart-bar' as const,          label: 'Cours en temps réel' },
+          { icon: 'briefcase-outline' as const,   label: 'Gestion de portefeuille' },
+          { icon: 'shield-lock-outline' as const, label: 'Sécurisé & confidentiel' },
         ].map((f) => (
           <View key={f.label} style={s.featureItem}>
-            <Text style={s.featureIcon}>{f.icon}</Text>
+            <MaterialCommunityIcons name={f.icon} size={22} color="#111111" style={s.featureIcon} />
             <Text style={s.featureLabel}>{f.label}</Text>
           </View>
         ))}
@@ -324,7 +325,7 @@ export function LoginScreen() {
             activeOpacity={0.85}
           >
             {isLoading
-              ? <ActivityIndicator color="#000" size="small" />
+              ? <ActivityIndicator color="#fff" size="small" />
               : <Text style={s.btnPrimaryText}>Se connecter</Text>
             }
           </TouchableOpacity>
@@ -354,7 +355,7 @@ export function LoginScreen() {
         </View>
       )}
 
-      <Text style={s.footer}>© 2025 BourseOnline · Données BVC</Text>
+      <Text style={s.footer}>© 2025 CFBourse · Données BVC</Text>
 
       {/* ── WebView ── */}
       {authUrl !== '' && (
@@ -470,7 +471,7 @@ const s = StyleSheet.create({
     backgroundColor: C.panel, borderRadius: 12, padding: 12,
     borderWidth: 1, borderColor: C.line,
   },
-  featureIcon:  { fontSize: 22, marginBottom: 6 },
+  featureIcon:  { marginBottom: 6 },
   featureLabel: { fontSize: 11, color: C.muted, textAlign: 'center', lineHeight: 16 },
 
   errorBanner: {
@@ -499,7 +500,7 @@ const s = StyleSheet.create({
 
   actions:         { width: '100%', gap: 12 },
   btnPrimary:      { backgroundColor: C.accent, borderRadius: 14, padding: 17, alignItems: 'center', width: '100%' },
-  btnPrimaryText:  { fontSize: 16, fontWeight: '700', color: '#000' },
+  btnPrimaryText:  { fontSize: 16, fontWeight: '700', color: '#ffffff' },
   btnSecondary:    {
     backgroundColor: 'transparent', borderRadius: 14, padding: 17,
     alignItems: 'center', borderWidth: 1.5, borderColor: C.accent, width: '100%',

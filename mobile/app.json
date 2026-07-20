@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "BourseOnline",
+    "name": "CFBourse",
     "slug": "bourse-enligne-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,12 +12,14 @@
       "bundleIdentifier": "ma.ecentralecasa.bourseenligne",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "LSApplicationQueriesSchemes": ["cfcdigibank"]
+        "LSApplicationQueriesSchemes": [
+          "cfcdigibank"
+        ]
       }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#070b1c",
+        "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "package": "ma.ecentralecasa.bourseenligne"
@@ -30,14 +32,14 @@
       "expo-secure-store",
       "expo-web-browser"
     ],
-    "owner": "cfconsultancy",
+    "owner": "cfconsultansy",
     "extra": {
       "eas": {
-        "projectId": "75a3debe-4112-4d8a-ade1-081d1519ff06"
+        "projectId": "bf3c2338-4ac9-4f85-ad0a-583c23392b03"
       }
     },
     "updates": {
-      "url": "https://u.expo.dev/75a3debe-4112-4d8a-ade1-081d1519ff06"
+      "url": "https://u.expo.dev/bf3c2338-4ac9-4f85-ad0a-583c23392b03"
     }
   }
 }

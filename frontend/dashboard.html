@@ -2380,120 +2380,14 @@ document.getElementById("mc-btn-confirm").addEventListener("click", async () => 
     updateOrderSummary();
 
   } catch (err) {
-    // Scénario 3 : SCA requise avant de passer un ordre
-    let errDetail = err.message;
-    try { errDetail = JSON.parse(err.message.replace(/^.*?(\{)/, "$1")); } catch {}
-    if (errDetail?.code === "sca_requis" || String(err.message).includes("sca_requis")) {
-      btn.disabled = false;
-      _ouvrirModalSCA(_pendingOrder);
-      return;
-    }
     closeOrderModal();
-    const errMsg = errDetail?.message || (typeof err.message === "string" ? err.message : JSON.stringify(err.message));
+    const errMsg = typeof err.message === "string" ? err.message : JSON.stringify(err.message);
     showFormMsg(errMsg, "err");
     showToast("Ordre rejeté ✕", errMsg, "error");
   } finally {
     btn.disabled = false;
   }
 });
-
-// ── Modal SCA avec OTP email (Scénario 3) ─────────────────────────────────────
-let _postScaOrder = null;
-
-async function _envoyerOtpSca() {
-  const info = document.getElementById("sca-email-info");
-  const msg  = document.getElementById("sca-msg");
-  const btnResend = document.getElementById("btn-sca-resend");
-  if (info) info.textContent = "Envoi en cours…";
-  if (msg) msg.textContent = "";
-  if (btnResend) btnResend.disabled = true;
-  try {
-    const res = await _apiCall("/api/sca/envoyer-otp", { method: "POST" });
-    if (info) info.textContent = `Code envoyé à ${res.masked_email}`;
-    setTimeout(() => { if (btnResend) btnResend.disabled = false; }, 30000);
-  } catch (e) {
-    if (info) info.textContent = "";
-    if (msg) { msg.style.color = "var(--down)"; msg.textContent = e.message || "Impossible d'envoyer le code."; }
-    if (btnResend) btnResend.disabled = false;
-  }
-}
-
-function _ouvrirModalSCA(order) {
-  _postScaOrder = order;
-  let m = document.getElementById("modal-sca-overlay");
-  if (!m) {
-    m = document.createElement("div");
-    m.id = "modal-sca-overlay";
-    m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:60px 16px 24px;";
-    m.innerHTML = `
-      <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 22px;max-width:340px;width:100%;text-align:center;flex-shrink:0">
-        <div style="font-size:36px;margin-bottom:10px">🔐</div>
-        <div style="font-size:15px;font-weight:700;margin-bottom:6px;color:var(--txt)">Confirmation par code OTP</div>
-        <div id="sca-email-info" style="font-size:12px;color:var(--accent);margin-bottom:14px;min-height:16px;font-weight:600"></div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5">
-          Entrez le code à 6 chiffres reçu par email pour valider votre ordre.
-        </div>
-        <input id="sca-code-input" type="text" inputmode="numeric" maxlength="6" placeholder="000000"
-          style="width:100%;padding:14px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);
-                 color:var(--txt);font-size:24px;text-align:center;letter-spacing:10px;margin-bottom:8px;font-family:monospace;box-sizing:border-box">
-        <div id="sca-msg" style="font-size:12px;margin-bottom:12px;min-height:16px"></div>
-        <div style="display:flex;gap:10px;margin-bottom:14px">
-          <button onclick="document.getElementById('modal-sca-overlay').style.display='none'"
-            style="flex:1;padding:12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--txt);cursor:pointer;font-family:inherit;font-size:14px">
-            Annuler
-          </button>
-          <button id="btn-sca-confirm"
-            style="flex:2;padding:12px;border-radius:8px;border:none;background:var(--accent);color:#000;cursor:pointer;font-weight:700;font-family:inherit;font-size:14px">
-            Confirmer
-          </button>
-        </div>
-        <button id="btn-sca-resend"
-          style="background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 0">
-          Renvoyer le code
-        </button>
-      </div>`;
-    document.body.appendChild(m);
-    document.getElementById("btn-sca-confirm").addEventListener("click", _confirmerSCA);
-    document.getElementById("btn-sca-resend").addEventListener("click", _envoyerOtpSca);
-    document.getElementById("sca-code-input").addEventListener("keydown", e => {
-      if (e.key === "Enter") _confirmerSCA();
-    });
-  }
-  m.style.display = "flex";
-  document.getElementById("sca-code-input").value = "";
-  document.getElementById("sca-msg").textContent = "";
-  document.getElementById("sca-email-info").textContent = "";
-  // Envoyer l'OTP automatiquement à l'ouverture
-  _envoyerOtpSca().then(() => {
-    setTimeout(() => document.getElementById("sca-code-input")?.focus(), 100);
-  });
-}
-
-async function _confirmerSCA() {
-  const code = document.getElementById("sca-code-input").value.trim();
-  const msg  = document.getElementById("sca-msg");
-  if (!/^\d{6}$/.test(code)) {
-    msg.style.color = "var(--down)";
-    msg.textContent = "Entrez exactement 6 chiffres.";
-    return;
-  }
-
-  const btn = document.getElementById("btn-sca-confirm");
-  btn.disabled = true;
-  msg.textContent = "";
-  try {
-    await _apiCall("/api/sca/verifier", { method: "POST", body: JSON.stringify({ code }) });
-    document.getElementById("modal-sca-overlay").style.display = "none";
-    showToast("OTP validé ✓", "Authentification confirmée. Repassez votre ordre.", "success");
-  } catch (e) {
-    msg.style.color = "var(--down)";
-    msg.textContent = e.message || "Code incorrect ou expiré.";
-    document.getElementById("sca-code-input").value = "";
-    document.getElementById("sca-code-input").focus();
-  } finally {
-    btn.disabled = false;
-  }
-}
 
 function showFormMsg(msg, type) {
   const el = document.getElementById("form-msg");
