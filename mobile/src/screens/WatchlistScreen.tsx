@@ -14,9 +14,9 @@ import { useMarketData, Stock } from '../../hooks/useMarketData';
 import type { MainTabParamList } from '../navigation/types';
 
 const C = {
-  bg: '#070b1c', panel: '#111733', panel2: '#0e1430',
-  txt: '#e7ecff', muted: '#8a93b8', line: '#1f2a52',
-  up: '#22c55e', down: '#ef4444', accent: '#60a5fa', gold: '#f59e0b', flat: '#9ca3af',
+  bg: '#f8fafc', panel: '#ffffff', panel2: '#f1f5f9',
+  txt: '#0f172a', muted: '#64748b', line: '#e2e8f0',
+  up: '#16a34a', down: '#dc2626', accent: '#7B1D3A', gold: '#f59e0b', flat: '#9ca3af',
 };
 
 function fmtN(x: number | null | undefined, dp = 2) {
