@@ -13,6 +13,10 @@ on:
         description: 'Construire un nouvel APK Android (consomme quota EAS)'
         type: boolean
         default: false
+      deploy_keycloak:
+        description: 'Forcer le rebuild et déploiement de l image Keycloak bourse'
+        type: boolean
+        default: false
 
 env:
   # Secrets à configurer dans Settings → Secrets → Actions du repo GitHub :
@@ -134,7 +138,7 @@ jobs:
           docker push $ACR/bourse-admin-frontend:latest
 
       - name: Build & push keycloak
-        if: needs.changes.outputs.keycloak == 'true'
+        if: needs.changes.outputs.keycloak == 'true' || inputs.deploy_keycloak == true
         run: |
           docker build \
             -t $ACR/bourse-keycloak:${{ github.sha }} \
@@ -250,7 +254,7 @@ jobs:
           fi
 
       - name: Deploy keycloak
-        if: needs.changes.outputs.keycloak == 'true'
+        if: needs.changes.outputs.keycloak == 'true' || inputs.deploy_keycloak == true
         run: |
           kubectl set image deployment/bourse-platform-keycloak \
             -n $NS keycloak=$ACR/bourse-keycloak:${{ github.sha }}
