@@ -1,11 +1,11 @@
-<#-- login-reset-password.ftl — BourseOnline — mot de passe oublié -->
+﻿<#-- login-reset-password.ftl â€” CFBourse â€” mot de passe oubliÃ© -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#60a5fa">
-  <title>Mot de passe oublié · BourseOnline</title>
+  <title>Mot de passe oubliÃ© Â· CFBourse</title>
   <link rel="stylesheet" href="${url.resourcesPath}/css/login.css">
 </head>
 <body>
@@ -15,19 +15,19 @@
 
     <!-- Logo -->
     <div class="bourse-logo">
-      <a href="${properties.kcLogoLink!'http://localhost:3000'}" class="bourse-logo-badge" title="BourseOnline">
+      <a href="${properties.kcLogoLink!'http://localhost:3000'}" class="bourse-logo-badge" title="CFBourse">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
       </a>
-      <div class="bourse-logo-name">BourseOnline</div>
+      <div class="bourse-logo-name">CFBourse</div>
     </div>
 
     <!-- Titre -->
     <div class="bourse-header">
-      <h1 class="bourse-title">Mot de passe oublié</h1>
+      <h1 class="bourse-title">Mot de passe oubliÃ©</h1>
       <p class="bourse-subtitle">
-        Saisissez votre adresse e-mail et nous vous enverrons un lien de réinitialisation.
+        Saisissez votre adresse e-mail et nous vous enverrons un lien de rÃ©initialisation.
       </p>
     </div>
 
@@ -36,7 +36,7 @@
       <#if message?has_content>
         <div class="kc-alert ${message.type}" role="alert">
           <span class="kc-alert-icon">
-            <#if message.type == 'success'>✓<#elseif message.type == 'error'>✕<#else>ℹ</#if>
+            <#if message.type == 'success'>âœ“<#elseif message.type == 'error'>âœ•<#else>â„¹</#if>
           </span>
           <span>${kcSanitize(message.summary)?no_esc}</span>
         </div>
@@ -73,12 +73,12 @@
         </div>
 
         <button class="btn-primary" type="submit" id="kc-reset-submit">
-          Envoyer le lien de réinitialisation
-          <span class="btn-arrow">›</span>
+          Envoyer le lien de rÃ©initialisation
+          <span class="btn-arrow">â€º</span>
         </button>
 
         <a class="btn-secondary" href="${url.loginUrl}">
-          ← Retour à la connexion
+          â† Retour Ã  la connexion
         </a>
 
       </form>
@@ -91,8 +91,9 @@
   document.getElementById('kc-reset-form').addEventListener('submit', function() {
     var btn = document.getElementById('kc-reset-submit');
     btn.disabled = true;
-    btn.textContent = 'Envoi en cours…';
+    btn.textContent = 'Envoi en coursâ€¦';
   });
 </script>
 </body>
 </html>
+

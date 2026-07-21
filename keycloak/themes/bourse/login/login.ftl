@@ -1,11 +1,11 @@
-<#-- login.ftl — BourseOnline — connexion investisseur -->
+<#-- login.ftl — CFBourse — connexion investisseur -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#7B1D3A">
-  <title>Connexion · BourseOnline</title>
+  <title>Connexion · CFBourse</title>
   <link rel="stylesheet" href="${url.resourcesPath}/css/login.css">
 </head>
 <body>
@@ -15,12 +15,12 @@
 
     <!-- Logo -->
     <div class="bourse-logo">
-      <a href="${properties.kcLogoLink!'http://localhost:3000'}" class="bourse-logo-badge" title="BourseOnline">
+      <a href="${properties.kcLogoLink!'http://localhost:3000'}" class="bourse-logo-badge" title="CFBourse">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
       </a>
-      <div class="bourse-logo-name">BourseOnline</div>
+      <div class="bourse-logo-name">CFBourse</div>
       <div class="bourse-logo-tagline">Plateforme de trading en ligne</div>
     </div>
 
