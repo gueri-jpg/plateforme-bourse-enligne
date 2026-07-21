@@ -1,11 +1,11 @@
-<#-- login-update-password.ftl — BourseOnline — choisir un nouveau mot de passe -->
+﻿<#-- login-update-password.ftl â€” CFBourse â€” choisir un nouveau mot de passe -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#60a5fa">
-  <title>Nouveau mot de passe · BourseOnline</title>
+  <title>Nouveau mot de passe Â· CFBourse</title>
   <link rel="stylesheet" href="${url.resourcesPath}/css/login.css">
 </head>
 <body>
@@ -15,18 +15,18 @@
 
     <!-- Logo -->
     <div class="bourse-logo">
-      <a href="${properties.kcLogoLink!'http://localhost:3000'}" class="bourse-logo-badge" title="BourseOnline">
+      <a href="${properties.kcLogoLink!'http://localhost:3000'}" class="bourse-logo-badge" title="CFBourse">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
       </a>
-      <div class="bourse-logo-name">BourseOnline</div>
+      <div class="bourse-logo-name">CFBourse</div>
     </div>
 
     <!-- Titre -->
     <div class="bourse-header">
       <h1 class="bourse-title">Choisissez un nouveau mot de passe</h1>
-      <p class="bourse-subtitle">Votre nouveau mot de passe doit comporter au moins 8 caractères.</p>
+      <p class="bourse-subtitle">Votre nouveau mot de passe doit comporter au moins 8 caractÃ¨res.</p>
     </div>
 
     <div class="bourse-body">
@@ -34,7 +34,7 @@
       <#if message?has_content && (message.type != 'warning' || !isAppInitiatedAction??)>
         <div class="kc-alert ${message.type}" role="alert">
           <span class="kc-alert-icon">
-            <#if message.type == 'success'>✓<#elseif message.type == 'error'>✕<#else>!</#if>
+            <#if message.type == 'success'>âœ“<#elseif message.type == 'error'>âœ•<#else>!</#if>
           </span>
           <span>${kcSanitize(message.summary)?no_esc}</span>
         </div>
@@ -59,7 +59,7 @@
             <input
               class="form-input<#if messagesPerField.existsError('password-new','password-confirm')> has-error</#if>"
               type="password" id="password-new" name="password-new"
-              autocomplete="new-password" placeholder="Min. 8 caractères"
+              autocomplete="new-password" placeholder="Min. 8 caractÃ¨res"
               autofocus
             >
             <button type="button" class="toggle-pw" onclick="togglePw(this,'password-new')" aria-label="Afficher le mot de passe">
@@ -108,8 +108,8 @@
         </div>
 
         <button class="btn-primary" type="submit" id="kc-update-submit">
-          Mettre à jour le mot de passe
-          <span class="btn-arrow">›</span>
+          Mettre Ã  jour le mot de passe
+          <span class="btn-arrow">â€º</span>
         </button>
 
         <#if isAppInitiatedAction??>
@@ -138,8 +138,9 @@
     if (e.submitter && e.submitter.name === 'cancel-aia') return;
     var btn = document.getElementById('kc-update-submit');
     btn.disabled = true;
-    btn.textContent = 'Mise à jour en cours…';
+    btn.textContent = 'Mise Ã  jour en coursâ€¦';
   });
 </script>
 </body>
 </html>
+

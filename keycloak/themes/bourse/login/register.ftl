@@ -1,11 +1,11 @@
-<#-- register.ftl — BourseOnline — inscription investisseur -->
+﻿<#-- register.ftl â€” CFBourse â€” inscription investisseur -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#60a5fa">
-  <title>Créer un compte · BourseOnline</title>
+  <title>CrÃ©er un compte Â· CFBourse</title>
   <link rel="stylesheet" href="${url.resourcesPath}/css/login.css">
 </head>
 <body>
@@ -15,18 +15,18 @@
 
     <!-- Logo -->
     <div class="bourse-logo">
-      <a href="${properties.kcLogoLink!'http://localhost:3000'}" class="bourse-logo-badge" title="BourseOnline">
+      <a href="${properties.kcLogoLink!'http://localhost:3000'}" class="bourse-logo-badge" title="CFBourse">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
       </a>
-      <div class="bourse-logo-name">BourseOnline</div>
+      <div class="bourse-logo-name">CFBourse</div>
       <div class="bourse-logo-tagline">Rejoignez la plateforme de trading</div>
     </div>
 
     <!-- Titre -->
     <div class="bourse-header">
-      <h1 class="bourse-title">Créer votre compte</h1>
+      <h1 class="bourse-title">CrÃ©er votre compte</h1>
       <p class="bourse-subtitle">Ouvrez votre espace investisseur en quelques minutes.</p>
     </div>
 
@@ -35,7 +35,7 @@
       <#if message?has_content>
         <div class="kc-alert ${message.type}" role="alert">
           <span class="kc-alert-icon">
-            <#if message.type == 'success'>✓<#elseif message.type == 'error'>✕<#else>!</#if>
+            <#if message.type == 'success'>âœ“<#elseif message.type == 'error'>âœ•<#else>!</#if>
           </span>
           <span>${kcSanitize(message.summary)?no_esc}</span>
         </div>
@@ -43,10 +43,10 @@
 
       <form id="kc-register-form" action="${url.loginAction}" method="post" novalidate>
 
-        <!-- Prénom + Nom -->
+        <!-- PrÃ©nom + Nom -->
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label" for="firstName">Prénom</label>
+            <label class="form-label" for="firstName">PrÃ©nom</label>
             <div class="input-wrap">
               <span class="input-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -58,7 +58,7 @@
                 class="form-input<#if messagesPerField.existsError('firstName')> has-error</#if>"
                 type="text" id="firstName" name="firstName"
                 value="${(register.formData.firstName)!''}"
-                autocomplete="given-name" placeholder="Prénom" autofocus
+                autocomplete="given-name" placeholder="PrÃ©nom" autofocus
               >
             </div>
             <#if messagesPerField.existsError('firstName')>
@@ -110,7 +110,7 @@
           </#if>
         </div>
 
-        <!-- Nom d'utilisateur (si différent de l'email) -->
+        <!-- Nom d'utilisateur (si diffÃ©rent de l'email) -->
         <#if !realm.registrationEmailAsUsername>
           <div class="form-group">
             <label class="form-label" for="username">Nom d'utilisateur</label>
@@ -148,7 +148,7 @@
               <input
                 class="form-input<#if messagesPerField.existsError('password','password-confirm')> has-error</#if>"
                 type="password" id="password" name="password"
-                autocomplete="new-password" placeholder="Min. 8 caractères"
+                autocomplete="new-password" placeholder="Min. 8 caractÃ¨res"
               >
               <button type="button" class="toggle-pw" onclick="togglePw(this,'password')" aria-label="Afficher le mot de passe">
                 <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -204,15 +204,15 @@
         </#if>
 
         <button class="btn-primary" type="submit" id="kc-register">
-          Créer mon compte
-          <span class="btn-arrow">›</span>
+          CrÃ©er mon compte
+          <span class="btn-arrow">â€º</span>
         </button>
       </form>
 
     </div><!-- /bourse-body -->
 
     <div class="bourse-footer">
-      Déjà inscrit ?<a href="${url.loginUrl}">Se connecter</a>
+      DÃ©jÃ  inscrit ?<a href="${url.loginUrl}">Se connecter</a>
     </div>
 
     <!-- Badges de confiance -->
@@ -224,8 +224,8 @@
           </svg>
         </span>
         <div>
-          <div class="trust-title">Inscription sécurisée</div>
-          <div class="trust-text">Données protégées</div>
+          <div class="trust-title">Inscription sÃ©curisÃ©e</div>
+          <div class="trust-text">DonnÃ©es protÃ©gÃ©es</div>
         </div>
       </div>
       <div class="trust-sep"></div>
@@ -236,7 +236,7 @@
           </svg>
         </span>
         <div>
-          <div class="trust-title">Accès immédiat</div>
+          <div class="trust-title">AccÃ¨s immÃ©diat</div>
           <div class="trust-text">Compte gratuit</div>
         </div>
       </div>
@@ -271,8 +271,9 @@
   document.getElementById('kc-register-form').addEventListener('submit', function() {
     var btn = document.getElementById('kc-register');
     btn.disabled = true;
-    btn.innerHTML = 'Création en cours…';
+    btn.innerHTML = 'CrÃ©ation en coursâ€¦';
   });
 </script>
 </body>
 </html>
+
