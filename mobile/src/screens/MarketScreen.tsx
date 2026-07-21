@@ -33,6 +33,15 @@ function fmtN(x: number | null | undefined, dp = 2) {
   return (x as number).toLocaleString('fr-FR', { minimumFractionDigits: dp, maximumFractionDigits: dp });
 }
 
+function fmtK(x: number | null | undefined): string {
+  if (x === null || x === undefined || isNaN(x as number)) return '—';
+  const n = x as number;
+  if (n >= 1e9) return `${(n / 1e9).toFixed(2)} Md`;
+  if (n >= 1e6) return `${(n / 1e6).toFixed(2)} M`;
+  if (n >= 1e3) return `${(n / 1e3).toFixed(1)} k`;
+  return fmtN(n, 0);
+}
+
 function varColor(pct: number) {
   return isNaN(pct) ? C.flat : pct > 0 ? C.up : pct < 0 ? C.down : C.flat;
 }
@@ -88,22 +97,39 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
               </TouchableOpacity>
             </View>
 
-            {/* Prix + variation */}
+            {/* Prix + variations */}
             <View style={modal.priceRow}>
-              <Text style={modal.price}>{fmtN(stock.price, 2)} MAD</Text>
-              <Text style={[modal.var, { color: varColor(stock.pct) }]}>{varLabel(stock.pct)}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={modal.price}>{fmtN(stock.price, 2)} MAD</Text>
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
+                  <Text style={[modal.var, { color: varColor(stock.pct) }]}>{varLabel(stock.pct)}</Text>
+                  {ob?.instrumentVarYear != null && (
+                    <Text style={[modal.var, { color: varColor(parseFloat(ob.instrumentVarYear)) }]}>
+                      {varLabel(parseFloat(ob.instrumentVarYear))} YTD
+                    </Text>
+                  )}
+                </View>
+              </View>
+              {ob?.etatCotVal && (
+                <View style={modal.etatBadge}>
+                  <Text style={modal.etatTxt}>{ob.etatCotVal}</Text>
+                </View>
+              )}
             </View>
 
-            {/* Grille OHLC + vol */}
+            {/* Grille OHLC BVC */}
             <View style={modal.grid}>
-              {[
-                ['Ouverture', fmtN(stock.open)],
-                ['+ Haut',    fmtN(stock.high)],
-                ['+ Bas',     fmtN(stock.low)],
-                ['Vol. MAD',  fmtN(stock.volMAD, 0)],
-                ['Trades',    stock.totalTrades > 0 ? String(stock.totalTrades) : '—'],
-                ['Statut',    stock.etat || '—'],
-              ].map(([label, val]) => (
+              {(() => {
+                const isPre = ob?.etatCotVal === 'PRE';
+                return [
+                  [isPre ? 'Théorique' : 'Ouverture', fmtN(isPre ? ob?.pto : (ob?.openingPrice ?? stock.open))],
+                  ['+ Haut',      fmtN(ob?.highPrice   ?? stock.high)],
+                  ['+ Bas',       fmtN(ob?.lowPrice    ?? stock.low)],
+                  ['Référence',   fmtN(ob?.staticReferencePrice)],
+                  ['Vol. titres', fmtK(ob?.cumulTitresEchanges)],
+                  ['Montant',     fmtK(ob?.cumulVolumeEchange)],
+                ];
+              })().map(([label, val]) => (
                 <View key={label} style={modal.gridItem}>
                   <Text style={modal.gridLabel}>{label}</Text>
                   <Text style={modal.gridVal}>{val}</Text>
@@ -114,6 +140,9 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
             {/* ── Carnet BVC ── */}
             <View style={modal.sectionHeader}>
               <Text style={modal.sectionTitle}>Carnet BVC</Text>
+              {ob?.totalTrades != null && (
+                <Text style={{ fontSize: 11, color: C.muted, marginLeft: 8 }}>{ob.totalTrades} trades</Text>
+              )}
               {obLoading && !ob && (
                 <ActivityIndicator size="small" color={C.accent} style={{ marginLeft: 8 }} />
               )}
@@ -516,9 +545,11 @@ const modal = StyleSheet.create({
   sector:        { fontSize: 12, color: C.muted, marginTop: 2 },
   star:          { padding: 4, marginRight: 8 },
   close:         { padding: 4 },
-  priceRow:      { flexDirection: 'row', alignItems: 'baseline', gap: 12, marginBottom: 16 },
+  priceRow:      { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 16 },
   price:         { fontSize: 26, fontWeight: '700', color: C.txt },
-  var:           { fontSize: 16, fontWeight: '600' },
+  var:           { fontSize: 14, fontWeight: '600' },
+  etatBadge:     { backgroundColor: C.panel2, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: C.line, alignSelf: 'flex-start', marginTop: 4 },
+  etatTxt:       { fontSize: 11, fontWeight: '700', color: C.muted, letterSpacing: 0.5 },
   grid:          { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   gridItem:      { width: '30%', backgroundColor: C.panel2, borderRadius: 8, padding: 10 },
   gridLabel:     { fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5 },

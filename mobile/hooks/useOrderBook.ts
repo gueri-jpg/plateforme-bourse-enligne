@@ -11,17 +11,26 @@ export interface LastTransaction {
 }
 
 export interface OrderBook {
-  ticker:            string;
-  bestBidPrice:      number | null;
-  bestBidSize:       number | null;
-  bestAskPrice:      number | null;
-  bestAskSize:       number | null;
-  lastTradedPrice:   number | null;
-  lastTradedTime:    string | null;
-  etatCotVal:        string | null;
-  totalTrades:       number | null;
-  varVeille:         number | null;
-  lastTransactions:  LastTransaction[];
+  ticker:               string;
+  bestBidPrice:         number | null;
+  bestBidSize:          number | null;
+  bestAskPrice:         number | null;
+  bestAskSize:          number | null;
+  lastTradedPrice:      number | null;
+  lastTradedTime:       string | null;
+  etatCotVal:           string | null;
+  totalTrades:          number | null;
+  varVeille:            number | null;
+  openingPrice:         number | null;
+  highPrice:            number | null;
+  lowPrice:             number | null;
+  staticReferencePrice: number | null;
+  pto:                  number | null;
+  cumulTitresEchanges:  number | null;
+  cumulVolumeEchange:   number | null;
+  instrumentVarYear:    string | null;
+  capitalisation:       number | null;
+  lastTransactions:     LastTransaction[];
 }
 
 const POLL_MS = 30_000;
