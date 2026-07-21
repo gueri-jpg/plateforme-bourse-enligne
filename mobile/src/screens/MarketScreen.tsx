@@ -8,11 +8,12 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View, Text, TextInput, StyleSheet,
   TouchableOpacity, Modal, ScrollView, Alert,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useMarketData, Stock } from '../../hooks/useMarketData';
+import { useOrderBook } from '../../hooks/useOrderBook';
 import { ScreenHeader } from '../components/ScreenHeader';
 import {
   isMarketOpen, toggleWatchlist, getWatchlist,
@@ -58,61 +59,142 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
   isStarred:    boolean;
   onToggleStar: () => void;
 }) {
+  const { data: ob, loading: obLoading } = useOrderBook(stock.ticker || null);
+
+  const fmtTime = (iso: string) => {
+    if (!iso) return '—';
+    const t = iso.includes('T') ? iso.split('T')[1] : iso;
+    return t.slice(0, 5);
+  };
+
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onClose}>
       <View style={modal.overlay}>
-        <View style={modal.card}>
-          <View style={modal.header}>
-            <View style={{ flex: 1 }}>
-              <Text style={modal.name}>{stock.name}</Text>
-              <Text style={modal.sector}>{stock.sector}</Text>
-            </View>
-            <TouchableOpacity onPress={onToggleStar} style={modal.star}>
-              <Text style={{ fontSize: 24, color: isStarred ? C.gold : C.muted }}>
-                {isStarred ? '★' : '☆'}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onClose} style={modal.close}>
-              <Text style={{ color: C.muted, fontSize: 20 }}>✕</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={modal.priceRow}>
-            <Text style={modal.price}>{fmtN(stock.price, 2)} MAD</Text>
-            <Text style={[modal.var, { color: varColor(stock.pct) }]}>{varLabel(stock.pct)}</Text>
-          </View>
-
-          <View style={modal.grid}>
-            {[
-              ['Ouverture', fmtN(stock.open)],
-              ['+ Haut',    fmtN(stock.high)],
-              ['+ Bas',     fmtN(stock.low)],
-              ['Bid',       fmtN(stock.bid)],
-              ['Ask',       fmtN(stock.ask)],
-              ['Vol. MAD',  fmtN(stock.volMAD, 0)],
-            ].map(([label, val]) => (
-              <View key={label} style={modal.gridItem}>
-                <Text style={modal.gridLabel}>{label}</Text>
-                <Text style={modal.gridVal}>{val}</Text>
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 24 }}>
+          <View style={modal.card}>
+            {/* En-tête */}
+            <View style={modal.header}>
+              <View style={{ flex: 1 }}>
+                <Text style={modal.name}>{stock.name}</Text>
+                <Text style={modal.sector}>{stock.sector}</Text>
               </View>
-            ))}
-          </View>
+              <TouchableOpacity onPress={onToggleStar} style={modal.star}>
+                <Text style={{ fontSize: 24, color: isStarred ? C.gold : C.muted }}>
+                  {isStarred ? '★' : '☆'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onClose} style={modal.close}>
+                <Text style={{ color: C.muted, fontSize: 20 }}>✕</Text>
+              </TouchableOpacity>
+            </View>
 
-          <View style={modal.actions}>
-            <TouchableOpacity
-              style={[modal.btn, { borderColor: C.up, backgroundColor: 'rgba(34,197,94,0.1)' }]}
-              onPress={() => onOrder(stock, 'achat')}
-            >
-              <Text style={{ color: C.up, fontWeight: '700', fontSize: 15 }}>Acheter</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[modal.btn, { borderColor: C.down, backgroundColor: 'rgba(239,68,68,0.1)' }]}
-              onPress={() => onOrder(stock, 'vente')}
-            >
-              <Text style={{ color: C.down, fontWeight: '700', fontSize: 15 }}>Vendre</Text>
-            </TouchableOpacity>
+            {/* Prix + variation */}
+            <View style={modal.priceRow}>
+              <Text style={modal.price}>{fmtN(stock.price, 2)} MAD</Text>
+              <Text style={[modal.var, { color: varColor(stock.pct) }]}>{varLabel(stock.pct)}</Text>
+            </View>
+
+            {/* Grille OHLC + vol */}
+            <View style={modal.grid}>
+              {[
+                ['Ouverture', fmtN(stock.open)],
+                ['+ Haut',    fmtN(stock.high)],
+                ['+ Bas',     fmtN(stock.low)],
+                ['Vol. MAD',  fmtN(stock.volMAD, 0)],
+                ['Trades',    stock.totalTrades > 0 ? String(stock.totalTrades) : '—'],
+                ['Statut',    stock.etat || '—'],
+              ].map(([label, val]) => (
+                <View key={label} style={modal.gridItem}>
+                  <Text style={modal.gridLabel}>{label}</Text>
+                  <Text style={modal.gridVal}>{val}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* ── Carnet BVC ── */}
+            <View style={modal.sectionHeader}>
+              <Text style={modal.sectionTitle}>Carnet BVC</Text>
+              {obLoading && !ob && (
+                <ActivityIndicator size="small" color={C.accent} style={{ marginLeft: 8 }} />
+              )}
+            </View>
+
+            {ob ? (
+              <>
+                {/* Bid / Ask */}
+                <View style={modal.bookRow}>
+                  {/* BID */}
+                  <View style={[modal.bookSide, { backgroundColor: 'rgba(22,163,74,0.06)', borderColor: 'rgba(22,163,74,0.25)' }]}>
+                    <Text style={[modal.bookLabel, { color: C.up }]}>▲ ACHAT</Text>
+                    <Text style={[modal.bookPrice, { color: C.up }]}>
+                      {ob.bestBidPrice != null ? fmtN(ob.bestBidPrice) : '—'} MAD
+                    </Text>
+                    <Text style={modal.bookQty}>
+                      {ob.bestBidSize != null ? `× ${fmtN(ob.bestBidSize, 0)} titres` : '—'}
+                    </Text>
+                  </View>
+
+                  {/* Spread */}
+                  <View style={modal.bookSpread}>
+                    <Text style={modal.bookSpreadTxt}>
+                      {ob.bestBidPrice != null && ob.bestAskPrice != null
+                        ? fmtN(ob.bestAskPrice - ob.bestBidPrice)
+                        : '—'}
+                    </Text>
+                    <Text style={[modal.bookLabel, { color: C.muted, fontSize: 9 }]}>Écart</Text>
+                  </View>
+
+                  {/* ASK */}
+                  <View style={[modal.bookSide, { backgroundColor: 'rgba(220,38,38,0.06)', borderColor: 'rgba(220,38,38,0.25)' }]}>
+                    <Text style={[modal.bookLabel, { color: C.down }]}>▼ VENTE</Text>
+                    <Text style={[modal.bookPrice, { color: C.down }]}>
+                      {ob.bestAskPrice != null ? fmtN(ob.bestAskPrice) : '—'} MAD
+                    </Text>
+                    <Text style={modal.bookQty}>
+                      {ob.bestAskSize != null ? `× ${fmtN(ob.bestAskSize, 0)} titres` : '—'}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Dernières transactions */}
+                {ob.lastTransactions.length > 0 && (
+                  <>
+                    <Text style={modal.txTitle}>Derniers trades</Text>
+                    {ob.lastTransactions.slice(0, 5).map((tx, i) => (
+                      <View key={i} style={modal.txRow}>
+                        <Text style={modal.txTime}>{fmtTime(tx.time)}</Text>
+                        <Text style={modal.txPrice}>
+                          {tx.price != null ? fmtN(tx.price) : '—'} MAD
+                        </Text>
+                        <Text style={modal.txQty}>
+                          × {tx.qty != null ? fmtN(tx.qty, 0) : '—'}
+                        </Text>
+                      </View>
+                    ))}
+                  </>
+                )}
+              </>
+            ) : !obLoading ? (
+              <Text style={modal.bookNA}>Données indisponibles pour ce ticker</Text>
+            ) : null}
+
+            {/* Boutons */}
+            <View style={modal.actions}>
+              <TouchableOpacity
+                style={[modal.btn, { borderColor: C.up, backgroundColor: 'rgba(34,197,94,0.1)' }]}
+                onPress={() => onOrder(stock, 'achat')}
+              >
+                <Text style={{ color: C.up, fontWeight: '700', fontSize: 15 }}>Acheter</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[modal.btn, { borderColor: C.down, backgroundColor: 'rgba(239,68,68,0.1)' }]}
+                onPress={() => onOrder(stock, 'vente')}
+              >
+                <Text style={{ color: C.down, fontWeight: '700', fontSize: 15 }}>Vendre</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </ScrollView>
       </View>
     </Modal>
   );
@@ -427,20 +509,37 @@ const s = StyleSheet.create({
 });
 
 const modal = StyleSheet.create({
-  overlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', paddingHorizontal: 20 },
-  card:      { backgroundColor: C.panel, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: C.line },
-  header:    { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
-  name:      { fontSize: 18, fontWeight: '700', color: C.txt },
-  sector:    { fontSize: 12, color: C.muted, marginTop: 2 },
-  star:      { padding: 4, marginRight: 8 },
-  close:     { padding: 4 },
-  priceRow:  { flexDirection: 'row', alignItems: 'baseline', gap: 12, marginBottom: 16 },
-  price:     { fontSize: 26, fontWeight: '700', color: C.txt },
-  var:       { fontSize: 16, fontWeight: '600' },
-  grid:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  gridItem:  { width: '30%', backgroundColor: C.panel2, borderRadius: 8, padding: 10 },
-  gridLabel: { fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  gridVal:   { fontSize: 14, fontWeight: '600', color: C.txt, marginTop: 3 },
-  actions:   { flexDirection: 'row', gap: 10 },
-  btn:       { flex: 1, borderWidth: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  overlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center' },
+  card:          { backgroundColor: C.panel, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: C.line },
+  header:        { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
+  name:          { fontSize: 18, fontWeight: '700', color: C.txt },
+  sector:        { fontSize: 12, color: C.muted, marginTop: 2 },
+  star:          { padding: 4, marginRight: 8 },
+  close:         { padding: 4 },
+  priceRow:      { flexDirection: 'row', alignItems: 'baseline', gap: 12, marginBottom: 16 },
+  price:         { fontSize: 26, fontWeight: '700', color: C.txt },
+  var:           { fontSize: 16, fontWeight: '600' },
+  grid:          { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+  gridItem:      { width: '30%', backgroundColor: C.panel2, borderRadius: 8, padding: 10 },
+  gridLabel:     { fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
+  gridVal:       { fontSize: 14, fontWeight: '600', color: C.txt, marginTop: 3 },
+  actions:       { flexDirection: 'row', gap: 10, marginTop: 16 },
+  btn:           { flex: 1, borderWidth: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  // Carnet BVC
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  sectionTitle:  { fontSize: 11, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.6 },
+  bookRow:       { flexDirection: 'row', gap: 6, marginBottom: 12 },
+  bookSide:      { flex: 1, borderRadius: 10, borderWidth: 1, padding: 10, alignItems: 'center' },
+  bookSpread:    { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  bookSpreadTxt: { fontSize: 12, fontWeight: '700', color: C.muted },
+  bookLabel:     { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  bookPrice:     { fontSize: 15, fontWeight: '800' },
+  bookQty:       { fontSize: 11, color: C.muted, marginTop: 2 },
+  bookNA:        { fontSize: 12, color: C.muted, textAlign: 'center', paddingVertical: 8 },
+  // Derniers trades
+  txTitle:       { fontSize: 11, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6 },
+  txRow:         { flexDirection: 'row', paddingVertical: 5, borderTopWidth: 1, borderTopColor: C.line },
+  txTime:        { fontSize: 12, color: C.muted, width: 46 },
+  txPrice:       { flex: 1, fontSize: 12, fontWeight: '600', color: C.txt },
+  txQty:         { fontSize: 12, color: C.muted, textAlign: 'right' },
 });
