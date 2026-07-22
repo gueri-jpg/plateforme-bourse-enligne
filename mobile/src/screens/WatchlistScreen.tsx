@@ -10,6 +10,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { getWatchlist, toggleWatchlist } from '../../services/trading';
+import { TickerLogo } from '../components/TickerLogo';
 import { useMarketData, Stock } from '../../hooks/useMarketData';
 import type { MainTabParamList } from '../navigation/types';
 
@@ -55,6 +56,9 @@ export function WatchlistScreen() {
   const renderItem = ({ item }: { item: Stock }) => (
     <View style={s.card}>
       <View style={s.top}>
+        <View style={{ marginRight: 10 }}>
+          <TickerLogo ticker={item.ticker} size={36} />
+        </View>
         <View style={{ flex: 1 }}>
           <Text style={s.name}>{item.name}</Text>
           <Text style={s.sector}>{item.sector}</Text>

@@ -19,8 +19,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff",
-        "foregroundImage": "./assets/android-icon-foreground.png"
+        "backgroundColor": "#7B1D3A",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "ma.ecentralecasa.bourseenligne"
     },
