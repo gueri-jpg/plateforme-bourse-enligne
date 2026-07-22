@@ -37,7 +37,7 @@ export interface ComptePortefeuille {
   mouvements:          CompteMouvement[];
 }
 
-export type StatutOrdre = 'execute' | 'en_attente' | 'annule';
+export type StatutOrdre = 'execute' | 'en_attente' | 'annule' | 'partiellement_execute' | 'rejete';
 
 export interface OrdreBackend {
   id:                string;
@@ -52,6 +52,8 @@ export interface OrdreBackend {
   quantite_executee: number;
   montant_total:     number;
   date:              string;
+  fix_cl_ord_id?:    string;
+  time_in_force?:    string;
 }
 
 export interface PlaceOrdreParams {
@@ -61,6 +63,7 @@ export interface PlaceOrdreParams {
   quantite:        number;
   prix_limite?:    number | null;
   prix_marche?:    number | null;
+  time_in_force?:  string;
 }
 
 export type PlaceOrdreResult =
@@ -172,7 +175,9 @@ export const MOUVEMENT_LABELS: Record<string, string> = {
 };
 
 export const STATUT_ORDRE_LABELS: Record<StatutOrdre, string> = {
-  execute:    'Exécuté',
-  en_attente: 'En attente',
-  annule:     'Annulé',
+  execute:              'Exécuté',
+  en_attente:           'En attente',
+  annule:               'Annulé',
+  partiellement_execute: 'Partiel',
+  rejete:               'Rejeté',
 };

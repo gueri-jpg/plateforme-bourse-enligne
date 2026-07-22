@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { TickerLogo } from '../components/TickerLogo';
 import {
   fetchOrdres, cancelOrdre,
   OrdreBackend, StatutOrdre,
@@ -37,18 +38,22 @@ function fmtDate(iso: string | null) {
 }
 
 const STATUS_COLORS: Record<StatutOrdre, string> = {
-  en_attente: C.gold,
-  execute:    C.up,
-  annule:     C.flat,
+  en_attente:           C.gold,
+  execute:              C.up,
+  annule:               C.flat,
+  partiellement_execute: '#f97316',
+  rejete:               C.down,
 };
 
 type FilterKey = StatutOrdre | 'all';
 
 const FILTERS: Array<{ key: FilterKey; label: string }> = [
-  { key: 'all',        label: 'Tous' },
-  { key: 'en_attente', label: 'En attente' },
-  { key: 'execute',    label: 'Exécutés' },
-  { key: 'annule',     label: 'Annulés' },
+  { key: 'all',                   label: 'Tous' },
+  { key: 'en_attente',            label: 'En attente' },
+  { key: 'execute',               label: 'Exécutés' },
+  { key: 'partiellement_execute', label: 'Partiels' },
+  { key: 'annule',                label: 'Annulés' },
+  { key: 'rejete',                label: 'Rejetés' },
 ];
 
 export function CarnetScreen() {
@@ -112,6 +117,9 @@ export function CarnetScreen() {
       <View style={s.card}>
         {/* En-tête */}
         <View style={s.cardHeader}>
+          <View style={{ marginRight: 10 }}>
+            <TickerLogo ticker={item.instrument} size={36} />
+          </View>
           <View style={{ flex: 1 }}>
             <Text style={s.cardName}>{item.nom || item.instrument}</Text>
             <Text style={s.cardCode}>{item.instrument}</Text>
@@ -139,10 +147,20 @@ export function CarnetScreen() {
             <Text style={s.cardLabel}>Quantité</Text>
             <Text style={s.cardVal}>{item.quantite} titre(s)</Text>
           </View>
-          {item.statut === 'execute' && item.quantite_executee > 0 && (
+          {(item.statut === 'execute' || item.statut === 'partiellement_execute') && item.quantite_executee > 0 && (
             <View style={s.cardRow}>
               <Text style={s.cardLabel}>Qté exécutée</Text>
-              <Text style={[s.cardVal, { color: C.up }]}>{item.quantite_executee} titre(s)</Text>
+              <Text style={[s.cardVal, { color: C.up }]}>
+                {item.quantite_executee}/{item.quantite} titre(s)
+              </Text>
+            </View>
+          )}
+          {item.fix_cl_ord_id && (
+            <View style={s.cardRow}>
+              <Text style={s.cardLabel}>Réf. FIX</Text>
+              <Text style={[s.cardVal, { color: C.muted, fontSize: 11, fontFamily: 'monospace' }]}>
+                {item.fix_cl_ord_id.slice(0, 8)}…
+              </Text>
             </View>
           )}
           {prixExec !== null && (

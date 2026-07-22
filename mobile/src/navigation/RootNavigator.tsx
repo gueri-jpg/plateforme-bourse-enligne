@@ -147,12 +147,8 @@ export function RootNavigator() {
       const token = extractSsoToken(url);
       if (!token) return;
       const s = useAuth.getState().status;
-      if (s === 'authenticated') {
-        navRef.navigate('Main');
-      } else {
-        setPendingBanqueSsoToken(token);
-        setSsoExchanging(true);
-      }
+      setPendingBanqueSsoToken(token);
+      if (s !== 'authenticated') setSsoExchanging(true);
 
     } else if (url.startsWith('bourseenligne://depot-confirm')) {
       let depotStatus: string | null = null;
@@ -214,9 +210,9 @@ export function RootNavigator() {
       // (évite le flash LoginScreen : early return SplashScreen reste actif jusqu'à la fin de l'échange)
       if (url.startsWith('bourseenligne://sso')) {
         const token = extractSsoToken(url);
-        if (token && useAuth.getState().status !== 'authenticated') {
+        if (token) {
           setPendingBanqueSsoToken(token);
-          setSsoExchanging(true);
+          if (useAuth.getState().status !== 'authenticated') setSsoExchanging(true);
           return;
         }
       }
@@ -243,18 +239,24 @@ export function RootNavigator() {
     if (status === 'unknown' || !pendingBanqueSsoToken) return;
     const token = pendingBanqueSsoToken;
     setPendingBanqueSsoToken(null);
-    if (status === 'authenticated') {
-      setSsoExchanging(false);
-      return;
-    }
     fetch(`${CONFIG.BANQUE_DASHBOARD_URL}/bourse/sso-exchange?token=${encodeURIComponent(token)}`)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(({ bourse_tokens }: {
+      .then(({ email, existe, est_lie, bourse_tokens }: {
         email: string; existe: boolean; est_lie: boolean;
         bourse_tokens?: { access_token: string; id_token?: string; refresh_token?: string; expires_in?: number };
       }) => {
+        const currentEmail = useAuth.getState().user?.email?.toLowerCase() ?? '';
+        const banqueEmail  = (email ?? '').toLowerCase();
+
+        // Même email que la session bourse active → rester connecté
+        if (status === 'authenticated' && currentEmail && currentEmail === banqueEmail) {
+          setSsoExchanging(false);
+          if (navRef.isReady()) navRef.navigate('Main');
+          return;
+        }
+
+        // Email différent ou non connecté : connecter le bon compte bourse
         if (bourse_tokens?.access_token) {
-          // setTokens → status=authenticated → early return lève → NavigationContainer monte sur Main
           useAuth.getState().setTokens({
             access_token:  bourse_tokens.access_token,
             id_token:      bourse_tokens.id_token,
@@ -262,12 +264,13 @@ export function RootNavigator() {
             expires_in:    bourse_tokens.expires_in ?? 300,
             token_type:    'Bearer',
           });
+        } else if (status === 'authenticated') {
+          // Aucun compte bourse pour l'email banque → déconnecter la mauvaise session
+          useAuth.getState().logout();
         }
-        // Lever le splash → NavigationContainer monte sur Login si pas de tokens
         setSsoExchanging(false);
       })
       .catch(() => {
-        // Erreur réseau : lever le splash → NavigationContainer monte sur Login
         setSsoExchanging(false);
       });
   }, [status, pendingBanqueSsoToken]);

@@ -3,8 +3,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View, Text, StyleSheet, ScrollView,
   TouchableOpacity, RefreshControl, Alert, Modal,
-  StatusBar as RNStatusBar, Animated, Easing,
+  StatusBar as RNStatusBar, Animated, Easing, Dimensions,
 } from 'react-native';
+import WebView from 'react-native-webview';
+
+const SCREEN_W = Dimensions.get('window').width;
+// 3 colonnes avec 2 gaps de 8px dans une section à margin 16px de chaque côté
+const INTL_CARD_W = Math.floor((SCREEN_W - 32 - 16) / 3);
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import {
@@ -170,6 +175,74 @@ function globalIcon(item: GlobalItem) {
   if (sym.includes('USO') || sym.includes('OIL') || sym.includes('WTI') || sym.includes('BRENT'))
     return <Flame size={13} color={MUTED} strokeWidth={2} />;
   return <BarChart2 size={13} color={BLUE} strokeWidth={2} />;
+}
+
+// ── TradingView mini charts ──────────────────────────────────────────────────
+const TV_CHARTS = [
+  'FOREXCOM:SPXUSD',
+  'FOREXCOM:NSXUSD',
+  'FOREXCOM:GRXEUR',
+  'FOREXCOM:FRXEUR',
+  'FOREXCOM:UKXGBP',
+  'BITSTAMP:BTCUSD',
+  'BITSTAMP:ETHUSD',
+  'OANDA:XAUUSD',
+  'OANDA:EURUSD',
+];
+const CHART_W = Math.floor(SCREEN_W * 0.88);
+const CHART_H = 220;
+
+function miniChartHtml(symbol: string): string {
+  return `<!DOCTYPE html><html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>*{margin:0;padding:0;}body{background:#131722;overflow:hidden;}</style>
+  </head><body>
+    <div class="tradingview-widget-container" style="width:100%;height:${CHART_H}px;">
+      <div class="tradingview-widget-container__widget" style="width:100%;height:${CHART_H}px;"></div>
+      <script type="text/javascript"
+        src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+      {"symbol":"${symbol}","width":"100%","height":${CHART_H},"locale":"fr",
+       "dateRange":"3M","colorTheme":"dark","isTransparent":false,"autosize":false}
+      </script>
+    </div>
+  </body></html>`;
+}
+
+function TradingViewCharts() {
+  return (
+    <View style={{ marginTop: 14 }}>
+      <Text style={{ fontSize: 11, color: MUTED, fontWeight: '600',
+          textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+        Courbes 2026
+      </Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: -16 }}
+        contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
+      >
+        {TV_CHARTS.map(symbol => (
+          <View key={symbol} style={{
+            width: CHART_W, height: CHART_H,
+            borderRadius: 12, overflow: 'hidden',
+            borderWidth: 1, borderColor: LINE,
+          }}>
+            <WebView
+              source={{ html: miniChartHtml(symbol) }}
+              style={{ width: CHART_W, height: CHART_H, backgroundColor: '#131722' }}
+              javaScriptEnabled
+              domStorageEnabled
+              incognito
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+            />
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
 }
 
 // ── Ticker BVC ──────────────────────────────────────────────────────────────
@@ -450,26 +523,25 @@ export function AccueilScreen() {
             </Text>
           ) : null}
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8, paddingBottom: 4 }}
-        >
-          {globalStatus === 'loading' ? (
-            <Text style={{ color: MUTED, fontSize: 13, fontStyle: 'italic' }}>Chargement…</Text>
-          ) : globalStatus === 'unavailable' && globalItems.length === 0 ? (
-            <Text style={{ color: MUTED, fontSize: 13, fontStyle: 'italic' }}>Données indisponibles</Text>
-          ) : globalItems.map((item: GlobalItem) => (
-            <View key={item.symbol} style={{ width: 120 }}>
-              <IntlCard
-                icon={globalIcon(item)}
-                label={item.label || item.symbol}
-                value={fmtMAD(item.price)}
-                pct={item.pct ?? 0}
-              />
-            </View>
-          ))}
-        </ScrollView>
+        {globalStatus === 'loading' ? (
+          <Text style={{ color: MUTED, fontSize: 13, fontStyle: 'italic' }}>Chargement…</Text>
+        ) : globalStatus === 'unavailable' && globalItems.length === 0 ? (
+          <Text style={{ color: MUTED, fontSize: 13, fontStyle: 'italic' }}>Données indisponibles</Text>
+        ) : (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {globalItems.map((item: GlobalItem) => (
+              <View key={item.symbol} style={{ width: INTL_CARD_W }}>
+                <IntlCard
+                  icon={globalIcon(item)}
+                  label={item.label || item.symbol}
+                  value={fmtMAD(item.price)}
+                  pct={item.pct ?? 0}
+                />
+              </View>
+            ))}
+          </View>
+        )}
+        <TradingViewCharts />
       </View>
       <AlimenterModal
         visible={showAlimenter}

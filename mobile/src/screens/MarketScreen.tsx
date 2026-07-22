@@ -15,6 +15,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useMarketData, Stock } from '../../hooks/useMarketData';
 import { useOrderBook } from '../../hooks/useOrderBook';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { TickerLogo } from '../components/TickerLogo';
 import {
   isMarketOpen, toggleWatchlist, getWatchlist,
   checkPendingOrders,
@@ -314,6 +315,9 @@ export function MarketScreen() {
           {watchlist.includes(item.name) ? '★' : '☆'}
         </Text>
       </TouchableOpacity>
+      <View style={{ marginRight: 8 }}>
+        <TickerLogo ticker={item.ticker} size={28} />
+      </View>
       <View style={s.rowLeft}>
         <Text style={s.name} numberOfLines={1}>{item.name}</Text>
         <Text style={s.sector} numberOfLines={1}>{item.sector}</Text>
@@ -388,7 +392,10 @@ export function MarketScreen() {
                 </View>
                 {topUp.map(st => (
                   <View key={st.name} style={s.moverPreviewRow}>
-                    <Text style={s.moverName} numberOfLines={1}>{st.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
+                      <TickerLogo ticker={st.ticker} size={16} />
+                      <Text style={[s.moverName, { flex: 1 }]} numberOfLines={1}>{st.name}</Text>
+                    </View>
                     <Text style={{ color: C.up, fontSize: 11, fontWeight: '600' }}>+{st.pct.toFixed(2)}%</Text>
                   </View>
                 ))}
@@ -408,7 +415,10 @@ export function MarketScreen() {
                 </View>
                 {topDown.map(st => (
                   <View key={st.name} style={s.moverPreviewRow}>
-                    <Text style={s.moverName} numberOfLines={1}>{st.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
+                      <TickerLogo ticker={st.ticker} size={16} />
+                      <Text style={[s.moverName, { flex: 1 }]} numberOfLines={1}>{st.name}</Text>
+                    </View>
                     <Text style={{ color: C.down, fontSize: 11, fontWeight: '600' }}>{st.pct.toFixed(2)}%</Text>
                   </View>
                 ))}
@@ -420,7 +430,10 @@ export function MarketScreen() {
               <View style={s.moverDropdown}>
                 {(expandHausses ? allUp : allDown).map(st => (
                   <TouchableOpacity key={st.name} style={s.moverRow} onPress={() => setSelected(st)}>
-                    <Text style={s.moverName} numberOfLines={1}>{st.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                      <TickerLogo ticker={st.ticker} size={22} />
+                      <Text style={[s.moverName, { flex: 1 }]} numberOfLines={1}>{st.name}</Text>
+                    </View>
                     <Text style={{ color: expandHausses ? C.up : C.down, fontSize: 12, fontWeight: '600' }}>
                       {expandHausses ? '+' : ''}{st.pct.toFixed(2)}%
                     </Text>

@@ -300,6 +300,7 @@
     /* ── Badges statut ordres ── */
     .badge-status { display:inline-block; padding:2px 9px; border-radius:999px; font-size:10px; font-weight:600; }
     .badge-status.exec    { background:rgba(34,197,94,.12); color:var(--up); }
+    .badge-status.partial { background:rgba(249,115,22,.12); color:#f97316; }
     .badge-status.pending { background:rgba(245,158,11,.12); color:var(--gold); }
     .badge-status.cancel  { background:rgba(156,163,175,.12); color:var(--flat); }
     .badge-status.reject  { background:rgba(239,68,68,.12); color:var(--down); }
@@ -1074,7 +1075,8 @@
               <option value="">-- Sélectionner une valeur --</option>
             </select>
           </div>
-          <div class="current-price-display">
+          <div class="current-price-display" style="display:flex;align-items:center;gap:10px">
+            <span id="ord-logo" style="display:inline-flex;align-items:center;flex-shrink:0"></span>
             <span class="price" id="ord-price-display">— MAD</span>
             <span class="var" id="ord-var-display"></span>
           </div>
@@ -1095,6 +1097,15 @@
               <input type="radio" id="ord-limite" name="type" value="limite">
               <label for="ord-limite">À cours limité</label>
             </div>
+          </div>
+          <div class="form-row">
+            <label>Validité</label>
+            <select id="ord-tif" style="background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;width:100%">
+              <option value="day">DAY — Valable aujourd'hui</option>
+              <option value="gtc">GTC — Jusqu'à annulation</option>
+              <option value="ioc">IOC — Immédiat ou annulé</option>
+              <option value="fok">FOK — Tout ou rien</option>
+            </select>
           </div>
           <div class="form-row" id="limit-price-row" style="display:none">
             <label>Prix limite (MAD)</label>
@@ -1132,6 +1143,7 @@
           <button class="carnet-filter active" data-filter="all">Tous</button>
           <button class="carnet-filter" data-filter="en_attente">En attente</button>
           <button class="carnet-filter" data-filter="execute">Exécutés</button>
+          <button class="carnet-filter" data-filter="partiellement_execute">Partiels</button>
           <button class="carnet-filter" data-filter="annule">Annulés</button>
           <button class="carnet-filter" data-filter="rejete">Rejetés</button>
         </div>
@@ -1658,7 +1670,7 @@ function parseStocks(doc) {
     for (const it of (sec.items||[])) {
       const inst = it.instrument||{};
       out.push({
-        sector: sec.title||"—", name: inst.label||"—",
+        sector: sec.title||"—", name: inst.label||"—", ticker: (inst.url||'').split('/').pop().toUpperCase()||'',
         price: asNum(it.field_cours_courant), ref: asNum(it.field_static_reference_price),
         open:  asNum(it.field_opening_price), pct: asNum(it.field_var_veille),
         high:  asNum(it.field_high_price),    low: asNum(it.field_low_price),
@@ -1698,6 +1710,50 @@ function applySnapshot(donnees) {
   document.getElementById("mkt-count").textContent = st.length + " valeurs";
 
   // Les ordres en attente sont gérés par le backend (pas de traitement client-side)
+}
+
+// ── Logos entreprises (Google Favicon + fallback initiales) ───────────────────
+const LOGO_DOMAINS = {
+  'AGM':'agma.ma',               'AKT':'akdital.ma',
+  'ARD':'aradeicapital.com',     'ATW':'attijariwafabank.com',
+  'BCI':'bmci.ma',               'BOA':'bankofafrica.ma',
+  'CAP':'cashplus.ma',           'CFG':'cfgbank.com',
+  'CIH':'cihbank.ma',            'CMA':'cimentsdumaroc.com',
+  'CMT':'managemgroup.com',      'COL':'colorado.ma',
+  'CSR':'cosumar.ma',            'CTM':'ctm.ma',
+  'DHO':'deltaholding.ma',       'EQD':'eqdom.ma',
+  'FBR':'feniebrossette.ma',     'GAZ':'afriquiagaz.com',
+  'IAM':'iam.ma',                'IMO':'immorente.ma',
+  'INV':'involys.com',           'LHM':'holcim.ma',
+  'MAB':'maghrebail.ma',         'MIC':'microdata.ma',
+  'MNG':'managemgroup.com',      'MUT':'mutandis.ma',
+  'OUL':'oulmes.ma',             'PRO':'promopharm.com',
+  'SID':'sonasid.ma',            'SNP':'snep.ma',
+  'TGC':'tgcc.ma',               'TMA':'totalenergies.com',
+};
+const _LOGO_COLORS = ['#7B1D3A','#1d4ed8','#0891b2','#059669','#7c3aed','#b45309','#be123c'];
+function _logoColor(t) {
+  let h = 0; for (const c of t) h = (h * 31 + c.charCodeAt(0)) % _LOGO_COLORS.length;
+  return _LOGO_COLORS[h];
+}
+function logoHtml(ticker, size) {
+  size = size || 24;
+  const r = Math.round(size / 2);
+  const initials = ticker.replace(/[^A-Z0-9]/gi, '').slice(0, 2).toUpperCase() || '?';
+  const bg = _logoColor(ticker);
+  const fs = Math.round(size * 0.38);
+  const avatarStyle = `display:inline-flex;align-items:center;justify-content:center;`
+    + `width:${size}px;height:${size}px;border-radius:${r}px;background:${bg};`
+    + `color:#fff;font-size:${fs}px;font-weight:700;flex-shrink:0;vertical-align:middle`;
+  const domain = LOGO_DOMAINS[ticker];
+  if (!domain)
+    return `<span style="${avatarStyle}">${initials}</span>`;
+  const errCode = `this.replaceWith(Object.assign(document.createElement('span'),`
+    + `{style:'${avatarStyle}',textContent:'${initials}'}))`;
+  return `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=64"`
+    + ` width="${size}" height="${size}"`
+    + ` style="border-radius:${r}px;object-fit:contain;flex-shrink:0;vertical-align:middle"`
+    + ` onerror="${errCode}" alt="${ticker}">`;
 }
 
 // ── Format helpers ─────────────────────────────────────────────────────────────
@@ -1752,7 +1808,7 @@ function renderMovers(tbodyId, countId, list) {
   tb.innerHTML = list.map(r => {
     const c=cls(r.pct), diff=isNaN(r.ref)?NaN:r.price-r.ref;
     return `<tr onclick="selectStock('${esc(r.name)}')">
-      <td>${esc(r.name)}</td>
+      <td><div style="display:flex;align-items:center;gap:6px">${logoHtml(r.ticker,22)}<span>${esc(r.name)}</span></div></td>
       <td>${fmtN(r.price,2)}</td>
       <td class="${c}">${isNaN(r.pct)?"—":sgn(r.pct)+fmtN(Math.abs(r.pct),2)+" %"}</td>
       <td class="${c}">${isNaN(diff)?"—":fmtN(diff,2)}</td>
@@ -1764,7 +1820,7 @@ function renderStocksTable() {
   const q = document.getElementById("mkt-q").value.trim().toLowerCase();
   const sort = document.getElementById("mkt-sort").value;
   let arr = mkt.rows.slice();
-  if (q) arr = arr.filter(r => r.name.toLowerCase().includes(q) || r.sector.toLowerCase().includes(q));
+  if (q) arr = arr.filter(r => r.name.toLowerCase().includes(q) || r.sector.toLowerCase().includes(q) || r.ticker.toLowerCase().includes(q));
   if (sort==="var_desc") arr.sort((a,b)=>(isNaN(b.pct)?-99:b.pct)-(isNaN(a.pct)?-99:a.pct));
   else if (sort==="var_asc") arr.sort((a,b)=>(isNaN(a.pct)?99:a.pct)-(isNaN(b.pct)?99:b.pct));
   else if (sort==="vol_desc") arr.sort((a,b)=>(isNaN(b.volMAD)?-1:b.volMAD)-(isNaN(a.volMAD)?-1:a.volMAD));
@@ -1789,7 +1845,7 @@ function renderStocksTable() {
       : `<td></td>`;
     html+=`<tr class="${flash}" data-name="${esc(r.name)}" onclick="selectStock('${esc(r.name)}')">
       ${starCell}
-      <td style="font-weight:500">${esc(r.name)}</td>
+      <td><div style="display:flex;align-items:center;gap:6px">${logoHtml(r.ticker,22)}<span style="font-weight:500">${esc(r.name)}</span></div></td>
       <td>${fmtN(r.price,2)}</td>
       <td class="${c}">${isNaN(r.pct)?"—":sgn(r.pct)+fmtN(Math.abs(r.pct),2)+" %"}</td>
       <td>${fmtN(r.open,2)}</td><td>${fmtN(r.high,2)}</td><td>${fmtN(r.low,2)}</td>
@@ -1929,7 +1985,8 @@ function renderTableauBord() {
   document.getElementById("tdb-wl-list").innerHTML = wlItems.length
     ? wlItems.map(r => `
         <div class="tdb-wl-row" onclick="selectStock('${esc(r.name)}');goToSection('marche')">
-          <div>
+          <div style="display:flex;align-items:center;gap:10px">
+            ${logoHtml(r.ticker, 32)}
             <div class="tdb-wl-ticker">${esc(r.name)}</div>
           </div>
           <div style="text-align:right">
@@ -1988,10 +2045,11 @@ window.goToSection = function(name) {
   function showDropdown(val) {
     const q = val.trim().toLowerCase();
     if (!q) { dropdown.style.display = "none"; return; }
-    const matches = mkt.rows.filter(r => r.name.toLowerCase().includes(q)).slice(0, 7);
+    const matches = mkt.rows.filter(r => r.name.toLowerCase().includes(q) || r.ticker.toLowerCase().includes(q)).slice(0, 7);
     if (!matches.length) { dropdown.style.display = "none"; return; }
     dropdown.innerHTML = matches.map(r =>
       `<div class="tdb-dd-item" data-name="${esc(r.name)}">
+         ${logoHtml(r.ticker, 26)}
          <span class="tdb-dd-ticker">${esc(r.name)}</span>
          <span class="tdb-dd-price">${fmtN(r.price, 2)} MAD</span>
          <span class="${cls(r.pct)}" style="font-size:11px;font-weight:600">${r.pct >= 0 ? "+" : ""}${fmtN(r.pct, 2)} %</span>
@@ -2013,7 +2071,7 @@ window.goToSection = function(name) {
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") {
       const q = input.value.trim().toLowerCase();
-      const found = mkt.rows.find(r => r.name.toLowerCase().includes(q));
+      const found = mkt.rows.find(r => r.name.toLowerCase().includes(q) || r.ticker.toLowerCase().includes(q));
       if (found) { selectStock(found.name); window.goToSection("marche"); }
       input.value = "";
       dropdown.style.display = "none";
@@ -2234,6 +2292,8 @@ function updateOrderPrice() {
   const r = mkt.rows.find(s=>s.name===name);
   const priceEl = document.getElementById("ord-price-display");
   const varEl   = document.getElementById("ord-var-display");
+  const logoEl = document.getElementById("ord-logo");
+  if (logoEl) logoEl.innerHTML = r ? logoHtml(r.ticker, 36) : "";
   if (r) {
     priceEl.textContent = fmtN(r.price,2) + " MAD";
     varEl.className = "var " + cls(r.pct);
@@ -2289,17 +2349,20 @@ document.getElementById("ord-limit-price").addEventListener("input", updateOrder
 // ── Modal de confirmation d'ordre ────────────────────────────────────────────
 let _pendingOrder = null;
 
+const _TIF_LABELS = { day:"DAY", gtc:"GTC", ioc:"IOC", fok:"FOK" };
+
 function openOrderModal() {
   const name = document.getElementById("ord-instrument").value;
   if (!name) { showFormMsg("Sélectionnez un instrument.", "err"); return; }
   const direction = document.querySelector('input[name="direction"]:checked').value;
   const type      = document.querySelector('input[name="type"]:checked').value;
+  const tif       = document.getElementById("ord-tif").value;
   const qty       = parseInt(document.getElementById("ord-qty").value) || 0;
   const price     = getOrderPrice();
-  if (qty <= 0)            { showFormMsg("Quantité invalide.", "err"); return; }
+  if (qty <= 0)               { showFormMsg("Quantité invalide.", "err"); return; }
   if (isNaN(price)||price<=0) { showFormMsg("Prix invalide.", "err"); return; }
   const r = mkt.rows.find(s => s.name === name);
-  _pendingOrder = { name, sector: r?.sector||"", direction, type, qty, price };
+  _pendingOrder = { name, sector: r?.sector||"", direction, type, tif, qty, price };
 
   const { open, label } = marketStatusLabel();
   const verb = direction === "achat" ? "d'achat" : "de vente";
@@ -2308,13 +2371,17 @@ function openOrderModal() {
   let expectedStatus;
   if (type === "marche" && open)  expectedStatus = "exécuté immédiatement";
   else if (type === "marche")     expectedStatus = "en attente d'ouverture (09:00 BVC)";
-  else                            expectedStatus = "en attente (ordre limité)";
+  else if (tif === "ioc")         expectedStatus = "immédiat ou annulé (IOC)";
+  else if (tif === "fok")         expectedStatus = "tout ou rien (FOK)";
+  else if (tif === "gtc")         expectedStatus = "en attente GTC (jusqu'à annulation)";
+  else                            expectedStatus = "en attente jusqu'à fermeture (DAY)";
 
   document.getElementById("mc-title").textContent = `Confirmation ${verb}`;
   document.getElementById("mc-body").innerHTML = `
     <div><strong>Instrument</strong> ${esc(name)}</div>
     <div><strong>Sens</strong> <span style="color:${dirColor}">${direction === "achat" ? "▲ Achat" : "▼ Vente"}</span></div>
     <div><strong>Type</strong> ${type === "marche" ? "Au marché" : "À cours limité"}</div>
+    <div><strong>Validité</strong> ${_TIF_LABELS[tif] || tif}</div>
     <div><strong>Quantité</strong> ${qty} titre(s)</div>
     <div><strong>Prix unitaire</strong> ${fmtN(price, 2)} MAD</div>
     <div><strong>Montant total</strong> ${fmtN(qty * price, 2)} MAD</div>
@@ -2348,9 +2415,10 @@ document.getElementById("mc-btn-confirm").addEventListener("click", async () => 
   try {
     const payload = {
       instrument_code: _pendingOrder.name,
-      sens: _pendingOrder.direction,
-      type_ordre: _pendingOrder.type,
-      quantite: _pendingOrder.qty,
+      sens:            _pendingOrder.direction,
+      type_ordre:      _pendingOrder.type,
+      time_in_force:   _pendingOrder.tif,
+      quantite:        _pendingOrder.qty,
     };
     if (_pendingOrder.type === "marche") {
       payload.prix_marche = _pendingOrder.price;
@@ -2366,9 +2434,17 @@ document.getElementById("mc-btn-confirm").addEventListener("click", async () => 
     closeOrderModal();
 
     const estExecute = result.statut === "execute";
-    const msg = result.message || (estExecute ? "Ordre exécuté." : "Ordre transmis.");
-    showFormMsg(msg, "ok");
-    showToast(estExecute ? "Ordre exécuté ✓" : "Ordre transmis ⏳", msg, estExecute ? "success" : "");
+    const estPartiel = result.statut === "partiellement_execute";
+    const fixRef = result.fix_cl_ord_id ? ` · FIX ${result.fix_cl_ord_id.slice(0,8)}…` : "";
+    let msg = result.message || (estExecute ? "Ordre exécuté." : estPartiel ? `${result.quantite_executee}/${_pendingOrder.qty} titres exécutés.` : "Ordre transmis.");
+    msg += fixRef;
+    const isOk = estExecute || estPartiel;
+    showFormMsg(msg, isOk ? "ok" : result.statut === "rejete" ? "err" : "ok");
+    showToast(
+      estExecute ? "Ordre exécuté ✓" : estPartiel ? "Exécution partielle ◑" : "Ordre transmis ⏳",
+      msg,
+      isOk ? "success" : ""
+    );
 
     // Rafraîchir l'état depuis l'API
     await chargerPortefeuille();
@@ -2401,10 +2477,11 @@ let _carnetFilter = "all";
 // STATUS_BADGE remplacé par _STATUS_API_BADGE (défini plus bas)
 
 const _STATUS_API_BADGE = {
-  "execute":    `<span class="badge-status exec">✓ exécuté</span>`,
-  "en_attente": `<span class="badge-status pending">⏳ en attente</span>`,
-  "annule":     `<span class="badge-status cancel">✕ annulé</span>`,
-  "rejete":     `<span class="badge-status reject">✗ rejeté</span>`,
+  "execute":              `<span class="badge-status exec">✓ exécuté</span>`,
+  "partiellement_execute":`<span class="badge-status partial">◑ partiel</span>`,
+  "en_attente":           `<span class="badge-status pending">⏳ en attente</span>`,
+  "annule":               `<span class="badge-status cancel">✕ annulé</span>`,
+  "rejete":               `<span class="badge-status reject">✗ rejeté</span>`,
 };
 
 function renderHistorique() {
@@ -2429,7 +2506,7 @@ function renderHistorique() {
       : `<span style="color:var(--muted);font-size:11px">—</span>`;
     return `<tr>
       <td style="font-size:11px;color:var(--muted)">${d}</td>
-      <td style="font-weight:600">${esc(o.instrument)}</td>
+      <td><div style="display:flex;align-items:center;gap:6px">${logoHtml(mkt.rows.find(r=>r.name===o.instrument)?.ticker||'',22)}<span style="font-weight:600">${esc(o.instrument)}</span></div></td>
       <td class="${cDir}">${o.sens==="achat"?"▲ Achat":"▼ Vente"}</td>
       <td style="color:var(--muted)">${o.type==="marche"?"Marché":"Limité"}</td>
       <td>${o.quantite}</td>
@@ -2464,7 +2541,7 @@ function renderPfHistorique() {
     const c = isAchat ? "up" : "down";
     return `<tr>
       <td style="font-size:11px;color:var(--muted)">${d}</td>
-      <td style="font-weight:600">${esc(m.instrument || "—")}</td>
+      <td><div style="display:flex;align-items:center;gap:6px">${logoHtml(mkt.rows.find(r=>r.name===(m.instrument||''))?.ticker||'',22)}<span style="font-weight:600">${esc(m.instrument || "—")}</span></div></td>
       <td class="${c}">${typeLabel[m.type] || m.type}</td>
       <td>—</td><td>—</td>
       <td>${fmtN(m.montant, 2)}</td>
