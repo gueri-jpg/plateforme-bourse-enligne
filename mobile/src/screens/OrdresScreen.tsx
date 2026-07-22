@@ -11,6 +11,7 @@ import {
 import { useFocusEffect, useRoute, RouteProp } from '@react-navigation/native';
 import { useMarketData, Stock } from '../../hooks/useMarketData';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { TickerLogo } from '../components/TickerLogo';
 import { fetchPortfolio, placeOrdre, PlaceOrdreParams } from '../api/portfolio';
 import { isMarketOpen } from '../../services/trading';
 import { useNotifications } from '../store/useNotifications';
@@ -20,6 +21,22 @@ const C = {
   bg: '#f8fafc', panel: '#ffffff', panel2: '#f1f5f9',
   txt: '#0f172a', muted: '#64748b', line: '#e2e8f0',
   up: '#16a34a', down: '#dc2626', accent: '#7B1D3A', gold: '#f59e0b',
+};
+
+type TIF = 'day' | 'gtc' | 'ioc' | 'fok';
+
+const TIF_LABELS: Record<TIF, string> = {
+  day: 'DAY',
+  gtc: 'GTC',
+  ioc: 'IOC',
+  fok: 'FOK',
+};
+
+const TIF_HINTS: Record<TIF, string> = {
+  day: 'Valable jusqu\'à la fermeture du marché',
+  gtc: 'Jusqu\'à annulation manuelle',
+  ioc: 'Exécution immédiate, solde annulé',
+  fok: 'Tout ou rien — annulé si non rempli en totalité',
 };
 
 function fmtN(x: number | null | undefined, dp = 2) {
@@ -86,6 +103,7 @@ export function OrdresScreen() {
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [direction, setDirection]         = useState<'achat' | 'vente'>('achat');
   const [orderType, setOrderType]         = useState<'marche' | 'limite'>('marche');
+  const [timeInForce, setTimeInForce]     = useState<TIF>('day');
   const [qty, setQty]                     = useState('1');
   const [limitPrice, setLimitPrice]       = useState('');
   const [balance, setBalance]             = useState(0);
@@ -140,6 +158,7 @@ export function OrdresScreen() {
       quantite:        qtyNum,
       prix_limite:     orderType === 'limite' ? parseFloat(limitPrice) : null,
       prix_marche:     orderType === 'marche' ? selectedStock!.price  : null,
+      time_in_force:   timeInForce,
     };
   }
 
@@ -151,15 +170,28 @@ export function OrdresScreen() {
 
     if (res.success) {
       setShowConfirm(false);
+      const { data } = res;
+      const estExecute = data.statut === 'execute';
+      const estPartiel = data.statut === 'partiellement_execute';
+      const fixRef = data.fix_cl_ord_id ? ` · FIX ${data.fix_cl_ord_id.slice(0, 8)}…` : '';
+
       setQty('1');
       setLimitPrice('');
       fetchPortfolio().then(p => setBalance(p.solde_especes)).catch(() => {});
+
       useNotifications.getState().add({
         type:  direction,
-        title: `Ordre ${direction === 'achat' ? 'achat' : 'vente'} soumis ✓`,
-        body:  `${qtyNum}× ${selectedStock.name} — ${fmtN(total)} MAD`,
+        title: estExecute ? 'Ordre exécuté ✓' : estPartiel ? 'Exécution partielle ◑' : 'Ordre transmis ⏳',
+        body:  `${data.quantite_executee || qtyNum}× ${selectedStock.name} — ${fmtN(total)} MAD${fixRef}`,
       });
-      Alert.alert('Ordre soumis', `Ordre ${direction} de ${qtyNum}× ${selectedStock.name} enregistré.`);
+
+      const alertTitle = estExecute ? 'Ordre exécuté' : estPartiel ? 'Exécution partielle' : 'Ordre transmis';
+      const alertMsg = estPartiel
+        ? `${data.quantite_executee}/${qtyNum} titres exécutés à ${fmtN(data.prix_execution)} MAD${fixRef}`
+        : estExecute
+        ? `${qtyNum}× ${selectedStock.name} à ${fmtN(data.prix_execution ?? effectivePrice)} MAD${fixRef}`
+        : `Ordre ${direction} de ${qtyNum}× ${selectedStock.name} enregistré.${fixRef}`;
+      Alert.alert(alertTitle, alertMsg);
       return;
     }
 
@@ -228,6 +260,25 @@ export function OrdresScreen() {
               </TouchableOpacity>
             ))}
           </View>
+        </View>
+
+        {/* Validité (TimeInForce FIX) */}
+        <View style={s.block}>
+          <Text style={s.label}>Validité de l'ordre</Text>
+          <View style={s.tifRow}>
+            {(Object.keys(TIF_LABELS) as TIF[]).map(k => (
+              <TouchableOpacity
+                key={k}
+                style={[s.tifBtn, timeInForce === k && s.tifBtnActive]}
+                onPress={() => setTimeInForce(k)}
+              >
+                <Text style={[s.tifTxt, timeInForce === k && s.tifTxtActive]}>
+                  {TIF_LABELS[k]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={s.tifHint}>{TIF_HINTS[timeInForce]}</Text>
         </View>
 
         {/* Prix limite */}
@@ -314,11 +365,12 @@ export function OrdresScreen() {
             <Text style={cm.title}>Confirmer l'ordre</Text>
             <View style={cm.body}>
               {[
-                ['Valeur',  selectedStock?.name ?? ''],
-                ['Sens',    direction.toUpperCase()],
-                ['Type',    orderType === 'marche' ? 'Au marché' : 'Limité'],
-                ['Qté',     `${qtyNum} titre(s)`],
-                ['Prix',    `${fmtN(effectivePrice)} MAD`],
+                ['Valeur',   selectedStock?.name ?? ''],
+                ['Sens',     direction.toUpperCase()],
+                ['Type',     orderType === 'marche' ? 'Au marché' : 'Limité'],
+                ['Validité', TIF_LABELS[timeInForce]],
+                ['Qté',      `${qtyNum} titre(s)`],
+                ['Prix',     `${fmtN(effectivePrice)} MAD`],
               ].map(([k, v]) => (
                 <Text key={k} style={cm.line}>
                   <Text style={cm.key}>{k.padEnd(8)}</Text>
@@ -382,6 +434,9 @@ export function OrdresScreen() {
                   style={pk.row}
                   onPress={() => { setSelectedStock(st); setShowPicker(false); setSearchQuery(''); }}
                 >
+                  <View style={{ marginRight: 10 }}>
+                    <TickerLogo ticker={st.ticker} size={32} />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={pk.name}>{st.ticker ? `${st.ticker} — ${st.name}` : st.name}</Text>
                     <Text style={pk.sector}>{st.sector}</Text>
@@ -424,6 +479,12 @@ const s = StyleSheet.create({
   scaNoticeTxt:      { color: C.accent, fontSize: 12 },
   confirmBtn:        { marginHorizontal: 16, padding: 16, borderRadius: 12, alignItems: 'center' },
   confirmTxt:        { color: '#fff', fontSize: 16, fontWeight: '700' },
+  tifRow:            { flexDirection: 'row', gap: 8 },
+  tifBtn:            { flex: 1, paddingVertical: 9, borderRadius: 8, borderWidth: 1, borderColor: C.line, alignItems: 'center', backgroundColor: C.panel },
+  tifBtnActive:      { borderColor: C.accent, backgroundColor: 'rgba(123,29,58,0.1)' },
+  tifTxt:            { fontSize: 12, fontWeight: '700', color: C.muted },
+  tifTxtActive:      { color: C.accent },
+  tifHint:           { fontSize: 11, color: C.muted, marginTop: 6 },
 });
 
 const cm = StyleSheet.create({
