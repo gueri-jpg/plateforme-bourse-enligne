@@ -325,6 +325,9 @@ jobs:
     if: needs.deploy.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -342,14 +345,44 @@ jobs:
       - name: Installer Chrome
         uses: browser-actions/setup-chrome@v1
 
+      # Job séparé de "deploy" => runner différent => aucune session Azure/
+      # kubectl héritée : on ré-authentifie ici avec la même identité de
+      # service (secrets OIDC déjà configurés sur ce repo), pour que
+      # FixTracer (backend/tests/fix_trace.py) puisse lire les vrais logs
+      # [FIX OUT]/[FIX IN] du pod backend de PRODUCTION via `kubectl logs`,
+      # exactement comme demo_fix_flow.py le fait en local via `docker logs`.
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group $RG \
+            --name $AKS \
+            --admin \
+            --overwrite-existing
+
       - name: Tests fonctionnels bourse (Selenium E2E)
         working-directory: backend
         env:
           BOURSE_BASE_URL: https://bourse.cfconsultancy.org
           PYTHONPATH: .
+          FIX_TRACE_K8S_NAMESPACE: bourse
+          FIX_TRACE_K8S_SELECTOR: app.kubernetes.io/component=backend
         run: |
           set -o pipefail
-          pytest tests/fonctionnels/ -v --tb=short 2>&1 | tee fonctionnels-report.txt
+          # -s : desactive la capture pytest, indispensable pour voir les
+          # traces FIX decodees (print() dans _FixTracer.tracer_et_verifier)
+          # dans le rapport, meme quand le test reussit (par defaut pytest
+          # n'affiche les print() captures qu'en cas d'echec).
+          pytest tests/fonctionnels/ -v -s --tb=short 2>&1 | tee fonctionnels-report.txt
 
       - name: Publier le rapport
         if: always()

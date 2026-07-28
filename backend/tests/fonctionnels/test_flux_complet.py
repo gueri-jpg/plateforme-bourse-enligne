@@ -11,13 +11,338 @@ UN seul utilisateur créé en début de test, qui traverse tout le parcours :
     Keycloak + PostgreSQL) → vérification que le compte est bien supprimé.
 
 Tourne contre l'URL de production déployée (BOURSE_BASE_URL).
+
+Décodage/conformité MIT202 des messages FIX : les scénarios d'ordres
+avancés (Étape 8bis) décodent aussi, quand c'est possible, les messages
+[FIX OUT]/[FIX IN] réellement échangés avec le moteur — même vérification
+que demo_fix_flow.py, mais lue depuis les logs du pod backend via
+`kubectl logs` (deploy.yml, job "tests-fonctionnels", authentifié avec la
+même identité de service que le job "deploy") plutôt que `docker logs`
+(qui suppose un accès Docker local que ce job CI n'a pas). Repli sur
+`docker logs` si aucune variable FIX_TRACE_K8S_NAMESPACE n'est définie
+(run local). Si ni l'un ni l'autre n'est disponible, le décodage est
+sauté proprement (FixTracer.disponible() == False) sans faire échouer le
+test — même tolérance que has_market/has_bvc_ouverte.
 """
+import os
+import subprocess
 import time
 
 from tests.fonctionnels.pages.home_page import HomePage
 from tests.fonctionnels.pages.keycloak_page import KeycloakPage
 from tests.fonctionnels.pages.inscription_page import InscriptionPage
 from tests.fonctionnels.pages.dashboard_page import DashboardPage
+
+# ── Décodage FIX + conformité MIT202 (même référentiel que demo_fix_flow.py) ──
+_TAG_NAMES = {
+    "8": "BeginString", "9": "BodyLength", "10": "CheckSum",
+    "35": "MsgType", "49": "SenderCompID", "56": "TargetCompID",
+    "34": "MsgSeqNum", "1128": "ApplVerID", "52": "SendingTime",
+    "11": "ClOrdID", "41": "OrigClOrdID", "37": "OrderID",
+    "453": "NoPartyIDs", "448": "PartyID", "447": "PartyIDSource", "452": "PartyRole",
+    "21": "HandlInst", "48": "SecurityID", "22": "SecurityIDSource",
+    "54": "Side", "38": "OrderQty", "40": "OrdType", "44": "Price",
+    "59": "TimeInForce", "581": "AccountType", "528": "OrderCapacity",
+    "60": "TransactTime", "17": "ExecID", "150": "ExecType", "39": "OrdStatus",
+    "32": "LastQty", "31": "LastPx", "14": "CumQty", "151": "LeavesQty", "6": "AvgPx",
+    "58": "Text", "434": "CxlRejResponseTo", "102": "CxlRejReason",
+    "530": "MassCancelRequestType", "531": "MassCancelResponse",
+    "1461": "NoTargetPartyIDs", "1462": "TargetPartyID", "1463": "TargetPartyIDSource",
+    "1464": "TargetPartyRole", "1369": "MassActionReportID", "532": "MassCancelRejectReason",
+}
+_MSG_TYPE_NAMES = {
+    "D": "New Order Single", "F": "Order Cancel Request", "G": "Order Cancel/Replace Request",
+    "q": "Order Mass Cancel Request", "8": "Execution Report", "9": "Order Cancel Reject",
+    "r": "Order Mass Cancel Report", "j": "Business Message Reject",
+}
+_HEADER_SPEC = {
+    "8":    ("BeginString", "Y", "6.2.1"),
+    "9":    ("BodyLength", "Y", "6.2.1"),
+    "35":   ("MsgType", "Y", "6.2.1"),
+    "49":   ("SenderCompID", "Y", "6.2.1"),
+    "56":   ("TargetCompID", "Y", "6.2.1"),
+    "34":   ("MsgSeqNum", "Y", "6.2.1"),
+    "1128": ("ApplVerID", "N", "6.2.1 — requis si généré par le serveur"),
+    "52":   ("SendingTime", "N", "6.2.1"),
+    "10":   ("CheckSum", "Y", "6.2.2"),
+}
+_MSG_SPEC: dict[str, dict[str, tuple[str, str, str]]] = {
+    "D": {  # New Order Single — section 6.4.1
+        "11":   ("ClOrdID", "Y", ""),
+        "453":  ("NoPartyIDs", "Y", "attendu : 4 ou 5"),
+        "448":  ("PartyID", "Y", "répétable"),
+        "447":  ("PartyIDSource", "Y", ""),
+        "452":  ("PartyRole", "Y", ""),
+        "2376": ("PartyRoleQualifier", "C", "si PartyID = short code"),
+        "1":    ("Account", "N", ""),
+        "48":   ("SecurityID", "Y", ""),
+        "22":   ("SecurityIDSource", "Y", ""),
+        "40":   ("OrdType", "Y", ""),
+        "1091": ("PreTradeAnonymity", "N", ""),
+        "59":   ("TimeInForce", "N", ""),
+        "126":  ("ExpireTime", "C", "si TimeInForce=GTD"),
+        "432":  ("ExpireDate", "C", "si TimeInForce=GTD"),
+        "54":   ("Side", "Y", ""),
+        "38":   ("OrderQty", "Y", ""),
+        "1138": ("DisplayQty", "Y", "= OrderQty (pas d'iceberg géré, toujours entièrement affiché)"),
+        "1084": ("DisplayMethod", "N", ""),
+        "44":   ("Price", "C", "si OrdType=Limit/StopLimit"),
+        "99":   ("StopPx", "C", "si OrdType=Stop/StopLimit"),
+        "581":  ("AccountType", "Y", ""),
+        "528":  ("OrderCapacity", "Y", ""),
+        "60":   ("TransactTime", "Y", ""),
+        "526":  ("SecondaryClOrdID", "N", ""),
+        "583":  ("ClOrdLinkID", "N", ""),
+        "27010":("PassiveOnlyOrder", "N", ""),
+        "110":  ("MinQty", "N", ""),
+        "1724": ("OrderOrigination", "N", ""),
+        "27017":("GroupID", "N", ""),
+        "27018":("Offset", "C", "si OrdType=Offset"),
+        "336":  ("TradingSessionID", "C", "\"a\"=CPX (Closing Price Crossing), sur un ordre TIF=Day"),
+    },
+    "F": {  # Order Cancel Request — section 6.4.2
+        "11":  ("ClOrdID", "Y", ""),
+        "41":  ("OrigClOrdID", "C", "si OrderID absent"),
+        "37":  ("OrderID", "C", "si OrigClOrdID absent"),
+        "48":  ("SecurityID", "Y", ""),
+        "22":  ("SecurityIDSource", "Y", ""),
+        "453": ("NoPartyIDs", "Y", "attendu : 1 ou 2"),
+        "448": ("PartyID", "Y", ""),
+        "447": ("PartyIDSource", "Y", ""),
+        "452": ("PartyRole", "Y", ""),
+        "54":  ("Side", "Y", ""),
+        "60":  ("TransactTime", "Y", ""),
+    },
+    "G": {  # Order Cancel/Replace Request — section 6.4.4
+        "11":   ("ClOrdID", "Y", ""),
+        "41":   ("OrigClOrdID", "C", "si OrderID absent"),
+        "37":   ("OrderID", "C", "si OrigClOrdID absent"),
+        "453":  ("NoPartyIDs", "Y", "attendu : 1 ou 2"),
+        "448":  ("PartyID", "Y", ""),
+        "447":  ("PartyIDSource", "Y", ""),
+        "452":  ("PartyRole", "Y", ""),
+        "1":    ("Account", "N", ""),
+        "48":   ("SecurityID", "Y", ""),
+        "22":   ("SecurityIDSource", "Y", ""),
+        "40":   ("OrdType", "Y", "doit correspondre à l'ordre existant"),
+        "126":  ("ExpireTime", "C", "si TimeInForce=GTD"),
+        "432":  ("ExpireDate", "C", "si TimeInForce=GTD"),
+        "54":   ("Side", "Y", ""),
+        "38":   ("OrderQty", "Y", ""),
+        "1138": ("DisplayQty", "Y", "= OrderQty (pas d'iceberg géré, toujours entièrement affiché)"),
+        "1084": ("DisplayMethod", "N", ""),
+        "44":   ("Price", "C", "si OrdType=Limit/StopLimit"),
+        "99":   ("StopPx", "C", "si OrdType=Stop/StopLimit"),
+        "60":   ("TransactTime", "Y", ""),
+    },
+    "q": {  # Order Mass Cancel Request — section 6.4.3
+        "11":    ("ClOrdID", "Y", ""),
+        "530":   ("MassCancelRequestType", "Y", ""),
+        "27017": ("GroupID", "C", "si scope=Group"),
+        "48":    ("SecurityID", "C", "si scope=Instrument"),
+        "22":    ("SecurityIDSource", "C", "si scope=Instrument"),
+        "1461":  ("NoTargetPartyIDs", "Y", ""),
+        "1462":  ("TargetPartyID", "Y", ""),
+        "1463":  ("TargetPartyIDSource", "Y", ""),
+        "1464":  ("TargetPartyRole", "Y", ""),
+        "1300":  ("MarketSegmentID", "C", "si scope=Segment (non supporté par ce moteur)"),
+        "60":    ("TransactTime", "Y", ""),
+    },
+    "8": {  # Execution Report — section 6.4.5
+        "17":   ("ExecID", "Y", ""),
+        "11":   ("ClOrdID", "Y", ""),
+        "41":   ("OrigClOrdID", "N", ""),
+        "37":   ("OrderID", "Y", ""),
+        "150":  ("ExecType", "Y", ""),
+        "19":   ("ExecRefID", "C", "si ExecType=TradeCancel"),
+        "378":  ("ExecRestatementReason", "C", "si ExecType=Restated"),
+        "39":   ("OrdStatus", "Y", ""),
+        "103":  ("OrdRejReason", "C", "si ExecType=Rejected/Expired"),
+        "58":   ("Text", "N", ""),
+        "32":   ("LastQty", "C", "si ExecType=Trade"),
+        "31":   ("LastPx", "C", "si ExecType=Trade"),
+        "151":  ("LeavesQty", "Y", ""),
+        "14":   ("CumQty", "Y", ""),
+        "48":   ("SecurityID", "Y", ""),
+        "22":   ("SecurityIDSource", "Y", ""),
+        "1":    ("Account", "N", ""),
+        "453":  ("NoPartyIDs", "Y", "attendu : 4, 5 ou 6"),
+        "448":  ("PartyID", "Y", ""),
+        "447":  ("PartyIDSource", "Y", ""),
+        "452":  ("PartyRole", "Y", ""),
+        "40":   ("OrdType", "Y", ""),
+        "59":   ("TimeInForce", "N", ""),
+        "54":   ("Side", "Y", ""),
+        "38":   ("OrderQty", "Y", ""),
+        "44":   ("Price", "C", "selon le type d'ordre"),
+        "99":   ("StopPx", "C", "si OrdType=Stop/StopLimit"),
+        "1138": ("DisplayQty", "C", "quantité actuellement affichée (Iceberg/Hidden)"),
+        "1084": ("DisplayMethod", "N", ""),
+        "1091": ("PreTradeAnonymity", "N", ""),
+        "126":  ("ExpireTime", "C", "si TimeInForce=GTD (usage GTT)"),
+        "432":  ("ExpireDate", "C", "si TimeInForce=GTD"),
+        "581":  ("AccountType", "Y", ""),
+        "528":  ("OrderCapacity", "Y", ""),
+        "60":   ("TransactTime", "Y", ""),
+        "9730": ("TradeLiquidityIndicator", "C", "si Trade/TradeCancel"),
+        "880":  ("TradeMatchID (TVTIC)", "C", "si Trade/TradeCancel"),
+        "278":  ("MDEntryID", "Y", "Public Order ID = order_id"),
+        "110":  ("MinQty", "N", ""),
+        "851":  ("LastLiquidityInd", "C", "si Trade/TradeCancel"),
+        "1724": ("OrderOrigination", "N", ""),
+        "27017":("GroupID", "Y", "0 = non groupé"),
+        "30":   ("LastMkt", "C", "si ExecType=Trade — placeholder XLON (simulation mono-venue)"),
+        "27018":("Offset", "C", "si OrdType=Offset"),
+    },
+    "9": {  # Order Cancel Reject — section 6.4.6
+        "11":  ("ClOrdID", "Y", ""),
+        "41":  ("OrigClOrdID", "N", ""),
+        "37":  ("OrderID", "Y", ""),
+        "39":  ("OrdStatus", "Y", ""),
+        "434": ("CxlRejResponseTo", "Y", ""),
+        "102": ("CxlRejReason", "Y", ""),
+        "58":  ("Text", "N", ""),
+    },
+    "r": {  # Order Mass Cancel Report — section 6.4.7
+        "1369": ("MassActionReportID", "Y", ""),
+        "11":   ("ClOrdID", "Y", ""),
+        "530":  ("MassCancelRequestType", "Y", ""),
+        "531":  ("MassCancelResponse", "Y", ""),
+        "532":  ("MassCancelRejectReason", "C", "si MassCancelResponse=0"),
+        "1180": ("ApplId", "Y", "partition unique fixe (\"1\") — pas de partitionnement réel"),
+    },
+}
+
+
+def _tags_manquants(raw_fix: str, msg_type: str) -> list[tuple[str, str, str]]:
+    """Tags marqués obligatoires ("Y") par MIT202 pour msg_type mais absents
+    du message raw_fix effectivement transmis."""
+    spec = _MSG_SPEC.get(msg_type, {})
+    seen_tags = {f.partition("=")[0] for f in raw_fix.split("|") if "=" in f}
+    return [
+        (tag, name, ref) for tag, (name, status, ref) in spec.items()
+        if status == "Y" and tag not in seen_tags
+    ]
+
+
+def _decode_fix(raw_fix: str, msg_type: str) -> str:
+    """Décode un message FIX tag par tag, annoté de son statut MIT202
+    (obligatoire/conditionnel/optionnel) — même logique que demo_fix_flow.py."""
+    spec = _MSG_SPEC.get(msg_type, {})
+    seen_tags: set[str] = set()
+    lines = [f"  RAW  : {raw_fix}"]
+    for field in raw_fix.split("|"):
+        if "=" not in field:
+            continue
+        tag, _, val = field.partition("=")
+        seen_tags.add(tag)
+        if tag in _HEADER_SPEC:
+            name, status, ref = _HEADER_SPEC[tag]
+        elif tag in spec:
+            name, status, ref = spec[tag]
+        else:
+            name, status, ref = _TAG_NAMES.get(tag, f"(tag {tag})"), "?", "HORS SPEC MIT202"
+        ref_str = f" [{ref}]" if ref else ""
+        lines.append(f"    {status:>1} {tag:>5} {name:<24} = {val}{ref_str}")
+    missing = _tags_manquants(raw_fix, msg_type)
+    if missing:
+        lines.append("  Tags obligatoires (MIT202) ABSENTS :")
+        for tag, name, ref in missing:
+            lines.append(f"      - {tag} {name}" + (f" ({ref})" if ref else ""))
+    return "\n".join(lines)
+
+
+class _FixTracer:
+    """
+    Lit les logs applicatifs du backend pour extraire et décoder les
+    messages [FIX OUT]/[FIX IN] échangés depuis le dernier snapshot(), et
+    vérifie leur conformité structurelle MIT202 (tags obligatoires
+    présents) — même vérification que demo_fix_flow.py, mais avec deux
+    sources de logs possibles :
+      - kubectl logs -n <namespace> -l <selector> (si FIX_TRACE_K8S_NAMESPACE
+        est défini - cf. deploy.yml, job "tests-fonctionnels") : lit le VRAI
+        pod backend de production ;
+      - docker logs <container> (repli local, run direct sur la machine
+        Docker de développement).
+    Si aucune des deux n'est disponible, disponible() renvoie False et
+    tracer_et_verifier() ne renvoie jamais de non-conformité — l'appelant
+    doit rester tolérant (comme has_market/has_bvc_ouverte), pas faire
+    échouer le test faute d'accès aux logs.
+    """
+
+    def __init__(self, docker_container: str = "bourse-backend"):
+        self.docker_container = docker_container
+        self.k8s_namespace = os.environ.get("FIX_TRACE_K8S_NAMESPACE")
+        self.k8s_selector = os.environ.get("FIX_TRACE_K8S_SELECTOR", "app.kubernetes.io/component=backend")
+        self._baseline_len: int | None = None
+        self._mode: str | None = None
+
+    def _cmd_ok(self, cmd: list[str]) -> bool:
+        try:
+            return subprocess.run(cmd, capture_output=True, text=True, timeout=10).returncode == 0
+        except Exception:
+            return False
+
+    def _mode_detecte(self) -> str:
+        if self._mode is not None:
+            return self._mode
+        if self.k8s_namespace and self._cmd_ok(
+            ["kubectl", "get", "pods", "-n", self.k8s_namespace, "-l", self.k8s_selector]
+        ):
+            self._mode = "k8s"
+        elif self._cmd_ok(["docker", "logs", "--tail", "1", self.docker_container]):
+            self._mode = "docker"
+        else:
+            self._mode = "absent"
+        return self._mode
+
+    def disponible(self) -> bool:
+        return self._mode_detecte() != "absent"
+
+    def _logs_full(self) -> str:
+        mode = self._mode_detecte()
+        if mode == "k8s":
+            out = subprocess.run(
+                ["kubectl", "logs", "-n", self.k8s_namespace, "-l", self.k8s_selector,
+                 "--all-containers=true", "--prefix=true", "--tail=5000"],
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
+            )
+        elif mode == "docker":
+            out = subprocess.run(
+                ["docker", "logs", self.docker_container],
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15,
+            )
+        else:
+            return ""
+        return out.stdout + out.stderr
+
+    def snapshot(self) -> None:
+        if self.disponible():
+            self._baseline_len = len(self._logs_full())
+
+    def tracer_et_verifier(self, print_fn=print) -> list[str]:
+        if not self.disponible():
+            return []
+        full = self._logs_full()
+        baseline = self._baseline_len or 0
+        new = full[baseline:] if len(full) > baseline else ""
+        self._baseline_len = len(full)
+
+        problemes = []
+        for l in new.splitlines():
+            if "[FIX OUT]" not in l and "[FIX IN]" not in l:
+                continue
+            _, _, raw = l.partition("] ")
+            raw = raw.strip()
+            tags35 = raw.split("35=")[1].split("|")[0] if "35=" in raw else "?"
+            arrow = "→ FIX ENVOYÉ AU MOTEUR" if "[FIX OUT]" in l else "← FIX REÇU DU MOTEUR"
+            print_fn(f"\n  {arrow}  [MsgType 35={tags35} → {_MSG_TYPE_NAMES.get(tags35, tags35)}]")
+            print_fn(_decode_fix(raw, tags35))
+            manquants = _tags_manquants(raw, tags35)
+            if manquants:
+                noms = ", ".join(f"{t} {n}" for t, n, _ in manquants)
+                problemes.append(f"[MsgType {tags35}] tags obligatoires absents : {noms} — {raw}")
+        return problemes
 
 
 def test_flux_complet(session_driver, base_url, new_user):
@@ -149,17 +474,25 @@ def test_flux_complet(session_driver, base_url, new_user):
     # confirmé par smoke-test). Ce cas reste couvert au niveau moteur par
     # test_fix.py (Scénario AB).
     SYM = "ATW"
+    fix_tracer = _FixTracer()
 
     def ordre(body):
+        fix_tracer.snapshot()
         r = dashboard.api_call("/api/ordres", "POST", body)
         assert r["ok"], f"Ordre rejeté au niveau HTTP ({body}) : {r.get('error')}"
+        problemes = fix_tracer.tracer_et_verifier()
+        assert not problemes, "Non-conformité MIT202 (tags obligatoires absents) :\n" + "\n".join(problemes)
         return r["body"]
 
     def mass_cancel(symbol=None, group_id=None):
         qs = "&".join(
             p for p in (f"symbol={symbol}" if symbol else "", f"group_id={group_id}" if group_id else "") if p
         )
-        return dashboard.api_call(f"/api/ordres/annuler-tout{'?' + qs if qs else ''}", "PUT")
+        fix_tracer.snapshot()
+        r = dashboard.api_call(f"/api/ordres/annuler-tout{'?' + qs if qs else ''}", "PUT")
+        problemes = fix_tracer.tracer_et_verifier()
+        assert not problemes, "Non-conformité MIT202 (tags obligatoires absents) :\n" + "\n".join(problemes)
+        return r
 
     r_credit = dashboard.api_call("/api/portefeuille/crediter-compte-test", "POST", {})
     assert r_credit["ok"], f"Crédit du compte de test échoué : {r_credit.get('error')}"
@@ -264,9 +597,13 @@ def test_flux_complet(session_driver, base_url, new_user):
         # Correctif Phase 4/5 : ordres_bourse.py doit reconduire ExpireDate
         # automatiquement sur le replace — sans ce correctif, le moteur rejette
         # tout replace d'un ordre GTD dont Expire{Time,Date} n'est pas répété.
+        fix_tracer.snapshot()
         r_replace_gtd = dashboard.api_call(f"/api/ordres/{r_gtd['id']}/modifier", "PUT", {"quantite": 8})
         assert r_replace_gtd["ok"], \
             f"Replace GTD (non-régression ExpireDate) échoué : {r_replace_gtd.get('error')}"
+        problemes_replace = fix_tracer.tracer_et_verifier()
+        assert not problemes_replace, \
+            "Non-conformité MIT202 (tags obligatoires absents) :\n" + "\n".join(problemes_replace)
         ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
                "quantite": 10, "prix_limite": 300.0,
                "time_in_force": "gtt", "expire_time": "2020-01-01T00:00:00Z"})
@@ -347,7 +684,7 @@ def test_flux_complet(session_driver, base_url, new_user):
     # passe forcément par ce endpoint self-service (DELETE /api/utilisateurs/
     # moi), qui supprime en cascade ordres/portefeuille/profil PostgreSQL
     # puis l'utilisateur Keycloak (cf. app/routers/compte_utilisateur.py).
-    r_cancel_final = dashboard.api_call("/api/ordres/annuler-tout", "PUT")
+    r_cancel_final = mass_cancel()
     assert r_cancel_final["ok"], f"Nettoyage final (Mass Cancel) échoué : {r_cancel_final.get('error')}"
 
     r_delete = dashboard.api_call("/api/utilisateurs/moi", "DELETE")
