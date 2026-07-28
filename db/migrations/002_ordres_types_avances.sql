@@ -2,6 +2,8 @@
 -- Ajoute les colonnes nécessaires à Stop/Stop Limit/Iceberg/Hidden/Pegged/
 -- Offset et aux TIF GTD/GTT/OPG/ATC/GFX/GFA/GFS/CPX.
 -- Aucune donnée supprimée. Idempotent (IF NOT EXISTS / IF EXISTS).
+-- Appliquée automatiquement en production par .github/workflows/deploy.yml
+-- (step "Appliquer les migrations DB").
 
 BEGIN;
 

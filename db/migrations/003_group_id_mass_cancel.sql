@@ -3,6 +3,8 @@
 -- Group), section 6.4.3/2.1.2.2 de MIT202. Distinct du Trader Group (76) qui
 -- reste le scope de base (compte_id) de tout Mass Cancel.
 -- Aucune donnée supprimée. Idempotent (IF NOT EXISTS / IF EXISTS).
+-- Appliquée automatiquement en production par .github/workflows/deploy.yml
+-- (step "Appliquer les migrations DB").
 
 BEGIN;
 
