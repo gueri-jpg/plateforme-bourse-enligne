@@ -1,4 +1,5 @@
 """Router portefeuille : compte espèces, positions, dépôts, comptes titres."""
+import re
 import uuid
 from datetime import date
 from typing import Annotated, Optional
@@ -474,4 +475,65 @@ def depot_depuis_banque(
         "montant_credite": montant,
         "devise": verif.get("devise", "MAD"),
         "nouveau_solde": nouveau_solde,
+    }
+
+
+# ── Crédit de test (réservé aux tests fonctionnels E2E) ────────────────────
+# Un compte fraîchement inscrit démarre à solde_especes=0 (cf.
+# _get_or_create_compte) et le seul chemin normal pour le créditer (/depot
+# ci-dessus) exige un vrai paiement vérifié côté banque (BANQUE_API_URL) —
+# hors de portée pour tests/fonctionnels/test_flux_complet.py, qui doit
+# pouvoir passer de vrais ordres FIX (Stop/Iceberg/Pegged/...) sur le compte
+# qu'il vient d'inscrire. Ce endpoint contourne /depot UNIQUEMENT pour les
+# comptes dont l'email correspond exactement au format généré par la
+# fixture new_user() (tests/fonctionnels/conftest.py) — un investisseur réel
+# ne peut pas avoir un tel email, donc ce endpoint est sans effet en dehors
+# du contexte des tests fonctionnels E2E.
+_EMAIL_COMPTE_TEST = re.compile(r"^test\.bourse\.\d+@cfconsultancy\.ma$", re.IGNORECASE)
+MONTANT_CREDIT_TEST = 500_000.00
+
+
+@router.post("/crediter-compte-test")
+def crediter_compte_test(
+    utilisateur: Annotated[UtilisateurAuthentifie, Depends(investisseur_requis)],
+):
+    """
+    Crédite le compte de l'utilisateur authentifié d'un montant fixe
+    (MONTANT_CREDIT_TEST MAD), uniquement si son email correspond au format
+    exact généré par new_user() dans tests/fonctionnels/conftest.py. Rejette
+    (403) tout autre compte — ce n'est pas un dépôt bancaire réel, seulement
+    une capacité de test.
+    """
+    if not _EMAIL_COMPTE_TEST.match(utilisateur.email or ""):
+        raise HTTPException(
+            403,
+            "Réservé aux comptes de test fonctionnels E2E "
+            "(email au format 'test.bourse.<timestamp>@cfconsultancy.ma').",
+        )
+
+    with get_connection() as conn:
+        uid = _get_or_create_utilisateur(conn, utilisateur)
+        compte = _get_or_create_compte(conn, uid)
+        compte_id = str(compte["id"])
+
+        with get_dict_cursor(conn) as cur:
+            cur.execute(
+                """UPDATE portefeuille.comptes
+                   SET solde_especes = solde_especes + %s, date_maj = NOW()
+                   WHERE id = %s RETURNING solde_especes""",
+                (MONTANT_CREDIT_TEST, compte_id),
+            )
+            nouveau_solde = float(cur.fetchone()["solde_especes"])
+            cur.execute(
+                """INSERT INTO historique.mouvements_compte (compte_id, type_mouvement, montant)
+                   VALUES (%s, 'depot', %s)""",
+                (compte_id, MONTANT_CREDIT_TEST),
+            )
+        conn.commit()
+
+    return {
+        "succes": True,
+        "montant_credite": MONTANT_CREDIT_TEST,
+        "nouveau_solde": nouveau_solde,
+        "message": "Compte de test crédité (capacité réservée aux tests fonctionnels E2E).",
     }

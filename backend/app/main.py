@@ -8,6 +8,7 @@ Voir backend/README.md pour les instructions completes (variables
 d'environnement, exemples curl, etc.).
 """
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -15,11 +16,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import ws_market
 from app.config import settings
-from app.routers import otp_utilisateur, parametres_devise, parametres_otp, parametres_securite, portefeuille, ordres_bourse, inter_service, auth_reset, market_data, bvc_orderbook
+from app.routers import otp_utilisateur, parametres_devise, parametres_otp, parametres_securite, portefeuille, ordres_bourse, inter_service, auth_reset, market_data, bvc_orderbook, compte_utilisateur
+
+# Sans configuration explicite, le logger racine reste au niveau WARNING et les
+# log.info(...) de l'application (traces FIX [FIX OUT]/[FIX IN], etc.) restent
+# invisibles dans les logs du conteneur.
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from app.services.fix_engine import reload_order_book
+    reload_order_book()
     ws_market.start_kafka_thread()
     market_data.start_polling()
     yield
@@ -69,6 +77,7 @@ app.include_router(inter_service.router)
 app.include_router(auth_reset.router)
 app.include_router(market_data.router)
 app.include_router(bvc_orderbook.router)
+app.include_router(compte_utilisateur.router)
 
 
 @app.get("/api/health", tags=["Supervision"])

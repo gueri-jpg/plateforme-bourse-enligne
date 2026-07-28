@@ -181,6 +181,34 @@ class KeycloakAdminClient:
                 ),
             )
 
+    # ------------------------------------------------------------------
+    # Suppression de compte self-service : DELETE /users/{id}
+    # ------------------------------------------------------------------
+    def supprimer_utilisateur(self, keycloak_user_id: str) -> None:
+        """
+        Supprime definitivement un utilisateur Keycloak via
+        DELETE /admin/realms/{realm}/users/{id}.
+
+        Utilise par la suppression de compte self-service (l'investisseur
+        supprime son propre compte) : les donnees PostgreSQL correspondantes
+        (identite.utilisateurs et tout ce qui en depend par cascade) sont
+        supprimees separement, avant cet appel, par l'appelant.
+
+        Idempotent vis-a-vis d'un utilisateur deja absent : Keycloak renvoie
+        404 dans ce cas, traite ici comme un succes (rien a faire).
+        """
+        url = f"{settings.keycloak_admin_realm_url}/users/{keycloak_user_id}"
+        reponse = requests.delete(url, headers=self._en_tetes_autorises(), timeout=10)
+
+        if reponse.status_code not in (204, 404):
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=(
+                    f"Echec de la suppression de l'utilisateur Keycloak "
+                    f"'{keycloak_user_id}' : {reponse.status_code} {reponse.text}"
+                ),
+            )
+
 
 # Instance unique reutilisee par les routers
 keycloak_admin_client = KeycloakAdminClient()
