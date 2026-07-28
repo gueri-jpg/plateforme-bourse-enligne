@@ -330,12 +330,21 @@ class _FixTracer:
 
         problemes = []
         for l in new.splitlines():
-            if "[FIX OUT]" not in l and "[FIX IN]" not in l:
+            # Découper sur le marqueur applicatif "[FIX OUT]"/"[FIX IN]"
+            # lui-même, pas sur le premier "] " de la ligne : avec
+            # `kubectl logs --prefix=true`, la ligne porte AUSSI un préfixe
+            # "[pod/xxx] " ajouté par kubectl avant le log applicatif
+            # (horodatage, logger, PUIS "[FIX OUT]") — s'arrêter au premier
+            # "] " laisserait ce préfixe + le log applicatif dans "raw".
+            if "[FIX OUT]" in l:
+                raw = l.split("[FIX OUT]", 1)[1].strip()
+                arrow = "→ FIX ENVOYÉ AU MOTEUR"
+            elif "[FIX IN]" in l:
+                raw = l.split("[FIX IN]", 1)[1].strip()
+                arrow = "← FIX REÇU DU MOTEUR"
+            else:
                 continue
-            _, _, raw = l.partition("] ")
-            raw = raw.strip()
             tags35 = raw.split("35=")[1].split("|")[0] if "35=" in raw else "?"
-            arrow = "→ FIX ENVOYÉ AU MOTEUR" if "[FIX OUT]" in l else "← FIX REÇU DU MOTEUR"
             print_fn(f"\n  {arrow}  [MsgType 35={tags35} → {_MSG_TYPE_NAMES.get(tags35, tags35)}]")
             print_fn(_decode_fix(raw, tags35))
             manquants = _tags_manquants(raw, tags35)
@@ -476,10 +485,26 @@ def test_flux_complet(session_driver, base_url, new_user):
     SYM = "ATW"
     fix_tracer = _FixTracer()
 
+    # Rejets HTTP tolérés : vérifiés dans passer_ordre() AVANT toute
+    # construction de message FIX (solde/position), donc rien à décoder pour
+    # ces cas précis. Attendus quand pre_buy (ordre au marché) a lui-même été
+    # rejeté faute de séance BVC ouverte (09h00-15h30 Casablanca) — les
+    # ventes qui suivent n'ont alors aucune position à céder. On tolère et
+    # on continue (comme demo_fix_flow.py, qui n'interrompt jamais sa
+    # séquence sur ce type de rejet) plutôt que de sauter tout le bloc de
+    # scénarios : la plupart sont des ordres limite (achats), jamais
+    # bloqués par l'horaire, et produisent bien un message FIX à décoder.
+    _ERREURS_TOLEREES = ("quantité insuffisante", "solde insuffisant")
+
     def ordre(body):
         fix_tracer.snapshot()
         r = dashboard.api_call("/api/ordres", "POST", body)
-        assert r["ok"], f"Ordre rejeté au niveau HTTP ({body}) : {r.get('error')}"
+        if not r["ok"]:
+            erreur = (r.get("error") or "").lower()
+            if any(m in erreur for m in _ERREURS_TOLEREES):
+                print(f"\n  (toléré — position/solde indisponible) {body} : {r['error']}")
+                return {"statut": "position_indisponible", "id": None}
+            assert False, f"Ordre rejeté au niveau HTTP ({body}) : {r['error']}"
         problemes = fix_tracer.tracer_et_verifier()
         assert not problemes, "Non-conformité MIT202 (tags obligatoires absents) :\n" + "\n".join(problemes)
         return r["body"]
@@ -500,164 +525,166 @@ def test_flux_complet(session_driver, base_url, new_user):
     r_clean0 = mass_cancel()
     assert r_clean0["ok"], f"Nettoyage initial (Mass Cancel) échoué : {r_clean0.get('error')}"
 
-    r_prebuy = ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "marche",
-                       "quantite": 400, "prix_marche": 490.0})
+    # Ordre au marché servant à établir la position initiale : rejeté hors
+    # séance BVC (09h00-15h30 Casablanca) — cf.
+    # fix_engine.get_market_phase()/MarketPhase.CLOSED, un rejet FIX légitime,
+    # pas un bug. Sans ce préalable, les ventes qui suivent (Stop/Iceberg/
+    # Hidden/Pegged/Offset/GTD/GTT/PassiveOnly) seront tolérées comme
+    # "position indisponible" par ordre() ci-dessus plutôt que de sauter tout
+    # le bloc : les achats (la majorité des scénarios), eux, sont des ordres
+    # limite jamais bloqués par l'horaire et s'exécutent/se décodent toujours.
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "marche",
+           "quantite": 400, "prix_marche": 490.0})
 
-    # Un ordre au marché est rejeté hors séance BVC (09h00-15h30 Casablanca) —
-    # cf. fix_engine.get_market_phase()/MarketPhase.CLOSED — indépendamment de
-    # tout bug : c'est un rejet FIX légitime, pas une erreur HTTP. Comme
-    # chaque scénario ci-dessous a besoin d'une position réelle établie par
-    # ce pré-achat (ventes en cascade dans Stop/Iceberg/Hidden/Pegged/Offset/
-    # GTD/GTT/PassiveOnly), on saute tout le bloc si le marché est fermé au
-    # moment du run — même tolérance que has_market pour les Étapes 5-8 (le
-    # test reste vert 24/7, les scénarios avancés ne s'exécutent réellement
-    # que pendant les heures BVC).
-    has_bvc_ouverte = r_prebuy["statut"] in ("execute", "partiellement_execute")
-    if has_bvc_ouverte:
-        # -- Stop / Stop Limit : acceptés non déclenchés, puis déclenchement réel --
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "stop",
-               "quantite": 5, "prix_marche": 500.0, "stop_px": 505.0})
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "stop_limite",
-               "quantite": 5, "stop_px": 505.0, "prix_limite": 506.0})
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
-               "quantite": 20, "prix_limite": 506.0, "time_in_force": "day"})
+    # -- Stop / Stop Limit : acceptés non déclenchés, puis déclenchement réel --
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "stop",
+           "quantite": 5, "prix_marche": 500.0, "stop_px": 505.0})
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "stop_limite",
+           "quantite": 5, "stop_px": 505.0, "prix_limite": 506.0})
+    ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
+           "quantite": 20, "prix_limite": 506.0, "time_in_force": "day"})
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+           "quantite": 20, "prix_limite": 506.0, "time_in_force": "day"})
+
+    # -- Correctif Phase 4/5 : MinQty rejeté hors Pegged DAY/GTT (6.4.1/6.4.4) --
+    r_minqty = ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+                       "quantite": 5, "prix_limite": 500.0, "min_qty": 3})
+    assert r_minqty["statut"] == "rejete", "MinQty sur un ordre Limit doit être rejeté"
+    r_p1 = mass_cancel(symbol=SYM)
+    assert r_p1["ok"], f"Mass Cancel fin phase Stop échoué : {r_p1.get('error')}"
+
+    # -- Iceberg Fixed Peak : clip visible + réapprovisionnement -----------------
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "iceberg",
+           "quantite": 50, "prix_limite": 90.0, "display_qty": 10})
+    snap_ice1 = dashboard.api_call(f"/api/ordres/carnet/{SYM}", "GET")
+    assert snap_ice1["ok"], f"Snapshot carnet échoué : {snap_ice1.get('error')}"
+    ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
+           "quantite": 6, "prix_limite": 90.0, "time_in_force": "day"})
+    ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
+           "quantite": 6, "prix_limite": 90.0, "time_in_force": "day"})
+    r_p2 = mass_cancel(symbol=SYM)
+    assert r_p2["ok"], f"Mass Cancel fin phase Iceberg Fixed Peak échoué : {r_p2.get('error')}"
+
+    # -- Iceberg Random Replenished : taille de clip variable après réappro ----
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "iceberg",
+           "quantite": 50, "prix_limite": 90.0, "display_qty": 10, "display_method": "random"})
+    ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
+           "quantite": 10, "prix_limite": 90.0, "time_in_force": "day"})
+    r_p3 = mass_cancel(symbol=SYM)
+    assert r_p3["ok"], f"Mass Cancel fin phase Iceberg Random échoué : {r_p3.get('error')}"
+
+    # -- Hidden : invisible dans le carnet, participe quand même au matching --
+    ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "cache",
+           "quantite": 40, "prix_limite": 510.0})
+    snap_hid = dashboard.api_call(f"/api/ordres/carnet/{SYM}", "GET")
+    assert snap_hid["ok"], f"Snapshot carnet échoué : {snap_hid.get('error')}"
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+           "quantite": 40, "prix_limite": 510.0, "time_in_force": "day"})
+    r_p4 = mass_cancel(symbol=SYM)
+    assert r_p4["ok"], f"Mass Cancel fin phase Hidden échoué : {r_p4.get('error')}"
+
+    # -- Pegged : prix au midpoint du BBO + MES (MinQty) -------------------------
+    ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
+           "quantite": 100, "prix_limite": 102.0, "time_in_force": "day"})
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+           "quantite": 100, "prix_limite": 98.0, "time_in_force": "day"})
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "pegged",
+           "quantite": 50, "min_qty": 30})
+    ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
+           "quantite": 10, "prix_limite": 100.0, "time_in_force": "day"})
+    ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
+           "quantite": 40, "prix_limite": 100.0, "time_in_force": "day"})
+
+    # -- Correctif Phase 4/5 : MinQty incompatible avec Pegged IOC/FOK (6.4.1) --
+    r_peg_ioc = ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "pegged",
+                        "quantite": 50, "min_qty": 30, "time_in_force": "ioc"})
+    assert r_peg_ioc["statut"] == "rejete", "MinQty sur un Pegged IOC doit être rejeté"
+    r_p5 = mass_cancel(symbol=SYM)
+    assert r_p5["ok"], f"Mass Cancel fin phase Pegged échoué : {r_p5.get('error')}"
+
+    # -- Offset : prix = DRP ± DRP×Offset (2.1.1.2) ------------------------------
+    ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
+           "quantite": 10, "prix_limite": 400.0, "time_in_force": "day"})
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+           "quantite": 10, "prix_limite": 400.0, "time_in_force": "day"})
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "offset",
+           "quantite": 20, "offset_bp": 100.0, "time_in_force": "atc"})
+    r_p6 = mass_cancel(symbol=SYM)
+    assert r_p6["ok"], f"Mass Cancel fin phase Offset échoué : {r_p6.get('error')}"
+
+    # -- TIF GTD/GTT : expiration + non-régression Cancel/Replace (2.10.20) ----
+    r_gtd = ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+                   "quantite": 10, "prix_limite": 300.0,
+                   "time_in_force": "gtd", "expire_date": "2030-01-01"})
+    # Correctif Phase 4/5 : ordres_bourse.py doit reconduire ExpireDate
+    # automatiquement sur le replace — sans ce correctif, le moteur rejette
+    # tout replace d'un ordre GTD dont Expire{Time,Date} n'est pas répété.
+    # r_gtd["id"] est toujours valide (achat, non bloqué par l'horaire).
+    fix_tracer.snapshot()
+    r_replace_gtd = dashboard.api_call(f"/api/ordres/{r_gtd['id']}/modifier", "PUT", {"quantite": 8})
+    assert r_replace_gtd["ok"], \
+        f"Replace GTD (non-régression ExpireDate) échoué : {r_replace_gtd.get('error')}"
+    problemes_replace = fix_tracer.tracer_et_verifier()
+    assert not problemes_replace, \
+        "Non-conformité MIT202 (tags obligatoires absents) :\n" + "\n".join(problemes_replace)
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+           "quantite": 10, "prix_limite": 300.0,
+           "time_in_force": "gtt", "expire_time": "2020-01-01T00:00:00Z"})
+    ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
+           "quantite": 5, "prix_limite": 999.0, "time_in_force": "day"})
+    r_p7 = mass_cancel(symbol=SYM)
+    assert r_p7["ok"], f"Mass Cancel fin phase GTD/GTT échoué : {r_p7.get('error')}"
+
+    # -- TIF d'enchère OPG/ATC/GFX/GFA/GFS : acceptation FIX (35=D) --------------
+    # Simplification assumée (cf. FIX_PROTOCOL.md) : pas d'algorithme
+    # d'uncrossing multilatéral dédié — ces TIF suivent le chemin déjà codé
+    # pour la pré-ouverture/le continu selon la phase réelle au moment de
+    # l'appel ; on démontre ici l'acceptation FIX, pas le comportement
+    # d'enchère (qui dépend de l'heure de Casablanca au moment du run).
+    for tif in ("opg", "atc", "gfx", "gfa", "gfs"):
         ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-               "quantite": 20, "prix_limite": 506.0, "time_in_force": "day"})
+               "quantite": 10, "prix_limite": 200.0, "time_in_force": tif})
+    r_p8 = mass_cancel(symbol=SYM)
+    assert r_p8["ok"], f"Mass Cancel fin phase Auctions échoué : {r_p8.get('error')}"
 
-        # -- Correctif Phase 4/5 : MinQty rejeté hors Pegged DAY/GTT (6.4.1/6.4.4) --
-        r_minqty = ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-                           "quantite": 5, "prix_limite": 500.0, "min_qty": 3})
-        assert r_minqty["statut"] == "rejete", "MinQty sur un ordre Limit doit être rejeté"
-        r_p1 = mass_cancel(symbol=SYM)
-        assert r_p1["ok"], f"Mass Cancel fin phase Stop échoué : {r_p1.get('error')}"
+    # -- TIF CPX : mise en file d'attente du prix de clôture ---------------------
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+           "quantite": 15, "prix_limite": 250.0, "time_in_force": "cpx"})
+    ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
+           "quantite": 15, "prix_limite": 250.0, "time_in_force": "cpx"})
+    r_p9 = mass_cancel(symbol=SYM)
+    assert r_p9["ok"], f"Mass Cancel fin phase CPX échoué : {r_p9.get('error')}"
 
-        # -- Iceberg Fixed Peak : clip visible + réapprovisionnement -----------------
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "iceberg",
-               "quantite": 50, "prix_limite": 90.0, "display_qty": 10})
-        snap_ice1 = dashboard.api_call(f"/api/ordres/carnet/{SYM}", "GET")
-        assert snap_ice1["ok"], f"Snapshot carnet échoué : {snap_ice1.get('error')}"
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
-               "quantite": 6, "prix_limite": 90.0, "time_in_force": "day"})
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
-               "quantite": 6, "prix_limite": 90.0, "time_in_force": "day"})
-        r_p2 = mass_cancel(symbol=SYM)
-        assert r_p2["ok"], f"Mass Cancel fin phase Iceberg Fixed Peak échoué : {r_p2.get('error')}"
+    # -- Correctif Phase 4/5 : GroupID (27017) + Mass Cancel ciblé (530=56/57) --
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+           "quantite": 10, "prix_limite": 80.0, "group_id": "7"})
+    ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+           "quantite": 12, "prix_limite": 79.0, "group_id": "8"})
+    r_grp = mass_cancel(group_id="7")
+    assert r_grp["ok"], f"Mass Cancel GroupID=7 (530=56) échoué : {r_grp.get('error')}"
 
-        # -- Iceberg Random Replenished : taille de clip variable après réappro ----
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "iceberg",
-               "quantite": 50, "prix_limite": 90.0, "display_qty": 10, "display_method": "random"})
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
-               "quantite": 10, "prix_limite": 90.0, "time_in_force": "day"})
-        r_p3 = mass_cancel(symbol=SYM)
-        assert r_p3["ok"], f"Mass Cancel fin phase Iceberg Random échoué : {r_p3.get('error')}"
+    # MassCancelRequestType=57 (For Instrument For Group) : ce moteur n'a pas
+    # de notion de Member ID (TargetPartyRole=76 uniquement) → toujours
+    # rejeté par le gateway LSE réel (6.4.3), reproduit ici volontairement
+    # (cf. test_fix.py Scénario AD) plutôt que simulé comme fonctionnel.
+    r_57 = mass_cancel(symbol=SYM, group_id="8")
+    assert not r_57["ok"], "MassCancelRequestType=57 doit être rejeté (non supporté, 6.4.3)"
+    r_p10 = mass_cancel(symbol=SYM)
+    assert r_p10["ok"], f"Mass Cancel fin phase GroupID échoué : {r_p10.get('error')}"
 
-        # -- Hidden : invisible dans le carnet, participe quand même au matching --
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "cache",
-               "quantite": 40, "prix_limite": 510.0})
-        snap_hid = dashboard.api_call(f"/api/ordres/carnet/{SYM}", "GET")
-        assert snap_hid["ok"], f"Snapshot carnet échoué : {snap_hid.get('error')}"
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-               "quantite": 40, "prix_limite": 510.0, "time_in_force": "day"})
-        r_p4 = mass_cancel(symbol=SYM)
-        assert r_p4["ok"], f"Mass Cancel fin phase Hidden échoué : {r_p4.get('error')}"
-
-        # -- Pegged : prix au midpoint du BBO + MES (MinQty) -------------------------
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
-               "quantite": 100, "prix_limite": 102.0, "time_in_force": "day"})
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-               "quantite": 100, "prix_limite": 98.0, "time_in_force": "day"})
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "pegged",
-               "quantite": 50, "min_qty": 30})
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
-               "quantite": 10, "prix_limite": 100.0, "time_in_force": "day"})
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
-               "quantite": 40, "prix_limite": 100.0, "time_in_force": "day"})
-
-        # -- Correctif Phase 4/5 : MinQty incompatible avec Pegged IOC/FOK (6.4.1) --
-        r_peg_ioc = ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "pegged",
-                            "quantite": 50, "min_qty": 30, "time_in_force": "ioc"})
-        assert r_peg_ioc["statut"] == "rejete", "MinQty sur un Pegged IOC doit être rejeté"
-        r_p5 = mass_cancel(symbol=SYM)
-        assert r_p5["ok"], f"Mass Cancel fin phase Pegged échoué : {r_p5.get('error')}"
-
-        # -- Offset : prix = DRP ± DRP×Offset (2.1.1.2) ------------------------------
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
-               "quantite": 10, "prix_limite": 400.0, "time_in_force": "day"})
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-               "quantite": 10, "prix_limite": 400.0, "time_in_force": "day"})
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "offset",
-               "quantite": 20, "offset_bp": 100.0, "time_in_force": "atc"})
-        r_p6 = mass_cancel(symbol=SYM)
-        assert r_p6["ok"], f"Mass Cancel fin phase Offset échoué : {r_p6.get('error')}"
-
-        # -- TIF GTD/GTT : expiration + non-régression Cancel/Replace (2.10.20) ----
-        r_gtd = ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-                       "quantite": 10, "prix_limite": 300.0,
-                       "time_in_force": "gtd", "expire_date": "2030-01-01"})
-        # Correctif Phase 4/5 : ordres_bourse.py doit reconduire ExpireDate
-        # automatiquement sur le replace — sans ce correctif, le moteur rejette
-        # tout replace d'un ordre GTD dont Expire{Time,Date} n'est pas répété.
-        fix_tracer.snapshot()
-        r_replace_gtd = dashboard.api_call(f"/api/ordres/{r_gtd['id']}/modifier", "PUT", {"quantite": 8})
-        assert r_replace_gtd["ok"], \
-            f"Replace GTD (non-régression ExpireDate) échoué : {r_replace_gtd.get('error')}"
-        problemes_replace = fix_tracer.tracer_et_verifier()
-        assert not problemes_replace, \
-            "Non-conformité MIT202 (tags obligatoires absents) :\n" + "\n".join(problemes_replace)
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-               "quantite": 10, "prix_limite": 300.0,
-               "time_in_force": "gtt", "expire_time": "2020-01-01T00:00:00Z"})
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
-               "quantite": 5, "prix_limite": 999.0, "time_in_force": "day"})
-        r_p7 = mass_cancel(symbol=SYM)
-        assert r_p7["ok"], f"Mass Cancel fin phase GTD/GTT échoué : {r_p7.get('error')}"
-
-        # -- TIF d'enchère OPG/ATC/GFX/GFA/GFS : acceptation FIX (35=D) --------------
-        # Simplification assumée (cf. FIX_PROTOCOL.md) : pas d'algorithme
-        # d'uncrossing multilatéral dédié — ces TIF suivent le chemin déjà codé
-        # pour la pré-ouverture/le continu selon la phase réelle au moment de
-        # l'appel ; on démontre ici l'acceptation FIX, pas le comportement
-        # d'enchère (qui dépend de l'heure de Casablanca au moment du run).
-        for tif in ("opg", "atc", "gfx", "gfa", "gfs"):
-            ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-                   "quantite": 10, "prix_limite": 200.0, "time_in_force": tif})
-        r_p8 = mass_cancel(symbol=SYM)
-        assert r_p8["ok"], f"Mass Cancel fin phase Auctions échoué : {r_p8.get('error')}"
-
-        # -- TIF CPX : mise en file d'attente du prix de clôture ---------------------
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-               "quantite": 15, "prix_limite": 250.0, "time_in_force": "cpx"})
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
-               "quantite": 15, "prix_limite": 250.0, "time_in_force": "cpx"})
-        r_p9 = mass_cancel(symbol=SYM)
-        assert r_p9["ok"], f"Mass Cancel fin phase CPX échoué : {r_p9.get('error')}"
-
-        # -- Correctif Phase 4/5 : GroupID (27017) + Mass Cancel ciblé (530=56/57) --
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-               "quantite": 10, "prix_limite": 80.0, "group_id": "7"})
-        ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-               "quantite": 12, "prix_limite": 79.0, "group_id": "8"})
-        r_grp = mass_cancel(group_id="7")
-        assert r_grp["ok"], f"Mass Cancel GroupID=7 (530=56) échoué : {r_grp.get('error')}"
-
-        # MassCancelRequestType=57 (For Instrument For Group) : ce moteur n'a pas
-        # de notion de Member ID (TargetPartyRole=76 uniquement) → toujours
-        # rejeté par le gateway LSE réel (6.4.3), reproduit ici volontairement
-        # (cf. test_fix.py Scénario AD) plutôt que simulé comme fonctionnel.
-        r_57 = mass_cancel(symbol=SYM, group_id="8")
-        assert not r_57["ok"], "MassCancelRequestType=57 doit être rejeté (non supporté, 6.4.3)"
-        r_p10 = mass_cancel(symbol=SYM)
-        assert r_p10["ok"], f"Mass Cancel fin phase GroupID échoué : {r_p10.get('error')}"
-
-        # -- PassiveOnlyOrder (27010) : rejet si croisement d'une contrepartie visible
-        ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
-               "quantite": 10, "prix_limite": 700.0, "time_in_force": "day"})
-        r_psv1 = ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-                        "quantite": 10, "prix_limite": 705.0, "passive_only": True})
+    # -- PassiveOnlyOrder (27010) : rejet si croisement d'une contrepartie visible
+    r_psv_ask = ordre({"instrument_code": SYM, "sens": "vente", "type_ordre": "limite",
+                        "quantite": 10, "prix_limite": 700.0, "time_in_force": "day"})
+    r_psv1 = ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+                    "quantite": 10, "prix_limite": 705.0, "passive_only": True})
+    # L'assertion de rejet ne tient que si l'ask visible a réellement été
+    # posé (sinon, hors séance, rien à croiser -> l'achat serait accepté,
+    # pas rejeté, sans que ce soit une non-conformité).
+    if r_psv_ask["statut"] != "position_indisponible":
         assert r_psv1["statut"] == "rejete", "PassiveOnly qui croiserait un ask visible doit être rejeté"
-        r_psv2 = ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
-                        "quantite": 10, "prix_limite": 690.0, "passive_only": True})
-        assert r_psv2["statut"] != "rejete", "PassiveOnly qui ne croise rien doit être accepté"
+    r_psv2 = ordre({"instrument_code": SYM, "sens": "achat", "type_ordre": "limite",
+                    "quantite": 10, "prix_limite": 690.0, "passive_only": True})
+    assert r_psv2["statut"] != "rejete", "PassiveOnly qui ne croise rien doit être accepté"
 
     # ── Étape 9 : Déconnexion ─────────────────────────────────────────────────
     dashboard.go()
