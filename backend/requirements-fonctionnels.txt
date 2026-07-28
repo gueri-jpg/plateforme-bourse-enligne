@@ -1,3 +1,9 @@
+# tests/conftest.py (parent, toujours chargé par pytest même en ne collectant
+# que tests/fonctionnels/) importe app.main au niveau module -> les
+# dépendances du backend sont necessaires ici aussi, pas seulement
+# Selenium/pytest.
+-r requirements.txt
+
 pytest==8.4.2
 selenium>=4.20.0
 webdriver-manager>=4.0.2
