@@ -1,3 +1,5 @@
+import json
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -72,3 +74,36 @@ class BasePage:
 
     def js(self, script: str, *args):
         return self.driver.execute_script(script, *args)
+
+    # Doit rester sur une page ou window._apiCall(...) est defini
+    # (dashboard.html) : c'est le meme point d'entree HTTP que l'UI
+    # (Authorization: Bearer, retry sur 401/403), reutilise ici pour
+    # exercer des champs FIX (Stop/Iceberg/Pegged/GroupID/...) que le
+    # formulaire ne propose pas.
+    _API_CALL_SCRIPT = """
+        var path = arguments[0];
+        var options = arguments[1];
+        var callback = arguments[arguments.length - 1];
+        window._apiCall(path, options).then(function(result) {
+            callback({ok: true, body: result});
+        }).catch(function(err) {
+            callback({ok: false, error: (err && err.message) ? err.message : String(err)});
+        });
+    """
+
+    def api_call(self, path: str, method: str = "GET", body: dict | None = None) -> dict:
+        """
+        Appelle l'API backend via le _apiCall(path, options) global de
+        dashboard.html, en passant par execute_async_script (execute_script
+        n'attend pas les Promises JS, contrairement a execute_async_script).
+
+        Retourne {"ok": True, "body": ...} si la requete HTTP a reussi
+        (2xx) - y compris un rejet "metier" comme {"statut": "rejete", ...}
+        qui reste une reponse HTTP 200 cote ordres_bourse.py - ou
+        {"ok": False, "error": "..."} si _apiCall a leve une exception JS
+        (HTTPException backend, ex: 400/404).
+        """
+        options: dict = {"method": method}
+        if body is not None:
+            options["body"] = json.dumps(body)
+        return self.driver.execute_async_script(self._API_CALL_SCRIPT, path, options)

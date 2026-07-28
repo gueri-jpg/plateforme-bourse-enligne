@@ -207,7 +207,7 @@
     /* ── Stock detail panel (right slide-in) ── */
     .stock-panel {
       position: fixed; top: 52px; right: 0; bottom: 0;
-      width: 320px; background: var(--panel); border-left: 1px solid var(--line);
+      width: 400px; background: var(--panel); border-left: 1px solid var(--line);
       transform: translateX(100%); transition: transform .25s ease;
       z-index: 50; display: flex; flex-direction: column; overflow: hidden;
     }
@@ -215,6 +215,7 @@
     .stock-panel-header {
       padding: 16px; border-bottom: 1px solid var(--line);
       display: flex; justify-content: space-between; align-items: flex-start;
+      flex-shrink: 0;
     }
     .stock-panel-name { font-size: 15px; font-weight: 600; }
     .stock-panel-sector { font-size: 11px; color: var(--muted); margin-top: 2px; }
@@ -234,6 +235,20 @@
     .panel-btn-buy:hover { background: rgba(34,197,94,.25); }
     .panel-btn-sell { background: rgba(239,68,68,.15); color: var(--down); border: 1px solid var(--down) !important; }
     .panel-btn-sell:hover { background: rgba(239,68,68,.25); }
+    /* ── TradingView chart ─────────────────────────────────────────────────── */
+    .tv-chart-section { margin: 16px 0 4px; }
+    .tv-chart-label { font-size: 10px; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .5px; margin-bottom: 8px; }
+    .tv-tabs { display: flex; gap: 5px; margin-bottom: 8px; }
+    .tv-tab { padding: 4px 11px; border-radius: 6px; font-size: 11px; font-weight: 600;
+      border: 1px solid var(--line); background: var(--panel2); color: var(--muted);
+      cursor: pointer; font-family: inherit; transition: background .15s, color .15s; }
+    .tv-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .tv-tab:hover:not(.active) { background: var(--panel); color: var(--txt); }
+    .tv-chart-frame { width: 100%; height: 340px; border-radius: 8px;
+      display: block; background: var(--panel2); overflow: hidden; }
+    .tv-chart-frame iframe { width: 100%; height: 100%; border: none; display: block; }
+    #tv-no-data { padding: 40px 16px; text-align: center; color: var(--muted); font-size: 13px; }
 
     /* ── Toast notification ── */
     .toast {
@@ -1328,6 +1343,20 @@
       <div class="dl-item"><dt>Volume MAD</dt><dd id="panel-vol">—</dd></div>
       <div class="dl-item"><dt>Titres éch.</dt><dd id="panel-qty">—</dd></div>
     </div>
+    <!-- ── Graphe TradingView ──────────────────────────────────────────────── -->
+    <div class="tv-chart-section">
+      <div class="tv-chart-label">Graphe historique · BVC</div>
+      <div class="tv-tabs">
+        <button class="tv-tab active" data-interval="60">1h</button>
+        <button class="tv-tab" data-interval="D">1J</button>
+        <button class="tv-tab" data-interval="W">1S</button>
+        <button class="tv-tab" data-interval="M">1M</button>
+        <button class="tv-tab" data-interval="12M">1A</button>
+      </div>
+      <div id="tv-chart-container" class="tv-chart-frame"></div>
+      <div id="tv-no-data" style="display:none;">Graphe non disponible pour ce titre BVC</div>
+    </div>
+
     <div class="panel-actions">
       <button class="panel-btn-buy" id="panel-btn-buy">📈 Acheter</button>
       <button class="panel-btn-sell" id="panel-btn-sell">📉 Vendre</button>
@@ -1429,6 +1458,10 @@ async function _apiCall(path, options = {}) {
   }
   return r.status === 204 ? null : r.json();
 }
+// Expose sur window (comme selectStock/doCancelOrder/...) : necessaire pour
+// que les tests fonctionnels Selenium puissent exercer l'API via ce meme
+// point d'entree (auth + retry 401), sans dupliquer cette logique.
+window._apiCall = _apiCall;
 
 async function chargerPortefeuille() {
   try {
@@ -1714,22 +1747,40 @@ function applySnapshot(donnees) {
 
 // ── Logos entreprises (Google Favicon + fallback initiales) ───────────────────
 const LOGO_DOMAINS = {
-  'AGM':'agma.ma',               'AKT':'akdital.ma',
-  'ARD':'aradeicapital.com',     'ATW':'attijariwafabank.com',
-  'BCI':'bmci.ma',               'BOA':'bankofafrica.ma',
-  'CAP':'cashplus.ma',           'CFG':'cfgbank.com',
-  'CIH':'cihbank.ma',            'CMA':'cimentsdumaroc.com',
-  'CMT':'managemgroup.com',      'COL':'colorado.ma',
-  'CSR':'cosumar.ma',            'CTM':'ctm.ma',
-  'DHO':'deltaholding.ma',       'EQD':'eqdom.ma',
-  'FBR':'feniebrossette.ma',     'GAZ':'afriquiagaz.com',
-  'IAM':'iam.ma',                'IMO':'immorente.ma',
-  'INV':'involys.com',           'LHM':'holcim.ma',
-  'MAB':'maghrebail.ma',         'MIC':'microdata.ma',
-  'MNG':'managemgroup.com',      'MUT':'mutandis.ma',
+  '2SAHA':'sanlam.ma',           'AFI':'africaindustries.com',
+  'AFM':'afma.ma',               'AGM':'agma.ma',
+  'AKT':'akdital.ma',            'ALM':'aluminiumdumaroc.com',
+  'ARD':'aradeicapital.com',     'ATH':'autohall.com',
+  'ATW':'attijariwafabank.com',  'BCI':'bmci.ma',
+  'BCP':'groupebcp.com',         'BOA':'bankofafrica.ma',
+  'CAP':'cashplus.ma',           'CDM':'creditdumaroc.ma',
+  'CFG':'cfgbank.com',           'CIH':'cihbank.com',
+  'CMA':'cimentsdumaroc.com',    'CMG':'cmgp.ma',
+  'CMT':'cmt.ma',                'COL':'colorado.ma',
+  'CRS':'cartier-saada.com',     'CSR':'cosumar.ma',
+  'CTM':'ctm.ma',                'DHO':'deltaholding.ma',
+  'DWY':'disway.com',            'DYT':'distytechnologies.com',
+  'EQD':'eqdom.ma',              'FBR':'feniebrossette.ma',
+  'GAZ':'afriquiagaz.com',       'GTM':'sgtm.com',
+  'IAM':'iam.ma',                'IBC':'ibmaroc.com',
+  'IMO':'immorente.ma',          'INV':'involys.com',
+  'JET':'jet-contractors.com',   'LBV':'label-vie.com',
+  'LES':'lesieur.ma',            'LHM':'holcim.ma',
+  'M2M':'m2m.ma',                'MAB':'maghrebail.ma',
+  'MDP':'medpaper.com',          'MIC':'microdata.ma',
+  'MLE':'marocleasing.com',      'MNG':'managem.ma',
+  'MOX':'maghreboxygene.ma',     'MUT':'mutandis.ma',
+  'NEJ':'auto-nejma.ma',         'NKL':'ennakl.com',
   'OUL':'oulmes.ma',             'PRO':'promopharm.com',
-  'SID':'sonasid.ma',            'SNP':'snep.ma',
-  'TGC':'tgcc.ma',               'TMA':'totalenergies.com',
+  'RDS':'rds.ma',                'REB':'rebab.com',
+  'RIS':'risma.com',             'S2M':'s2mgroup.com',
+  'SAH':'saham.com',             'SBM':'soboma.com',
+  'SID':'sonasid.ma',            'SLF':'salafin.com',
+  'SNA':'stokvis.ma',            'SNP':'snep.ma',
+  'SOT':'sothema.ma',            'STR':'stroc.com',
+  'TGC':'tgcc.ma',               'TMA':'totalenergies.ma',
+  'TQM':'taqa.com',              'VCN':'vicenne.ma',
+  'WAA':'wafaassurance.ma',      'ZDJ':'zellidja.com',
 };
 const _LOGO_COLORS = ['#7B1D3A','#1d4ed8','#0891b2','#059669','#7c3aed','#b45309','#be123c'];
 function _logoColor(t) {
@@ -1862,6 +1913,114 @@ document.getElementById("mkt-sort").addEventListener("change", renderStocksTable
 
 // ── Stock detail panel ─────────────────────────────────────────────────────────
 let currentStock = null;
+let _tvInterval  = "D";
+
+// Mapping nom BVC (r.name) → code TradingView CASABLANCA
+const _BVC_TV = {
+  "ATTIJARIWAFA BANK": "ATW", "MAROC TELECOM": "IAM",
+  "BANQUE CENTRALE POPULAIRE": "BCP", "LABEL VIE": "LBV",
+  "DOUJA PROM ADDOHA": "ADH", "CIMENTS DU MAROC": "CMA",
+  "LAFARGE HOLCIM MAROC": "LAC", "MARSA MAROC": "MRS",
+  "WAFA ASSURANCE": "WAA", "DELTA HOLDING": "DHO",
+  "ALLIANCES": "ADI", "ATLANTA": "ATL",
+  "AUTO HALL": "AUTO", "BMCI": "BMCI",
+  "CRÉDIT DU MAROC": "CDM", "COMPAGNIE DE TRANSPORTS AU MAROC": "CTM",
+  "DELATTRE LEVIVIER MAROC": "DLM", "DISWAY": "DIS",
+  "EQDOM": "EQD", "FENIE BROSSETTE": "FBR",
+  "HPS": "HPS", "ITISSALAT AL-MAGHRIB": "IAM",
+  "LESIEUR CRISTAL": "LES", "M2M GROUP": "M2M",
+  "MAGHREBAIL": "MGB", "MANAGEM": "MNG",
+  "MUTANDIS SCA": "MUT", "NEXANS MAROC": "NEX",
+  "OULMES": "OUL", "RESIDENCES DAR SAADA": "RDS",
+  "RMA WATANYA": "RMA", "SAHAM ASSURANCE": "SAH",
+  "SNEP": "SNP", "SOTHEMA": "SOT",
+  "TAQA MOROCCO": "TAQA", "TOTAL MAROC": "TMA",
+  "UNIMER": "UMR", "ZELLIDJA": "ZLD",
+  "COLORADO": "COL", "DARI COUSPATE": "DAR",
+  "COSUMAR": "CSR", "STROC INDUSTRIE": "STROC",
+  "MICRODATA": "MIC", "PROMOPHARM": "PRO",
+  "STOKVIS MAROC": "STK", "SOCIÉTÉ GÉNÉRALE MAROC": "SGM",
+  "INVOLYS": "INVO", "TIMAR": "TIM",
+};
+
+function _tvTicker(stock) {
+  // 1. Mapping exact sur r.name
+  if (_BVC_TV[stock.name]) return _BVC_TV[stock.name];
+  // 2. Recherche partielle (ex: "ATTIJARIWAFA" trouvé dans "ATTIJARIWAFA BANK S.A.")
+  const nameUp = stock.name.toUpperCase();
+  for (const [key, code] of Object.entries(_BVC_TV)) {
+    if (nameUp.includes(key) || key.includes(nameUp)) return code;
+  }
+  // 3. ticker extrait de l'URL BVC — valide si ≤ 6 chars et alphanum uniquement
+  const t = (stock.ticker || "").replace(/[^A-Z0-9]/g, "");
+  if (t && t.length <= 6) return t;
+  return null;
+}
+
+function _tvTheme() {
+  return (document.documentElement.dataset.theme === "light") ? "light" : "dark";
+}
+
+// Chargement unique du script TradingView
+let _tvScriptReady = false;
+let _tvPendingCbs  = [];
+function _loadTVScript(cb) {
+  if (_tvScriptReady) { cb(); return; }
+  _tvPendingCbs.push(cb);
+  if (document.getElementById("tv-script")) return;
+  const s = document.createElement("script");
+  s.id  = "tv-script";
+  s.src = "https://s3.tradingview.com/tv.js";
+  s.onload = () => {
+    _tvScriptReady = true;
+    _tvPendingCbs.forEach(f => f());
+    _tvPendingCbs = [];
+  };
+  document.head.appendChild(s);
+}
+
+// Intervalle "12M" n'existe pas dans l'API widget → on ramène à mensuel
+function _fixInterval(iv) { return iv === "12M" ? "M" : iv; }
+
+function renderTVChart(stock, interval) {
+  const container = document.getElementById("tv-chart-container");
+  const noData    = document.getElementById("tv-no-data");
+  const ticker = _tvTicker(stock);
+  if (!ticker) {
+    container.innerHTML = "";
+    noData.style.display = "";
+    return;
+  }
+  noData.style.display = "none";
+  container.innerHTML = "";          // détruit le widget précédent
+  _loadTVScript(() => {
+    new TradingView.widget({
+      autosize:           true,
+      symbol:             `CSEMA:${ticker}`,
+      interval:           _fixInterval(interval),
+      timezone:           "Africa/Casablanca",
+      theme:              _tvTheme(),
+      style:              "1",
+      locale:             "fr",
+      toolbar_bg:         "#f1f3f6",
+      enable_publishing:  false,
+      hide_side_toolbar:  true,
+      allow_symbol_change: false,
+      save_image:         false,
+      container_id:       "tv-chart-container",
+    });
+  });
+}
+
+// Onglets d'intervalle
+document.querySelectorAll(".tv-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tv-tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    _tvInterval = btn.dataset.interval;
+    if (currentStock) renderTVChart(currentStock, _tvInterval);
+  });
+});
 
 window.selectStock = function(name) {
   const r = mkt.rows.find(s => s.name === name);
@@ -1881,6 +2040,7 @@ window.selectStock = function(name) {
   panelBuy.style.display  = isInvestor ? "" : "none";
   panelSell.style.display = isInvestor ? "" : "none";
   document.getElementById("stock-panel").classList.add("open");
+  renderTVChart(r, _tvInterval);
 };
 
 function updatePanelPrices(r) {
@@ -1900,6 +2060,7 @@ function updatePanelPrices(r) {
 
 document.getElementById("panel-close").addEventListener("click", () => {
   document.getElementById("stock-panel").classList.remove("open");
+  document.getElementById("tv-chart-container").innerHTML = "";
   currentStock = null;
 });
 

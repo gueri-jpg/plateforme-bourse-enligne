@@ -400,28 +400,73 @@ CREATE TABLE ordres.ordres (
                         REFERENCES marche.instruments(id) ON DELETE RESTRICT,
     -- Sens de l'ordre : achat ou vente
     sens                VARCHAR(10) NOT NULL CHECK (sens IN ('achat', 'vente')),
-    -- Type d'ordre : "marche" (execution immediate au meilleur prix) ou
-    -- "limite" (execution conditionnee a l'atteinte d'un seuil de prix) -
-    -- US-26 a US-29
-    type_ordre          VARCHAR(10) NOT NULL DEFAULT 'marche'
-                        CHECK (type_ordre IN ('marche', 'limite')),
+    -- Type d'ordre MIT202 : marche/limite/stop/stop_limite/iceberg
+    -- (cache/reserve)/pegged/offset - US-26 a US-29
+    -- VARCHAR(15) : "stop_limite" fait 11 caracteres
+    type_ordre          VARCHAR(15) NOT NULL DEFAULT 'marche'
+                        CHECK (type_ordre IN (
+                            'marche', 'limite', 'stop', 'stop_limite',
+                            'iceberg', 'cache', 'pegged', 'offset'
+                        )),
     -- Quantite demandee (toujours positive)
     quantite            NUMERIC(18, 6) NOT NULL CHECK (quantite > 0),
     -- Prix limite (achat : prix maximal, vente : prix minimal). Obligatoire
-    -- et strictement positif si type_ordre = 'limite', doit etre NULL sinon
-    -- (US-26 a US-29, architecture.md section 3.4)
+    -- pour limite/stop_limite/iceberg/cache, interdit pour marche/stop
+    -- (StopPx sert de declencheur), libre pour pegged/offset (prix calcule
+    -- par le moteur - US-26 a US-29, architecture.md section 3.4)
     prix_limite         NUMERIC(18, 4)
                         CHECK (
-                            (type_ordre = 'limite' AND prix_limite IS NOT NULL AND prix_limite > 0)
-                            OR (type_ordre = 'marche' AND prix_limite IS NULL)
+                            (type_ordre IN ('limite', 'stop_limite', 'iceberg', 'cache')
+                                AND prix_limite IS NOT NULL AND prix_limite > 0)
+                            OR (type_ordre IN ('marche', 'stop') AND prix_limite IS NULL)
+                            OR (type_ordre IN ('pegged', 'offset'))
                         ),
+    -- Duree de validite FIX (Tag 59 TimeInForce) MIT202
+    time_in_force       VARCHAR(3) NOT NULL DEFAULT 'day'
+                        CHECK (time_in_force IN (
+                            'day', 'gtc', 'ioc', 'fok',
+                            'opg', 'atc', 'gfx', 'gfa', 'gfs', 'gtd', 'gtt', 'cpx'
+                        )),
+    -- StopPx (Tag 99) - obligatoire uniquement pour stop/stop_limite
+    stop_px             NUMERIC(18, 4)
+                        CHECK (
+                            (type_ordre IN ('stop', 'stop_limite') AND stop_px IS NOT NULL)
+                            OR (type_ordre NOT IN ('stop', 'stop_limite') AND stop_px IS NULL)
+                        ),
+    -- DisplayQty (Tag 1138) / DisplayMethod (Tag 1084) - Iceberg/Hidden
+    display_qty         NUMERIC(18, 6),
+    display_method      VARCHAR(10)
+                        CHECK (display_method IS NULL OR display_method IN ('random', 'hidden')),
+    -- MinQty (Tag 110, MES) - ordres Pegged
+    min_qty             NUMERIC(18, 6),
+    -- PreTradeAnonymity (Tag 1091) - Y=anonyme (defaut), N=Named
+    pre_trade_anonymity VARCHAR(1) NOT NULL DEFAULT 'Y' CHECK (pre_trade_anonymity IN ('Y', 'N')),
+    -- ExpireTime (Tag 126) / ExpireDate (Tag 432) - TIF GTT / GTD
+    expire_time         TIMESTAMPTZ,
+    expire_date         DATE,
+    -- Offset (Tag 27018, points de base) - ordres Offset
+    offset_bp           NUMERIC(9, 4)
+                        CHECK (
+                            (type_ordre = 'offset' AND offset_bp IS NOT NULL)
+                            OR (type_ordre != 'offset' AND offset_bp IS NULL)
+                        ),
+    -- GroupID (Tag 27017) - bucket client-assignable (1-255) pour le Mass
+    -- Cancel cible "For Group"/"For Instrument For Group" (530=56/57).
+    -- '0' = non groupe (defaut). Distinct du Trader Group (76) = compte_id.
+    group_id             VARCHAR(3) NOT NULL DEFAULT '0'
+                        CHECK (group_id = '0' OR group_id ~ '^([1-9][0-9]?|1[0-9]{2}|2[0-4][0-9]|25[0-5])$'),
     -- Statut de l'ordre : cycle de vie defini en specs section 5
-    --   en_attente -> execute | annule | rejete (transitions definitives une fois finales)
+    --   en_attente -> execute | partiellement_execute | annule | rejete | expire
     --   Pour un ordre a cours limite, "en_attente" couvre a la fois l'attente
     --   de traitement initial et l'attente d'atteinte du seuil de prix
     --   (US-28), jusqu'a declenchement par le Limit Order Trigger Service.
-    statut              VARCHAR(15) NOT NULL DEFAULT 'en_attente'
-                        CHECK (statut IN ('en_attente', 'execute', 'annule', 'rejete')),
+    --   "expire" : GTD/GTT ou DAY expire en fin de seance (sweep paresseux
+    --   du moteur FIX, cf. fix_engine._expirer_ordres).
+    statut              VARCHAR(22) NOT NULL DEFAULT 'en_attente'
+                        CHECK (statut IN (
+                            'en_attente', 'execute', 'partiellement_execute',
+                            'annule', 'rejete', 'expire'
+                        )),
     -- Motif de rejet, renseigne uniquement si statut = 'rejete'
     -- (solde_insuffisant / position_insuffisante / marche_ferme - cf. architecture.md section 4.1)
     motif_rejet         VARCHAR(30)
