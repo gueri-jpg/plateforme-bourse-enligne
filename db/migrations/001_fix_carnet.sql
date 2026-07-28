@@ -1,6 +1,8 @@
 -- Migration 001 : persistance du carnet FIX
 -- Ajoute time_in_force dans ordres.ordres et corrige le CHECK statut.
 -- Aucune donnée supprimée. Idempotent (IF NOT EXISTS / IF EXISTS).
+-- Appliquée automatiquement en production par .github/workflows/deploy.yml
+-- (step "Appliquer les migrations DB").
 
 BEGIN;
 

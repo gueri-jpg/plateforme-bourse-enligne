@@ -196,11 +196,13 @@ jobs:
       # display_qty/min_qty/group_id n'existaient pas encore en prod).
       # Condition sur db_migrations (pas backend) : ne tourne QUE si un
       # fichier sous db/migrations/ a changé dans ce push, pas à chaque
-      # modification de code backend. Idempotent (chaque fichier utilise
-      # IF NOT EXISTS/IF EXISTS) : rejouer une migration déjà appliquée ne
-      # fait rien.
+      # modification de code backend — sauf déclenchement manuel
+      # (workflow_dispatch), pour pouvoir rattraper/rejouer les migrations à
+      # la demande sans dépendre d'un diff de fichiers. Idempotent (chaque
+      # fichier utilise IF NOT EXISTS/IF EXISTS) : rejouer une migration déjà
+      # appliquée ne fait rien.
       - name: Appliquer les migrations DB (db/migrations/*.sql)
-        if: needs.changes.outputs.db_migrations == 'true'
+        if: needs.changes.outputs.db_migrations == 'true' || github.event_name == 'workflow_dispatch'
         run: |
           for f in db/migrations/*.sql; do
             nom=$(basename "$f")
