@@ -33,6 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       backend:   ${{ steps.f.outputs.backend }}
+      db_migrations: ${{ steps.f.outputs.db_migrations }}
       frontend:  ${{ steps.f.outputs.frontend }}
       admin:     ${{ steps.f.outputs.admin }}
       keycloak:  ${{ steps.f.outputs.keycloak }}
@@ -48,6 +49,11 @@ jobs:
           filters: |
             backend:
               - 'backend/**'
+            # Distinct de "backend" : ne déclenche l'exécution des migrations
+            # que si un fichier sous db/migrations/ change réellement, pas à
+            # chaque modification de code backend.
+            db_migrations:
+              - 'db/migrations/**'
             frontend:
               - 'frontend/**'
             admin:
@@ -87,6 +93,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       needs.changes.outputs.backend   == 'true' ||
+      needs.changes.outputs.db_migrations == 'true' ||
       needs.changes.outputs.frontend  == 'true' ||
       needs.changes.outputs.admin     == 'true' ||
       needs.changes.outputs.keycloak  == 'true' ||
@@ -180,6 +187,30 @@ jobs:
             --name $AKS \
             --admin \
             --overwrite-existing
+
+      # Applique db/migrations/*.sql contre la vraie base Postgres de prod,
+      # AVANT de déployer le nouveau code backend (qui peut référencer des
+      # colonnes/tables que ces migrations ajoutent — un déploiement de code
+      # sans ce step laisserait le schéma en retard indéfiniment, cf.
+      # incident du 2026-07-28 : POST /api/ordres plantait car stop_px/
+      # display_qty/min_qty/group_id n'existaient pas encore en prod).
+      # Condition sur db_migrations (pas backend) : ne tourne QUE si un
+      # fichier sous db/migrations/ a changé dans ce push, pas à chaque
+      # modification de code backend — sauf déclenchement manuel
+      # (workflow_dispatch), pour pouvoir rattraper/rejouer les migrations à
+      # la demande sans dépendre d'un diff de fichiers. Idempotent (chaque
+      # fichier utilise IF NOT EXISTS/IF EXISTS) : rejouer une migration déjà
+      # appliquée ne fait rien.
+      - name: Appliquer les migrations DB (db/migrations/*.sql)
+        if: needs.changes.outputs.db_migrations == 'true' || github.event_name == 'workflow_dispatch'
+        run: |
+          for f in db/migrations/*.sql; do
+            nom=$(basename "$f")
+            echo "── Migration : $nom ──"
+            kubectl cp "$f" "$NS/bourse-platform-postgres-0:/tmp/$nom"
+            kubectl exec -n $NS bourse-platform-postgres-0 -- bash -c \
+              "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -v ON_ERROR_STOP=1 -f /tmp/$nom"
+          done
 
       - name: Patch secret — TWELVE_DATA_API_KEY
         if: needs.changes.outputs.backend == 'true'
