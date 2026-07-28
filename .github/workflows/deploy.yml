@@ -317,6 +317,7 @@ jobs:
           BOURSE_BASE_URL: https://bourse.cfconsultancy.org
           PYTHONPATH: .
         run: |
+          set -o pipefail
           pytest tests/fonctionnels/ -v --tb=short 2>&1 | tee fonctionnels-report.txt
 
       - name: Publier le rapport
