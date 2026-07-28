@@ -103,6 +103,16 @@ class BasePage:
         {"ok": False, "error": "..."} si _apiCall a leve une exception JS
         (HTTPException backend, ex: 400/404).
         """
+        # window._apiCall est assigné par un <script type="module"> (donc
+        # différé) : juste après une navigation (ex. re-login → dashboard),
+        # l'URL peut déjà contenir "dashboard" alors que ce script n'a pas
+        # encore fini de s'exécuter — appeler api_call() à cet instant lève
+        # "window._apiCall is not a function". On attend explicitement que
+        # la fonction existe avant de l'invoquer, plutôt que d'imposer à
+        # chaque appelant de gérer cette course lui-même.
+        WebDriverWait(self.driver, self.TIMEOUT).until(
+            lambda d: d.execute_script("return typeof window._apiCall === 'function'")
+        )
         options: dict = {"method": method}
         if body is not None:
             options["body"] = json.dumps(body)
