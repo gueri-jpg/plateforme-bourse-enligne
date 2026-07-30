@@ -274,7 +274,7 @@ class _FixTracer:
         self.docker_container = docker_container
         self.k8s_namespace = os.environ.get("FIX_TRACE_K8S_NAMESPACE")
         self.k8s_selector = os.environ.get("FIX_TRACE_K8S_SELECTOR", "app.kubernetes.io/component=backend")
-        self._baseline_len: int | None = None
+        self._baseline_len: dict[str, int] = {}
         self._mode: str | None = None
 
     def _cmd_ok(self, cmd: list[str]) -> bool:
@@ -299,37 +299,68 @@ class _FixTracer:
     def disponible(self) -> bool:
         return self._mode_detecte() != "absent"
 
-    def _logs_full(self) -> str:
+    def _pods(self) -> list[str]:
+        """
+        Liste les pods correspondant au sélecteur. Le backend tourne avec
+        plusieurs réplicas en production (values.yaml, replicaCount.backend)
+        et le load-balancer Kubernetes répartit les requêtes entre eux — voir
+        _logs_par_pod pour pourquoi chaque pod doit être diffé séparément.
+        """
+        out = subprocess.run(
+            ["kubectl", "get", "pods", "-n", self.k8s_namespace, "-l", self.k8s_selector,
+             "-o", "jsonpath={.items[*].metadata.name}"],
+            capture_output=True, text=True, timeout=10,
+        )
+        return out.stdout.split() if out.returncode == 0 else []
+
+    def _logs_par_pod(self) -> dict[str, str]:
+        """
+        Logs bruts par pod (clé = nom du pod, ou le nom du conteneur Docker
+        en mode local). Un `kubectl logs -l <selector>` concatène les logs de
+        TOUS les pods correspondants, pod par pod (pas entrelacés par
+        horodatage) : avec 2+ réplicas, si le pod A grossit entre deux
+        appels, tout le texte du/des pod(s) suivant(s) dans cette
+        concaténation se décale d'autant — un diff par simple longueur totale
+        de caractères (comme avant) fait alors passer les nouvelles lignes du
+        pod A pour "déjà vues", puisqu'elles atterrissent avant l'ancien
+        offset. Ne diffe correctement que si on isole chaque pod.
+        """
         mode = self._mode_detecte()
         if mode == "k8s":
-            out = subprocess.run(
-                ["kubectl", "logs", "-n", self.k8s_namespace, "-l", self.k8s_selector,
-                 "--all-containers=true", "--prefix=true", "--tail=5000"],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
-            )
+            logs: dict[str, str] = {}
+            for pod in self._pods():
+                out = subprocess.run(
+                    ["kubectl", "logs", "-n", self.k8s_namespace, pod,
+                     "--all-containers=true", "--prefix=true", "--tail=5000"],
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
+                )
+                logs[pod] = out.stdout + out.stderr
+            return logs
         elif mode == "docker":
             out = subprocess.run(
                 ["docker", "logs", self.docker_container],
                 capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15,
             )
-        else:
-            return ""
-        return out.stdout + out.stderr
+            return {self.docker_container: out.stdout + out.stderr}
+        return {}
 
     def snapshot(self) -> None:
         if self.disponible():
-            self._baseline_len = len(self._logs_full())
+            self._baseline_len = {pod: len(logs) for pod, logs in self._logs_par_pod().items()}
 
     def tracer_et_verifier(self, print_fn=print) -> list[str]:
         if not self.disponible():
             return []
-        full = self._logs_full()
-        baseline = self._baseline_len or 0
-        new = full[baseline:] if len(full) > baseline else ""
-        self._baseline_len = len(full)
+        logs_actuels = self._logs_par_pod()
+        nouvelles_lignes: list[str] = []
+        for pod, full in logs_actuels.items():
+            baseline = self._baseline_len.get(pod, 0)
+            nouveau = full[baseline:] if len(full) > baseline else ""
+            nouvelles_lignes.extend(nouveau.splitlines())
+        self._baseline_len = {pod: len(full) for pod, full in logs_actuels.items()}
 
         problemes = []
-        for l in new.splitlines():
+        for l in nouvelles_lignes:
             # Découper sur le marqueur applicatif "[FIX OUT]"/"[FIX IN]"
             # lui-même, pas sur le premier "] " de la ligne : avec
             # `kubectl logs --prefix=true`, la ligne porte AUSSI un préfixe
