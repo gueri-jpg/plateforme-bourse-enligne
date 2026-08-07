@@ -80,8 +80,7 @@ jobs:
             --query "{name:name, location:location, id:id}" -o table
 
       # ── Vérification du Storage Account tfstate ────────────────────────────
-      # Le backend "azurerm" dans main.tf pointe sur stcfcdevladw/rg-cfc-dev
-      # (même storage account que la banque, clé différente : bourse.terraform.tfstate)
+      # Le backend "azurerm" dans main.tf pointe sur stbourse98039/rg-cfc-dev
       - name: Vérifier le Storage Account tfstate
         run: |
           if ! az storage account show \
