@@ -50,9 +50,9 @@ jobs:
             backend:
               - 'backend/**'
             # Distinct de "backend" : ne déclenche l'exécution des migrations
-            # que si un fichier sous db/migrations/ change réellement, pas à
-            # chaque modification de code backend.
+            # que si un fichier SQL change (schéma initial ou delta).
             db_migrations:
+              - 'db/init.sql'
               - 'db/migrations/**'
             frontend:
               - 'frontend/**'
@@ -231,26 +231,43 @@ jobs:
           fi
 
       # Migration DB via un pod temporaire postgres dans le cluster (accès VNet privé).
-      # Idempotent : chaque fichier SQL utilise IF NOT EXISTS / IF EXISTS.
-      - name: Appliquer les migrations DB (db/migrations/*.sql)
+      # 1) Applique db/init.sql si le schéma "ordres" n'existe pas encore (1ère install).
+      # 2) Applique ensuite les migrations delta db/migrations/*.sql (idempotentes).
+      - name: Appliquer les migrations DB
         if: needs.changes.outputs.db_migrations == 'true' || github.event_name == 'workflow_dispatch'
         env:
           PGPASSWORD: ${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}
         run: |
+          PG_ARGS="-h psql-bourse-prod.postgres.database.azure.com -U bourse_admin -d bourse_db"
+
           kubectl run migration-runner --restart=Never \
             --namespace $NS --image=postgres:16-alpine \
             --env="PGPASSWORD=$PGPASSWORD" \
             --command -- sleep 300 || true
           kubectl wait pod/migration-runner -n $NS --for=condition=Ready --timeout=60s
+
+          # Schéma initial : appliqué uniquement si "ordres" n'existe pas encore.
+          # grep -v filtre la ligne "CREATE DATABASE keycloak_db" (gérée par Terraform).
+          SCHEMA_EXISTS=$(kubectl exec -n $NS migration-runner -- \
+            psql $PG_ARGS -tAq -c "SELECT COUNT(*) FROM pg_namespace WHERE nspname = 'ordres'")
+          if [ "$SCHEMA_EXISTS" = "0" ]; then
+            echo "Schéma 'ordres' absent — application de db/init.sql..."
+            kubectl cp "db/init.sql" "$NS/migration-runner:/tmp/init.sql"
+            kubectl exec -n $NS migration-runner -- sh -c \
+              "grep -v 'CREATE DATABASE' /tmp/init.sql | psql $PG_ARGS -v ON_ERROR_STOP=1 -f -"
+          else
+            echo "Schéma 'ordres' déjà présent — skip init.sql"
+          fi
+
+          # Migrations delta
           for f in db/migrations/*.sql; do
             nom=$(basename "$f")
-            echo "── Migration : $nom ──"
+            echo "── Migration delta : $nom ──"
             kubectl cp "$f" "$NS/migration-runner:/tmp/$nom"
-            kubectl exec -n $NS migration-runner -- psql \
-              -h psql-bourse-prod.postgres.database.azure.com \
-              -U bourse_admin -d bourse_db \
+            kubectl exec -n $NS migration-runner -- psql $PG_ARGS \
               -v ON_ERROR_STOP=1 -f "/tmp/$nom"
           done
+
           kubectl delete pod migration-runner -n $NS --ignore-not-found
 
       - name: Health check backend
