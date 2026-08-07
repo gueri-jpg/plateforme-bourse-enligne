@@ -131,13 +131,11 @@ kafka:
     client:
       protocol: PLAINTEXT
 
-  # Provisioning automatique des topics au démarrage du chart
+  # Provisioning désactivé : le topic market.prices est créé via kubectl exec
+  # dans le step "Créer topics Kafka" du workflow deploy.yml (évite le timeout
+  # du Job de provisioning qui bloque helm upgrade --install).
   provisioning:
-    enabled: true
-    topics:
-      - name: market.prices
-        partitions: 3
-        replicationFactor: 1
+    enabled: false
 
   resources:
     requests:
