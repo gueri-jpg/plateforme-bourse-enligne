@@ -196,11 +196,15 @@ jobs:
         run: |
           helm upgrade --install bourse-platform ./infra/helm/bourse-platform \
             --namespace $NS --create-namespace \
-            --set global.imageRegistry=$ACR \
+            --set image.backend.repository=$ACR/bourse-backend \
             --set image.backend.tag=${{ github.sha }} \
+            --set image.frontend.repository=$ACR/bourse-frontend \
             --set image.frontend.tag=${{ github.sha }} \
+            --set image.adminFrontend.repository=$ACR/bourse-admin-frontend \
             --set image.adminFrontend.tag=${{ github.sha }} \
+            --set image.bvcProducer.repository=$ACR/bourse-bvc-producer \
             --set image.bvcProducer.tag=${{ github.sha }} \
+            --set image.bvcRelay.repository=$ACR/bourse-bvc-relay \
             --set image.bvcRelay.tag=${{ github.sha }} \
             --set postgres.host=psql-bourse-prod.postgres.database.azure.com \
             --set postgres.password="${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}" \
