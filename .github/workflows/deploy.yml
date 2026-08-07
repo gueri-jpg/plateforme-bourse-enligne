@@ -206,7 +206,7 @@ jobs:
             --set postgres.password="${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}" \
             --set keycloak.externalDatabase.host=psql-bourse-prod.postgres.database.azure.com \
             --set keycloak.externalDatabase.password="${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}" \
-            --set keycloak.auth.adminPassword="${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
+            --set keycloak.auth.adminPassword="${{ secrets.KC_STAGING_ADMIN_PASSWORD }}" \
             --timeout 10m
 
       # Migration DB via un pod temporaire postgres dans le cluster (accès VNet privé).
