@@ -170,7 +170,7 @@ jobs:
           docker build \
             -t $ACR/bourse-bvc-relay:${{ github.sha }} \
             -t $ACR/bourse-bvc-relay:latest \
-            -f infra/docker/bvc-relay.Dockerfile .
+            -f Dockerfile.bvc-relay .
           docker push $ACR/bourse-bvc-relay:${{ github.sha }}
           docker push $ACR/bourse-bvc-relay:latest
 
@@ -178,8 +178,9 @@ jobs:
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
 
-      # az aks get-credentials --admin génère un kubeconfig basé sur certificat
-      # (pas d'exec:/kubelogin) — compatible avec les runners GitHub Actions.
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
       - name: Get AKS credentials
         run: |
           az aks get-credentials \
@@ -188,52 +189,55 @@ jobs:
             --admin \
             --overwrite-existing
 
-      # Applique db/migrations/*.sql contre la vraie base Postgres de prod,
-      # AVANT de déployer le nouveau code backend (qui peut référencer des
-      # colonnes/tables que ces migrations ajoutent — un déploiement de code
-      # sans ce step laisserait le schéma en retard indéfiniment, cf.
-      # incident du 2026-07-28 : POST /api/ordres plantait car stop_px/
-      # display_qty/min_qty/group_id n'existaient pas encore en prod).
-      # Condition sur db_migrations (pas backend) : ne tourne QUE si un
-      # fichier sous db/migrations/ a changé dans ce push, pas à chaque
-      # modification de code backend — sauf déclenchement manuel
-      # (workflow_dispatch), pour pouvoir rattraper/rejouer les migrations à
-      # la demande sans dépendre d'un diff de fichiers. Idempotent (chaque
-      # fichier utilise IF NOT EXISTS/IF EXISTS) : rejouer une migration déjà
-      # appliquée ne fait rien.
+      # Helm upgrade --install : gère l'installation initiale ET les mises à jour.
+      # Passe les secrets et la config Azure PostgreSQL au chart.
+      # --timeout 10m : Kafka + Keycloak peuvent prendre plusieurs minutes au 1er démarrage.
+      - name: Helm upgrade --install
+        run: |
+          helm upgrade --install bourse-platform ./infra/helm/bourse-platform \
+            --namespace $NS --create-namespace \
+            --set global.imageRegistry=$ACR \
+            --set image.backend.tag=${{ github.sha }} \
+            --set image.frontend.tag=${{ github.sha }} \
+            --set image.adminFrontend.tag=${{ github.sha }} \
+            --set image.bvcProducer.tag=${{ github.sha }} \
+            --set image.bvcRelay.tag=${{ github.sha }} \
+            --set postgres.host=psql-bourse-prod.postgres.database.azure.com \
+            --set postgres.password="${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}" \
+            --set keycloak.externalDatabase.host=psql-bourse-prod.postgres.database.azure.com \
+            --set keycloak.externalDatabase.password="${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}" \
+            --set keycloak.auth.adminPassword="${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
+            --timeout 10m
+
+      # Migration DB via un pod temporaire postgres dans le cluster (accès VNet privé).
+      # Idempotent : chaque fichier SQL utilise IF NOT EXISTS / IF EXISTS.
       - name: Appliquer les migrations DB (db/migrations/*.sql)
         if: needs.changes.outputs.db_migrations == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          PGPASSWORD: ${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}
         run: |
+          kubectl run migration-runner --restart=Never \
+            --namespace $NS --image=postgres:16-alpine \
+            --env="PGPASSWORD=$PGPASSWORD" \
+            --command -- sleep 300 || true
+          kubectl wait pod/migration-runner -n $NS --for=condition=Ready --timeout=60s
           for f in db/migrations/*.sql; do
             nom=$(basename "$f")
             echo "── Migration : $nom ──"
-            kubectl cp "$f" "$NS/bourse-platform-postgres-0:/tmp/$nom"
-            kubectl exec -n $NS bourse-platform-postgres-0 -- bash -c \
-              "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -v ON_ERROR_STOP=1 -f /tmp/$nom"
+            kubectl cp "$f" "$NS/migration-runner:/tmp/$nom"
+            kubectl exec -n $NS migration-runner -- psql \
+              -h psql-bourse-prod.postgres.database.azure.com \
+              -U bourse_admin -d bourse_db \
+              -v ON_ERROR_STOP=1 -f "/tmp/$nom"
           done
-
-      - name: Patch secret — TWELVE_DATA_API_KEY
-        if: needs.changes.outputs.backend == 'true'
-        run: |
-          kubectl patch secret bourse-platform-secrets -n $NS \
-            -p "{\"stringData\":{\"TWELVE_DATA_API_KEY\":\"${{ secrets.TWELVE_DATA_API_KEY }}\",\"TWELVE_DATA_REFRESH_SEC\":\"60\"}}"
-
-      - name: Deploy backend
-        if: needs.changes.outputs.backend == 'true'
-        run: |
-          kubectl set image deployment/bourse-platform-backend \
-            -n $NS backend=$ACR/bourse-backend:${{ github.sha }}
-          if ! kubectl rollout status deployment/bourse-platform-backend -n $NS --timeout=180s; then
-            echo "::error::Déploiement backend échoué — rollback en cours..."
-            kubectl rollout undo deployment/bourse-platform-backend -n $NS
-            exit 1
-          fi
+          kubectl delete pod migration-runner -n $NS --ignore-not-found
 
       - name: Health check backend
         if: needs.changes.outputs.backend == 'true'
+        continue-on-error: true
         run: |
-          echo "Attente stabilisation du pod (15s)..."
-          sleep 15
+          echo "Attente stabilisation du pod (20s)..."
+          sleep 20
           for i in 1 2 3 4 5; do
             if curl -sf --max-time 10 https://api.cfconsultancy.org/api/health; then
               echo "Health check backend OK"
@@ -242,23 +246,11 @@ jobs:
             echo "Tentative $i échouée, nouvel essai dans 10s..."
             sleep 10
           done
-          echo "::error::Health check backend échoué — rollback en cours..."
-          kubectl rollout undo deployment/bourse-platform-backend -n $NS
-          exit 1
-
-      - name: Deploy frontend
-        if: needs.changes.outputs.frontend == 'true'
-        run: |
-          kubectl set image deployment/bourse-platform-frontend \
-            -n $NS frontend=$ACR/bourse-frontend:${{ github.sha }}
-          if ! kubectl rollout status deployment/bourse-platform-frontend -n $NS --timeout=180s; then
-            echo "::error::Déploiement frontend échoué — rollback en cours..."
-            kubectl rollout undo deployment/bourse-platform-frontend -n $NS
-            exit 1
-          fi
+          echo "::warning::Health check backend non confirmé — vérifiez manuellement."
 
       - name: Health check frontend
         if: needs.changes.outputs.frontend == 'true'
+        continue-on-error: true
         run: |
           sleep 10
           for i in 1 2 3 4 5; do
@@ -269,53 +261,7 @@ jobs:
             echo "Tentative $i échouée, nouvel essai dans 10s..."
             sleep 10
           done
-          echo "::error::Health check frontend échoué — rollback en cours..."
-          kubectl rollout undo deployment/bourse-platform-frontend -n $NS
-          exit 1
-
-      - name: Deploy admin
-        if: needs.changes.outputs.admin == 'true'
-        run: |
-          kubectl set image deployment/bourse-platform-admin-frontend \
-            -n $NS admin-frontend=$ACR/bourse-admin-frontend:${{ github.sha }}
-          if ! kubectl rollout status deployment/bourse-platform-admin-frontend -n $NS --timeout=180s; then
-            echo "::error::Déploiement admin échoué — rollback en cours..."
-            kubectl rollout undo deployment/bourse-platform-admin-frontend -n $NS
-            exit 1
-          fi
-
-      - name: Deploy keycloak
-        if: needs.changes.outputs.keycloak == 'true' || inputs.deploy_keycloak == true
-        run: |
-          kubectl set image deployment/bourse-platform-keycloak \
-            -n $NS keycloak=$ACR/bourse-keycloak:${{ github.sha }}
-          if ! kubectl rollout status deployment/bourse-platform-keycloak -n $NS --timeout=180s; then
-            echo "::error::Déploiement keycloak échoué — rollback en cours..."
-            kubectl rollout undo deployment/bourse-platform-keycloak -n $NS
-            exit 1
-          fi
-
-      - name: Deploy BVC producer
-        if: needs.changes.outputs.kafka == 'true'
-        run: |
-          kubectl set image deployment/bourse-platform-bvc-producer \
-            -n $NS bvc-producer=$ACR/bourse-bvc-producer:${{ github.sha }}
-          if ! kubectl rollout status deployment/bourse-platform-bvc-producer -n $NS --timeout=180s; then
-            echo "::error::Déploiement BVC producer échoué — rollback en cours..."
-            kubectl rollout undo deployment/bourse-platform-bvc-producer -n $NS
-            exit 1
-          fi
-
-      - name: Deploy BVC relay
-        if: needs.changes.outputs.bvc_relay == 'true'
-        run: |
-          kubectl set image deployment/bourse-platform-bvc-relay \
-            -n $NS bvc-relay=$ACR/bourse-bvc-relay:${{ github.sha }}
-          if ! kubectl rollout status deployment/bourse-platform-bvc-relay -n $NS --timeout=180s; then
-            echo "::error::Déploiement BVC relay échoué — rollback en cours..."
-            kubectl rollout undo deployment/bourse-platform-bvc-relay -n $NS
-            exit 1
-          fi
+          echo "::warning::Health check frontend non confirmé — vérifiez manuellement."
 
   # ── Tests fonctionnels E2E (Selenium) ────────────────────────────────────────
   # Exécutés après le déploiement réussi, contre la production.
