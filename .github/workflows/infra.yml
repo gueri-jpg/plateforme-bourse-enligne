@@ -85,10 +85,10 @@ jobs:
       - name: Vérifier le Storage Account tfstate
         run: |
           if ! az storage account show \
-                --name stcfcdevladw \
+                --name stbourse98039 \
                 --resource-group rg-cfc-dev \
                 &>/dev/null; then
-            echo "::error::Le Storage Account 'stcfcdevladw' (rg-cfc-dev) n'existe pas."
+            echo "::error::Le Storage Account 'stbourse98039' (rg-cfc-dev) n'existe pas."
             exit 1
           fi
           echo "Storage Account tfstate OK."
