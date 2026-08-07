@@ -38,8 +38,8 @@ terraform {
 provider "azurerm" {
   features {}
   # Le SP GitHub Actions n'a pas Microsoft.*/register/action — on désactive
-  # l'enregistrement automatique et on pré-enregistre manuellement les providers.
-  resource_provider_registrations = "none"
+  # l'enregistrement automatique (providers pré-enregistrés manuellement).
+  skip_provider_registration = true
 }
 
 # ------------------------------------------------------------------------------
