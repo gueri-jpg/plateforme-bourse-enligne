@@ -114,8 +114,10 @@ jobs:
         run: az acr login --name $(echo "$ACR" | cut -d. -f1)
 
       # ── Builds conditionnels ────────────────────────────────────────────────
+      # workflow_dispatch force le build de toutes les images (premier déploiement
+      # ou re-déploiement complet). Sur push, seules les images modifiées sont buildées.
       - name: Build & push backend
-        if: needs.changes.outputs.backend == 'true'
+        if: needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
         run: |
           docker build \
             -t $ACR/bourse-backend:${{ github.sha }} \
@@ -125,7 +127,7 @@ jobs:
           docker push $ACR/bourse-backend:latest
 
       - name: Build & push frontend
-        if: needs.changes.outputs.frontend == 'true'
+        if: needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
         run: |
           docker build \
             -t $ACR/bourse-frontend:${{ github.sha }} \
@@ -135,7 +137,7 @@ jobs:
           docker push $ACR/bourse-frontend:latest
 
       - name: Build & push admin
-        if: needs.changes.outputs.admin == 'true'
+        if: needs.changes.outputs.admin == 'true' || github.event_name == 'workflow_dispatch'
         run: |
           docker build \
             -t $ACR/bourse-admin-frontend:${{ github.sha }} \
@@ -145,7 +147,7 @@ jobs:
           docker push $ACR/bourse-admin-frontend:latest
 
       - name: Build & push keycloak
-        if: needs.changes.outputs.keycloak == 'true' || inputs.deploy_keycloak == true
+        if: needs.changes.outputs.keycloak == 'true' || inputs.deploy_keycloak == true || github.event_name == 'workflow_dispatch'
         run: |
           docker build \
             -t $ACR/bourse-keycloak:${{ github.sha }} \
@@ -155,7 +157,7 @@ jobs:
           docker push $ACR/bourse-keycloak:latest
 
       - name: Build & push BVC producer
-        if: needs.changes.outputs.kafka == 'true'
+        if: needs.changes.outputs.kafka == 'true' || github.event_name == 'workflow_dispatch'
         run: |
           docker build \
             -t $ACR/bourse-bvc-producer:${{ github.sha }} \
@@ -165,7 +167,7 @@ jobs:
           docker push $ACR/bourse-bvc-producer:latest
 
       - name: Build & push BVC relay
-        if: needs.changes.outputs.bvc_relay == 'true'
+        if: needs.changes.outputs.bvc_relay == 'true' || github.event_name == 'workflow_dispatch'
         run: |
           docker build \
             -t $ACR/bourse-bvc-relay:${{ github.sha }} \
@@ -197,15 +199,10 @@ jobs:
           helm upgrade --install bourse-platform ./infra/helm/bourse-platform \
             --namespace $NS --create-namespace \
             --set image.backend.repository=$ACR/bourse-backend \
-            --set image.backend.tag=${{ github.sha }} \
             --set image.frontend.repository=$ACR/bourse-frontend \
-            --set image.frontend.tag=${{ github.sha }} \
             --set image.adminFrontend.repository=$ACR/bourse-admin-frontend \
-            --set image.adminFrontend.tag=${{ github.sha }} \
             --set image.bvcProducer.repository=$ACR/bourse-bvc-producer \
-            --set image.bvcProducer.tag=${{ github.sha }} \
             --set image.bvcRelay.repository=$ACR/bourse-bvc-relay \
-            --set image.bvcRelay.tag=${{ github.sha }} \
             --set postgres.host=psql-bourse-prod.postgres.database.azure.com \
             --set postgres.password="${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}" \
             --set keycloak.externalDatabase.host=psql-bourse-prod.postgres.database.azure.com \

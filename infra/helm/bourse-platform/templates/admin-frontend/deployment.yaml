@@ -24,6 +24,8 @@ spec:
         {{- include "bourse.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: admin-frontend
     spec:
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       containers:
         - name: admin-frontend
           image: {{ include "bourse.image" (dict "registry" .Values.global.imageRegistry "repository" .Values.image.adminFrontend.repository "tag" .Values.image.adminFrontend.tag) }}
