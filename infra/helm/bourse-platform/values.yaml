@@ -124,6 +124,14 @@ kafka:
 
   controller:
     replicaCount: 1
+    # Bitnami Kafka KRaft : les ressources du pod controller+broker se configurent ici
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
 
   # Pas de broker dédié séparé : le controller assure aussi le rôle broker
   # (topologie combinée, adaptée à un cluster de taille modeste)
@@ -136,14 +144,6 @@ kafka:
   # du Job de provisioning qui bloque helm upgrade --install).
   provisioning:
     enabled: false
-
-  resources:
-    requests:
-      cpu: "250m"
-      memory: "512Mi"
-    limits:
-      cpu: "500m"
-      memory: "1Gi"
 
   persistence:
     enabled: true
@@ -170,7 +170,7 @@ ingress:
 # Nombre de réplicas par composant applicatif
 # ------------------------------------------------------------------------------
 replicaCount:
-  backend: 2
+  backend: 1
   frontend: 2
   adminFrontend: 1
   bvcRelay: 1
