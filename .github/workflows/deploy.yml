@@ -203,11 +203,10 @@ jobs:
             --set image.adminFrontend.repository=$ACR/bourse-admin-frontend \
             --set image.bvcProducer.repository=$ACR/bourse-bvc-producer \
             --set image.bvcRelay.repository=$ACR/bourse-bvc-relay \
+            --set image.keycloak.repository=$ACR/bourse-keycloak \
             --set postgres.host=psql-bourse-prod.postgres.database.azure.com \
             --set postgres.password="${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}" \
-            --set keycloak.externalDatabase.host=psql-bourse-prod.postgres.database.azure.com \
-            --set keycloak.externalDatabase.password="${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}" \
-            --set keycloak.auth.adminPassword="${{ secrets.KC_STAGING_ADMIN_PASSWORD }}" \
+            --set secrets.kcAdminPassword="${{ secrets.KC_STAGING_ADMIN_PASSWORD }}" \
             --timeout 20m
 
       # Crée le topic Kafka market.prices s'il n'existe pas déjà (idempotent).

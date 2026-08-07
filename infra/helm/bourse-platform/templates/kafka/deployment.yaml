@@ -25,8 +25,8 @@ spec:
           image: confluentinc/cp-kafka:7.7.1
           imagePullPolicy: IfNotPresent
           ports:
-            - name: internal
-              containerPort: 29092
+            - name: client
+              containerPort: 9092
             - name: controller
               containerPort: 9093
           env:
@@ -39,9 +39,9 @@ spec:
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
               value: "1@localhost:9093"
             - name: KAFKA_LISTENERS
-              value: "PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093"
+              value: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: "PLAINTEXT://{{ include "bourse.fullname" . }}-kafka:29092"
+              value: "PLAINTEXT://{{ include "bourse.fullname" . }}-kafka:9092"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
               value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
             - name: KAFKA_CONTROLLER_LISTENER_NAMES
@@ -54,7 +54,7 @@ spec:
               value: "true"
           readinessProbe:
             tcpSocket:
-              port: 29092
+              port: 9092
             initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 6
@@ -73,7 +73,7 @@ spec:
     {{- include "bourse.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: kafka
   ports:
-    - name: internal
-      port: 29092
-      targetPort: 29092
+    - name: client
+      port: 9092
+      targetPort: 9092
 {{- end }}
