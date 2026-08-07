@@ -216,12 +216,14 @@ jobs:
       # Crée le topic Kafka market.prices s'il n'existe pas déjà (idempotent).
       # Séparé du chart Helm pour éviter que le Job de provisioning bloque le timeout.
       - name: Créer topics Kafka
+        continue-on-error: true
         run: |
           KAFKA_POD=$(kubectl get pod -n $NS -l app.kubernetes.io/name=kafka -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
           if [ -z "$KAFKA_POD" ]; then
-            echo "::warning::Pod Kafka introuvable — topic non créé"
+            echo "::warning::Pod Kafka introuvable — topic non créé (relancer le workflow pour réessayer)"
           else
-            kubectl wait pod/$KAFKA_POD -n $NS --for=condition=Ready --timeout=120s
+            echo "Pod Kafka: $KAFKA_POD — attente Ready (max 8min)..."
+            kubectl wait pod/$KAFKA_POD -n $NS --for=condition=Ready --timeout=480s
             kubectl exec -n $NS $KAFKA_POD -- kafka-topics.sh \
               --bootstrap-server localhost:9092 \
               --create --if-not-exists \
