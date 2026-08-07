@@ -24,6 +24,8 @@ spec:
         {{- include "bourse.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: bvc-relay
     spec:
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       containers:
         - name: bvc-relay
           image: {{ include "bourse.image" (dict "registry" .Values.global.imageRegistry "repository" .Values.image.bvcRelay.repository "tag" .Values.image.bvcRelay.tag) }}

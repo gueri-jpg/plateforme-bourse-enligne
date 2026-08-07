@@ -23,6 +23,8 @@ spec:
         {{- include "bourse.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: frontend
     spec:
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       containers:
         - name: frontend
           image: {{ include "bourse.image" (dict "registry" .Values.global.imageRegistry "repository" .Values.image.frontend.repository "tag" .Values.image.frontend.tag) }}

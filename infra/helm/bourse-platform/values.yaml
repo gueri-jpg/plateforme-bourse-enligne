@@ -12,13 +12,13 @@
 # et les templates de ce chart.
 # ------------------------------------------------------------------------------
 global:
-  # URL de l'Azure Container Registry — remplie avec la sortie Terraform
-  # `acr_login_server` au moment du déploiement :
-  #   --set global.imageRegistry=acrboursprod.azurecr.io
   imageRegistry: ""
-
-  # Domaine racine de la plateforme, utilisé pour générer les hosts Ingress
   domain: "cfconsultancy.org"
+
+# Secret Kubernetes permettant de puller les images depuis l'ACR privé.
+# Créé manuellement une fois : kubectl create secret docker-registry acr-secret ...
+imagePullSecrets:
+  - name: acr-secret
 
 # ------------------------------------------------------------------------------
 # Images Docker des composants applicatifs (build maison, poussées vers l'ACR)
