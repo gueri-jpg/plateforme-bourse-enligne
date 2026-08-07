@@ -25,7 +25,7 @@ env:
   ACR: ${{ secrets.ACR_LOGIN_SERVER }}
   NS:  bourse
   RG:  rg-cfc-dev
-  AKS: bourse-aks-dev
+  AKS: aks-bourse-prod
 
 jobs:
   # ── Détection des fichiers modifiés ────────────────────────────────────────

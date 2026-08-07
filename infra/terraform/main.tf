@@ -25,7 +25,7 @@ terraform {
   # pour permettre le travail en équipe et éviter les conflits d'état local.
   backend "azurerm" {
     resource_group_name  = "rg-cfc-dev"
-    storage_account_name = "stcfcdevladw"
+    storage_account_name = "stbourse98039"
     container_name       = "tfstate"
     key                  = "bourse.terraform.tfstate"
   }
