@@ -22,10 +22,12 @@ spec:
         {{- include "bourse.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: keycloak
     spec:
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:26.0
-          imagePullPolicy: IfNotPresent
+          image: {{ include "bourse.image" (dict "registry" .Values.global.imageRegistry "repository" .Values.image.keycloak.repository "tag" .Values.image.keycloak.tag) }}
+          imagePullPolicy: {{ .Values.image.keycloak.pullPolicy }}
           args: ["start-dev", "--import-realm"]
           ports:
             - name: http
@@ -41,7 +43,7 @@ spec:
             - name: KC_DB
               value: postgres
             - name: KC_DB_URL
-              value: "jdbc:postgresql://{{ .Values.postgres.host }}:{{ .Values.postgres.port }}/keycloak_db"
+              value: "jdbc:postgresql://{{ .Values.postgres.host }}:{{ .Values.postgres.port }}/keycloak_db?sslmode=require"
             - name: KC_DB_USERNAME
               value: {{ .Values.postgres.username }}
             - name: KC_DB_PASSWORD
@@ -49,14 +51,14 @@ spec:
                 secretKeyRef:
                   name: {{ include "bourse.fullname" . }}-secrets
                   key: POSTGRES_PASSWORD
-            # En local : hostname interne K8s
-            # Sur Azure : https://auth.<domain> (injecté via values.global.domain)
             - name: KC_HOSTNAME
-              value: "http://auth.{{ .Values.global.domain }}"
+              value: "auth.{{ .Values.global.domain }}"
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_HTTP_ENABLED
               value: "true"
+            - name: KC_PROXY_HEADERS
+              value: "xforwarded"
             - name: KC_HEALTH_ENABLED
               value: "true"
           volumeMounts:

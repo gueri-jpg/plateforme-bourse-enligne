@@ -51,6 +51,11 @@ image:
     tag: "latest"
     pullPolicy: Always
 
+  keycloak:
+    repository: "bourse-keycloak"
+    tag: "latest"
+    pullPolicy: Always
+
 # ------------------------------------------------------------------------------
 # PostgreSQL — Azure Database for PostgreSQL Flexible Server (managé, externe)
 # host et password sont injectés au déploiement depuis les outputs Terraform :
@@ -71,7 +76,7 @@ postgres:
 # keycloak_db sur le même serveur PostgreSQL Azure (pas de base interne).
 # ------------------------------------------------------------------------------
 keycloak:
-  enabled: true
+  enabled: false
 
   auth:
     adminUser: "admin"
@@ -116,7 +121,7 @@ keycloak:
 # le docker-compose local. Topic market.prices pré-provisionné.
 # ------------------------------------------------------------------------------
 kafka:
-  enabled: true
+  enabled: false
 
   # Mode KRaft : pas de Zookeeper, un seul process controller+broker
   kraft:
