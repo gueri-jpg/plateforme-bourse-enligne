@@ -13,6 +13,11 @@ metadata:
     app.kubernetes.io/component: frontend
 spec:
   replicas: {{ .Values.replicaCount.frontend }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       {{- include "bourse.selectorLabels" . | nindent 6 }}
