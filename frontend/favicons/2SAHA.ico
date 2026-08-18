@@ -1,0 +1,1937 @@
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="FR">
+<head>
+    
+    <title>Accueil Particuliers - Sanlam Maroc</title>
+    <meta name="description" content="N°1 de l'assurance Automobile. Consultez nos produits et services, obtenez un devis ou achetez votre assurance en ligne.">
+    <meta property="og:title" content="Accueil Particuliers - Sanlam Maroc">
+    <meta property="og:site_name" content="Sanlam Maroc">
+    <meta property="og:url" content="/fr/">
+    <meta property="og:description" content="N°1 de l'assurance Automobile. Consultez nos produits et services, obtenez un devis ou achetez votre assurance en ligne.">
+    <meta property="og:type" content=website>
+    <meta property="og:image" content="/static/images/logo.svg">
+
+    
+    
+    <script>(function (w, d, s, l, i) {
+        w[l] = w[l] || []; w[l].push({
+            'gtm.start':
+                new Date().getTime(), event: 'gtm.js'
+        }); var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-KGXQD3D');</script>
+    
+    
+    
+
+
+
+
+
+
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+<link rel="canonical" href="https://sanlam.ma/fr/" />
+
+<!-- Self-referencing hreflang tag -->
+<link rel="alternate" hreflang="fr" href="https://sanlam.ma/fr/" />
+
+<!-- 
+<link rel=alternate hreflang="ar" href="https://sanlam.ma/ar/" />
+ -->
+
+
+    <!-- Lien vers la version en arabe -->
+    <link rel="alternate" hreflang="ar" href="https://sanlam.ma/ar/" />
+    <!-- Auto-lien hreflang pour la version en français -->
+    <link rel="alternate" hreflang="fr" href="https://sanlam.ma/fr/" />
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css"
+    integrity="sha512-usVBAd66/NpVNfBge19gws2j6JZinnca12rAe2l+d+QkLU9fiG02O1X8Q6hepIpr/EYKZvKx/I9WsnujJuOmBA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
+    integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css"
+    integrity="sha512-tS3S5qG0BlhnQROyJXvNjeEM4UpMXHrQfTGmbQ1gKmelCxlSEBUaxhRBj/EFTzpbP4RVSrpEikbmdJobCvhE3g=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"/>
+
+
+<link rel="stylesheet" href="/static/css/style.min.css">
+
+
+
+<link rel="stylesheet" href="/static/css/mobile.min.css">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-17219804047"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-17219804047');
+</script>
+
+<!-- 
+    
+    <script>(function (w, d, s, l, i) {
+        w[l] = w[l] || []; w[l].push({
+            'gtm.start':
+                new Date().getTime(), event: 'gtm.js'
+        }); var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-KGXQD3D');</script>
+    
+     -->
+
+
+    <style>
+        .whatsapp-float {
+        position: fixed;
+        left: 20px;
+        bottom: 15px;
+        z-index: 9999;
+        width: 55px;
+        height: 55px;
+        }
+
+        .whatsapp-float a {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        background: #25D366;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,.25);
+        transition: all .3s ease;
+        }
+
+        .whatsapp-float a:hover {
+        transform: scale(1.08);
+        }
+
+        .whatsapp-float img {
+        width: 28px;
+        height: 28px;
+        }
+
+        @media (max-width: 768px) {
+        .whatsapp-float {
+            left: 15px;
+            bottom: 10px;
+            width: 40px;
+            height: 40px;
+        }
+        .whatsapp-float img {
+            width: 20px;
+            height: 20px;
+        }
+        }
+    </style>
+</head>
+<body >
+    
+    
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KGXQD3D"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    
+    
+
+    
+
+
+
+<div class="header-up">
+    <div class="container">
+        <div class="button-types">
+            <a href="/fr/" class="type-particulier">PARTICULIERS</a>
+            <a href="/fr/professionnel/" class="type-professionnels">PROFESSIONNELS / ENTREPRISES</a>
+            <a href="/fr/sanlam-private-investment/" class="type-sanlam-private">SANLAM PRIVATE INVESTMENT</a>
+        </div>
+        <div class="button-language">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                    FRANÇAIS
+                    <img class="icon-globe" src="/static/images/language_icon.svg" height="21" width="21" alt="globe icon"/>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                    <li>
+                        <form action="/i18n/setlang/" method="post">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="NvP3chbqw8aqmHJ5wvBU1bq7o9y4REEINQDJrI1Kpwcq2Uv5AHMQfCYBmiD3mt7d">
+                            <input name="next" type="hidden" value="/" />
+                            <input name="language" type="hidden" value="fr" />
+                            <input class="btn-submit-lang lang-fr active" type="submit" value="FRANÇAIS" />
+                        </form>
+                    </li>
+                    <li>
+                        <form action="/i18n/setlang/" method="post">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="NvP3chbqw8aqmHJ5wvBU1bq7o9y4REEINQDJrI1Kpwcq2Uv5AHMQfCYBmiD3mt7d">
+                            <input name="next" type="hidden" value="/" />
+                            <input name="language" type="hidden" value="ar" />
+                            <input class="btn-submit-lang lang-ar" type="submit" value="ARABE" />
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+window.addEventListener('load', function() {
+    const urlPath = window.location.pathname;
+    
+    if(urlPath.includes('sanlam-private-investment')) {
+        setTimeout(function() {
+            $('.type-particulier').removeClass('active');
+            $('.type-professionnels').removeClass('active');
+            $('.type-sanlam-private').addClass('active');
+            $('.contactHeader').addClass('hide');
+            $('.contactHeaderPro').addClass('hide');
+        }, 100);
+    }
+});
+</script>
+<!-- 
+<style>
+    @media screen and (max-width: 992px) {
+        .button-types{
+        a{
+          font: normal normal 600 6px/22px Roboto !important;
+        }
+      }
+    }
+    @media screen and (max-width: 344px) {
+        .button-types{
+        a{
+          font: normal normal 600 4px/22px Roboto !important;
+        }
+      }
+    }
+</style> -->
+
+<style>
+    @media screen and (max-width: 992px) {
+        .button-types {
+            display: flex !important; 
+            flex-wrap: nowrap !important; 
+            gap: 10px; 
+        }
+        .button-types a {
+            font: normal normal 600 6px/22px Roboto !important;
+            white-space: nowrap;
+        }
+    }
+    
+    @media screen and (max-width: 344px) {
+        .button-types {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 5px;
+        }
+        .button-types a {
+            font: normal normal 600 4px/22px Roboto !important;
+            white-space: nowrap;
+        }
+    }
+</style>
+    
+  <div class="cta-buttons-block">
+    <!-- 
+
+
+
+<div class="liste-buttons">
+    <a href="https://agences.sanlam.ma/fr" target="_blank">
+        <div class="localiser-agent button-hover">
+            <img class="lazy" src="/static/images/localisation-icon.png" width="25" height="25" alt="Localiser un agent"/>
+        </div>
+    </a>
+    <a href="/contact">
+        <div class="informations button-hover">
+            <img class="lazy" src="/static/images/info-icon.png" width="25" height="25" alt="Informations"/>
+        </div>
+    </a>
+    <a href="/reclamation">
+        <div class="reclamations button-hover">
+            <img class="lazy" src="/static/images/reclamation-icon.png" width="25" height="25" alt="Réclamation"/>
+        </div>
+    </a>
+    <div class="contact-info">
+        <div class="contact-utiles button-hover">
+            <img class="lazy" src="/static/images/phone-icon.png" width="25" height="25" alt="Contacts utiles"/>
+        </div>
+        <div class="info-hover">
+            <div class="contact b-color1">
+                <div class="title-contact color1" data-bs-toggle="collapse" href="#contact1" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    <img class="lazy" src="/static/images/car-icon.png" width="15" height="15" alt="Numéro unique Auto"/>
+                    <p>Numéro unique Auto</p>
+                </div>
+                <div class="collapse num-contact b-color1" id="contact1">
+                    <a href="tel:3434" class="p-color1 num-unique">Appeler le 34 34</a>
+                </div>
+            </div>
+            <div class="contact b-color2">
+                <div class="title-contact color2" data-bs-toggle="collapse" href="#contact2" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    <img class="lazy" src="/static/images/phone-icon.png" width="15" height="15" alt="Service client"/>
+                    <p>Service client</p>
+                </div>
+                <div class="collapse num-contact b-color2" id="contact2">
+                    <a href="tel:0522420606" class="p-color2 service-client">Appeler le 05 22 42 06 06</a>
+                </div>
+            </div>
+            <div class="contact b-color3">
+                <div class="title-contact color3" data-bs-toggle="collapse" href="#contact3" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    <img class="lazy" src="/static/images/phone2-icon.png" width="15" height="15" alt="Service santé international"/>
+                    <p class="p-color3">Service santé international</p>
+                </div>
+                <div class="collapse num-contact b-color3" id="contact3">
+                    <a href="tel:0522957591" class="p-color3 service-international">Appeler le 05 22 95 75 91</a>
+                </div>
+            </div>
+            <div class="contact b-color4">
+                <div class="title-contact color4" data-bs-toggle="collapse" href="#contact4" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    <img class="lazy" src="/static/images/contact2-icon.png" width="15" height="15" alt="Africa first assist"/>
+                    <p>Africa first assist</p>
+                </div>
+                <div class="collapse num-contact b-color4" id="contact4">
+                    <a href="tel:0522957575" class="p-color4 africa-assist">Appeler le 05 22 95 75 75</a>
+                </div>
+            </div>
+            <div class="contact b-color1">
+                <div class="title-contact color1" data-bs-toggle="collapse" href="#contact5" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    <img class="lazy" src="/static/images/home-icon.png" width="15" height="15" alt="Service Habitation"/>
+                    <p>Service Habitation</p>
+                </div>
+                <div class="collapse num-contact b-color1" id="contact5">
+                    <a href="tel:0522480480 " class="p-color4 service-habitation">Appeler le 05 22 48 04 80 </a>
+                </div>
+            </div>
+            <div class="contact b-color2">
+                <div class="title-contact color2" data-bs-toggle="collapse" href="#contact5" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    <img class="lazy" src="/static/images/phone-icon.png" width="15" height="15" alt="Allo Ra7ti"/>
+                    <p>Allo Ra7ti</p>
+                </div>
+                <div class="collapse num-contact b-color2" id="contact5">
+                    <a href="tel:2929" class="p-color2 africa-assist">Appeler le 29 29</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="/faq">
+        <div class="question-frequentes button-hover">
+            <img class="lazy" src="/static/images/question-icon.png" width="25" height="25" alt="Questions fréquentes"/>
+        </div>
+    </a>
+</div> -->
+
+
+
+
+
+
+
+<div class="cta-desktop" style="position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 10;">
+    <!-- Icône Localiser un agent -->
+    <div class="icon-item" style="display: block; margin-bottom: 5px;">
+        <div class="icon-box" style="background-color: #0E64AF;">
+            <a href="https://agences.sanlam.ma/fr" target="_blank" style="text-decoration: none; display: flex; align-items: center;">
+                <img src="/static/images/localisation-icon.png" width="25" height="25" alt="Localiser un agent" class="icon" />
+                <span class="description1" style="color: #FFF; margin-left: 15px;">Localiser un agent</span>
+            </a>
+        </div>
+    </div>
+    <!-- Icône Informations -->
+    <div class="icon-item" style="display: block; margin-bottom: 5px;">
+        <div class="icon-box" style="background-color: #0E4472;">
+            <a href="/fr/contact/" style="text-decoration: none; display: flex; align-items: center;">
+                <img src="/static/images/info-icon.png" width="25" height="25" alt="Informations" class="icon" />
+                <span class="description1" style="color: #FFF; margin-left: 15px;">Demandez une information</span>
+            </a>
+        </div>
+    </div>
+    <!-- Icône Réclamation -->
+    <div class="icon-item" style="display: block; margin-bottom: 5px;">
+        <div class="icon-box" style="background-color: #F4A611;">
+            <a href="/fr/reclamation/" style="text-decoration: none; display: flex; align-items: center;">
+                <img src="/static/images/reclamation-icon.png" width="25" height="25" alt="Réclamation" class="icon" />
+                <span class="description1" style="color: #FFF; margin-left: 15px;">Formulez une réclamation</span>
+            </a>
+        </div>
+    </div>
+    <!-- Icône Contacts utiles -->
+    <div class="icon-item" style="position: relative; display: flex; align-items: center; margin-bottom: 5px;">
+        <div class="icon-box" style="background-color: #4CC1B2; cursor: pointer;" id="contactButton">
+            <img src="/static/images/phone-icon.png" width="25" height="25" alt="Contacts utiles" class="icon" />
+            <span class="description1" style="color: #FFF; margin-left: 15px;">Contacts utiles</span>
+        </div>
+        <!-- Sous-menu de contacts -->
+        <div id="contactInfo" style="visibility: hidden; opacity: 0; position: absolute; top: 0; right: 180px; width: 250px; background-color: #FFF; box-shadow: 9px 14px 16px rgba(97, 140, 190, 0.1); border-radius: 3px; padding: 5px; transition: visibility 0s, opacity 0.4s ease;">
+            <!-- Contenu du sous-menu de contacts -->
+            <div class="contact-item" style="border: 1px solid #6E4091; border-radius: 2px; margin-bottom: 5px; padding: 7px;">
+                <div class="contact-header" style="display: flex; align-items: center; background: linear-gradient(265deg, #724396, #2D173E); padding: 5px; border-radius: 2px;">
+                    <img src="/static/images/car-icon.png" width="15" height="15" style="margin-right: 5px;" alt="Numéro unique Auto" />
+                    <p style="margin: 0; color: #FFF; font-size: 13px;" class="number-description">Numéro unique Auto</p>
+                </div>
+                <div class="phone-number" style="display: none; color: #33005C; font-size: 12px; text-decoration: none;">
+                    <a href="tel:3434" style="color: #000;" class="phone-link">Appeler le 34 34</a>
+                </div>
+            </div>
+
+            <div class="contact-item" style="border: 1px solid #6E4091; border-radius: 2px; margin-bottom: 5px; padding: 7px;">
+                <div style="display: flex; align-items: center; background: linear-gradient(265deg, #2D173E, #724396); padding: 5px; border-radius: 2px;">
+                    <img src="/static/images/phone-icon.png" width="15" height="15" style="margin-right: 5px;" alt="Service client" />
+                    <p style="margin: 0; color: #FFF; font-size: 13px;">Service client</p>
+                </div>
+                <div style="color: #33005C; font-size: 12px; text-decoration: none;" class="phone-number">
+                    <a href="tel:0522420606" style="color: #000;" class="phone-link">Appeler le 05 22 42 06 06</a>
+                </div>
+            </div>
+
+            <div class="contact-item" style="border: 1px solid #6E4091; border-radius: 2px; margin-bottom: 5px; padding: 7px;">
+                <div style="display: flex; align-items: center; background: linear-gradient(265deg, #2D173E, #46a049); padding: 5px; border-radius: 2px;">
+                    <img src="/static/images/phone-icon.png" width="15" height="15" style="margin-right: 5px;" alt="Allo Ra7ti" />
+                    <p style="margin: 0; color: #FFF; font-size: 13px;">Allo Ra7ti</p>
+                </div>
+                <div style="color: #33005C; font-size: 12px; text-decoration: none;" class="phone-number">
+                    <a href="tel:2929" style="color: #000;" class="phone-link">Appeler le 29 29</a>
+                </div>
+            </div>
+
+            <div class="contact-item" style="border: 1px solid #6E4091; border-radius: 2px; margin-bottom: 5px; padding: 7px;">
+                <div style="display: flex; align-items: center; background: linear-gradient(265deg, #FFA500, #FF8C00); padding: 5px; border-radius: 2px;">
+                    <img src="/static/images/phone2-icon.png" width="15" height="15" style="margin-right: 5px;" alt="Service santé international" />
+                    <p style="margin: 0; color: #FFF; font-size: 13px;">Service santé international</p>
+                </div>
+                <div style="color: #33005C; font-size: 12px; text-decoration: none;" class="phone-number">
+                    <a href="tel:0522957591" style="color: #000;" class="phone-link">Appeler le 05 22 95 75 91</a>
+                </div>
+            </div>
+
+            <div class="contact-item" style="border: 1px solid #6E4091; border-radius: 2px; margin-bottom: 5px; padding: 7px;">
+                <div style="display: flex; align-items: center; background: linear-gradient(265deg, #2D173E, #4CAF50); padding: 5px; border-radius: 2px;">
+                    <img src="/static/images/contact2-icon.png" width="15" height="15" style="margin-right: 5px;" alt="Africa first assist" />
+                    <p style="margin: 0; color: #FFF; font-size: 13px;">Africa first assist</p>
+                </div>
+                <div style="color: #33005C; font-size: 12px; text-decoration: none;" class="phone-number">
+                    <a href="tel:0522957575" style="color: #000;" class="phone-link">Appeler le 05 22 95 75 75</a>
+                </div>
+            </div>
+
+            <div class="contact-item" style="border: 1px solid #6E4091; border-radius: 2px; margin-bottom: 5px; padding: 7px;">
+                <div style="display: flex; align-items: center; background: linear-gradient(265deg, #1c27c0, #61daa1); padding: 5px; border-radius: 2px;">
+                    <img src="/static/images/home-icon.png" width="15" height="15" style="margin-right: 5px;" alt="Service Habitation" />
+                    <p style="margin: 0; color: #FFF; font-size: 13px;">Service Habitation</p>
+                </div>
+                <div style="color: #33005C; font-size: 12px; text-decoration: none;" class="phone-number">
+                    <a href="tel:0522480480" style="color: #000;" class="phone-link">Appeler le 05 22 48 04 80</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Icône Questions fréquentes -->
+    <div class="icon-item" style="display: block; margin-bottom: 5px;">
+        <div class="icon-box" style="background-color: #B36CA4;">
+            <a href="/fr/faq/" style="text-decoration: none; display: flex; align-items: center;">
+                <img src="/static/images/question-icon.png" width="25" height="25" alt="Questions fréquentes" class="icon" />
+                <span class="description1" style="color: #FFF; margin-left: 15px;">Questions fréquentes</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- CTA boutons Footer Mobile -->
+<!-- Bouton déclencheur -->
+<!-- Bouton déclencheur - DOIT ÊTRE APRÈS LA BARRE DANS LE HTML -->
+<div class="footer-glass-pill" id="navPill">
+    <span class="footer-pill-close" id="closePill"></span>
+    <a href="https://agences.sanlam.ma/fr" target="_blank" class="footer-pill-item" style="--c:#0E64AF;">
+      <span class="footer-pill-circle">
+        <img src="/static/images/localisation-icon.png" width="23" height="23" alt="Agent">
+      </span>
+      <span class="footer-pill-label">Agent</span>
+    </a>
+    <a href="/fr/contact/" class="footer-pill-item" style="--c:#0E4472;">
+      <span class="footer-pill-circle">
+        <img src="/static/images/info-icon.png" width="23" height="23" alt="Infos">
+      </span>
+      <span class="footer-pill-label">Infos</span>
+    </a>
+    <button class="footer-pill-item footer-pill-center" style="--c:#4CC1B2;" id="openContacts">
+      <span class="footer-pill-circle">
+        <img src="/static/images/phone-icon.png" width="27" height="27" alt="Contact">
+        <span class="footer-pill-badge"></span>
+      </span>
+      <span class="footer-pill-label">Contact</span>
+    </button>
+    <a href="/fr/reclamation/" class="footer-pill-item" style="--c:#F4A611;">
+      <span class="footer-pill-circle">
+        <img src="/static/images/reclamation-icon.png" width="23" height="23" alt="Réclamer">
+      </span>
+      <span class="footer-pill-label">Réclamer</span>
+    </a>
+    <a href="/fr/faq/" class="footer-pill-item" style="--c:#B36CA4;">
+      <span class="footer-pill-circle">
+        <img src="/static/images/question-icon.png" width="23" height="23" alt="FAQ">
+      </span>
+      <span class="footer-pill-label">FAQ</span>
+    </a>
+</div>
+
+<button class="trigger-button radial" id="togglePill">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+      <circle cx="12" cy="4" r="2"/>
+      <circle cx="12" cy="12" r="2"/>
+      <circle cx="12" cy="20" r="2"/>
+      <circle cx="4" cy="12" r="2"/>    
+      <circle cx="20" cy="12" r="2"/>
+    </svg>
+  </button>
+  <!-- <button class="trigger-button arrow-right" id="togglePill">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+  </button> -->
+
+<script>
+    
+    document.getElementById('togglePill').addEventListener('click', function() {
+      document.getElementById('navPill').classList.add('visible');
+    });
+    
+    document.getElementById('closePill').addEventListener('click', function(e) {
+      e.stopPropagation(); 
+      document.getElementById('navPill').classList.remove('visible');
+    });
+   
+   </script>
+  <!-- Popup Contacts utiles Mobile -->
+<div id="contactPopupMobile" style="display: none;">
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(51,0,92,0.07);z-index:12000;"></div>
+    <div style="
+        position:fixed;
+        left:0;right:0;bottom:55px;
+        margin: 0 auto;
+        max-width:350px;
+        width:94vw;
+        background:#FFF;
+        z-index:13000;
+        border-radius:10px 10px 0 0;
+        box-shadow:0 -2px 16px rgba(97,140,190,0.13);
+        padding: 15px 12px 10px 12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+        <span style="font-weight:600;font-size:15px;color:#4CC1B2;">Contacts utiles</span>
+        <button id="closeContactPopupMobile" style="background:none;border:none;font-size:24px;line-height:1;color:#33005C;">&times;</button>
+      </div>
+      <!-- Liste des contacts -->
+      <div>
+        <div class="contact-item-mob" style="margin-bottom:9px;padding:6px 7px 5px 7px;border-radius:5px;border:1px solid #4CC1B2;">
+          <div style="font-weight:500;font-size:13px;color:#724396;">Numéro unique Auto</div>
+          <a href="tel:3434" style="color:#222;font-size:13px;font-weight:600;display:block;">Appeler le 34 34</a>
+        </div>
+        <div class="contact-item-mob" style="margin-bottom:9px;padding:6px 7px 5px 7px;border-radius:5px;border:1px solid #4CC1B2;">
+          <div style="font-weight:500;font-size:13px;color:#2D173E;">Service client</div>
+          <a href="tel:0522420606" style="color:#222;font-size:13px;font-weight:600;display:block;">Appeler le 05 22 42 06 06</a>
+        </div>
+        <div class="contact-item-mob" style="margin-bottom:9px;padding:6px 7px 5px 7px;border-radius:5px;border:1px solid #4CC1B2;">
+          <div style="font-weight:500;font-size:13px;color:#46a049;">Allo Ra7ti</div>
+          <a href="tel:2929" style="color:#222;font-size:13px;font-weight:600;display:block;">Appeler le 29 29</a>
+        </div>
+        <div class="contact-item-mob" style="margin-bottom:9px;padding:6px 7px 5px 7px;border-radius:5px;border:1px solid #4CC1B2;">
+          <div style="font-weight:500;font-size:13px;color:#FFA500;">Service santé international</div>
+          <a href="tel:0522957591" style="color:#222;font-size:13px;font-weight:600;display:block;">Appeler le 05 22 95 75 91</a>
+        </div>
+        <div class="contact-item-mob" style="margin-bottom:9px;padding:6px 7px 5px 7px;border-radius:5px;border:1px solid #4CC1B2;">
+          <div style="font-weight:500;font-size:13px;color:#4CAF50;">Africa first assist</div>
+          <a href="tel:0522957575" style="color:#222;font-size:13px;font-weight:600;display:block;">Appeler le 05 22 95 75 75</a>
+        </div>
+        <div class="contact-item-mob" style="margin-bottom:4px;padding:6px 7px 5px 7px;border-radius:5px;border:1px solid #4CC1B2;">
+          <div style="font-weight:500;font-size:13px;color:#1c27c0;">Service Habitation</div>
+          <a href="tel:0522480480" style="color:#222;font-size:13px;font-weight:600;display:block;">Appeler le 05 22 48 04 80</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+  const contactBtnMobile = document.getElementById('openContacts');
+  const contactPopupMobile = document.getElementById('contactPopupMobile');
+  const closeContactPopupMobile = document.getElementById('closeContactPopupMobile');
+  if(contactBtnMobile && contactPopupMobile && closeContactPopupMobile) {
+    contactBtnMobile.addEventListener('click', function (e) {
+      e.preventDefault();
+      contactPopupMobile.style.display = 'block';
+    });
+    closeContactPopupMobile.addEventListener('click', function () {
+      contactPopupMobile.style.display = 'none';
+    });
+    contactPopupMobile.firstElementChild.addEventListener('click', function () {
+      contactPopupMobile.style.display = 'none';
+    });
+    contactPopupMobile.querySelectorAll('a[href^="tel:"]').forEach(link => {
+      link.addEventListener('click', function () {
+        contactPopupMobile.style.display = 'none';
+      });
+    });
+  }
+});
+  </script>
+  
+  
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const contactItems = document.querySelectorAll('.contact-item');
+
+        contactItems.forEach(item => {
+            item.addEventListener('click', function () {
+                const phoneNumber = item.querySelector('.phone-number');
+                if (phoneNumber) {
+                    if (phoneNumber.style.display === 'none' || phoneNumber.style.display === '') {
+                        phoneNumber.style.display = 'block'; 
+                    } else {
+                        phoneNumber.style.display = 'none'; 
+                    }
+                }
+            });
+        });
+
+        const contactButton = document.getElementById('contactButton');
+        const contactInfo = document.getElementById('contactInfo');
+
+        contactButton.addEventListener('click', function () {
+            if (contactInfo.style.visibility === 'hidden' || contactInfo.style.visibility === '') {
+                contactInfo.style.visibility = 'visible';
+                contactInfo.style.opacity = '1';
+            } else {
+                contactInfo.style.visibility = 'hidden';
+                contactInfo.style.opacity = '0';
+            }
+        });
+
+        const phoneLinks = document.querySelectorAll('.phone-link');
+
+        phoneLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                contactInfo.style.visibility = 'hidden';
+                contactInfo.style.opacity = '0';
+            });
+        });
+    });
+</script>
+
+<style>
+    .cta-desktop { display: block; }
+    .footer-pill-close {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background: #ff5966;
+  border-radius: 50%;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 2;
+}
+
+.footer-pill-close::before {
+  content: "×";
+}
+    /* Style pour le bouton déclencheur */
+    .trigger-button {
+      position: fixed;
+      left: 15px;
+      bottom: 60px;
+      z-index: 15000;
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #4CC1B2 70%, #B36CA4 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2.5px 8px rgba(76,193,178,0.3);
+      border: none;
+      cursor: pointer;
+    }
+    
+    .trigger-button img {
+      width: 25px;
+      height: 25px;
+    }
+ 
+    
+    /* Cache le bouton trigger sur desktop */
+    @media (min-width: 768px) {
+      .trigger-button { display: none !important; }
+    }
+    
+    @media (max-width: 767px) {
+      .cta-desktop { display: none !important; }
+      
+      /* Barre cachée par défaut */
+      .footer-glass-pill { 
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 17px;
+        z-index: 14000;
+        background: rgba(255,255,255,0.93);
+        box-shadow: 0 8px 38px 2px rgba(51,80,120,0.15), 0 1.5px 8px 0 rgba(76,193,178,0.12);
+        border-radius: 38px;
+        width: 95vw;
+        max-width: 415px;
+        margin: 0 auto;
+        padding: 7px 8px 2px 8px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 0vw;
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(215,235,235,0.20);
+        transition: box-shadow 0.16s;
+      }
+      
+      /* Barre visible quand la classe 'visible' est ajoutée */
+      .footer-glass-pill.visible {
+        display: flex !important;
+      }
+    
+      /* Cache le bouton quand la barre est visible */
+      .footer-glass-pill.visible + .trigger-button {
+        display: none !important;
+      }
+      
+      .footer-pill-item {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: none;
+        border: none;
+        color: #28354d;
+        text-decoration: none;
+        font-size: 11px;
+        padding: 0;
+        transition: color 0.17s;
+        position: relative;
+        min-width: 52px;
+        max-width: 68px;
+        z-index: 1;
+      }
+      .footer-pill-item:active .footer-pill-circle,
+      .footer-pill-item:focus .footer-pill-circle {
+        background: #222 !important;
+      }
+      .footer-pill-circle {
+        width: 44px;
+        height: 44px;
+        background: var(--c, #d4f5ef);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 3px;
+        box-shadow: 0 2.5px 8px rgba(76,193,178,0.09);
+        transition: background 0.16s, box-shadow 0.15s;
+        position: relative;
+      }
+      .footer-pill-circle-main {
+        box-shadow:
+          0 0 0 0 #3db7aa33,
+          0 4px 18px 7px #ffffffaa;
+        background: linear-gradient(135deg, #4CC1B2 70%, #B36CA4 100%);
+        width: 56px;
+        height: 56px;
+        margin-bottom: 1px;
+      }
+      .footer-pill-center {
+        margin-top: -18px;
+        z-index: 3;
+        min-width: 69px;
+        max-width: 75px;
+      }
+      .footer-pill-badge {
+        position: absolute;
+        top: 9px;
+        right: 9px;
+        width: 11px;
+        height: 11px;
+        background: #ff5966;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        display: none;
+        box-shadow: 0 1px 8px #ff596688;
+        content: '';
+      }
+      .footer-pill-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: #27314b;
+        letter-spacing: 0.04em;
+        text-align: center;
+        margin-top: 1.5px;
+        text-transform: uppercase;
+      }
+    }
+    @media (min-width: 768px) {
+      .footer-glass-pill { display: none !important; }
+    }
+    </style>
+<style>
+    .icon-box {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        width: 180px;
+        height: 50px;
+        color: white;
+        position: relative;
+        transform: translate(135px, 0);
+        transition: all 0.3s ease;
+    }
+
+    .description1 {
+        margin-left: 15px;
+        font-size: 12px;
+        display: none; 
+    }
+
+    .icon-box:hover .description1 {
+        display: inline-block; 
+    }
+
+    .icon-box:hover {
+        transform: translateX(-5px); 
+    }
+
+    .phone-number {
+        display: none; 
+    }
+</style>
+
+
+
+  </div>
+
+
+  
+
+
+    
+
+
+
+<div id="loader-overlay" style="background-color: #FFFFFF;position: fixed;top: 0;right: 0;bottom: 0;left: 0;display: flex;align-items: center;justify-content: center;z-index: 20000;">
+    
+    <img class="rotate" width="250px" src="/static/images/logo.svg" alt="Sanlam Maroc">
+    
+</div>
+
+
+    
+<noscript>
+    <div style="background-color: #f8d7da; color: #721c24; padding: 15px; text-align: center;">
+        <p>Votre navigateur ne prend pas en charge JavaScript. Veuillez activer JavaScript ou utiliser une version simplifiée de notre site.</p>
+    </div>
+</noscript>
+
+
+
+    
+
+
+
+<header class="sl-navbar">
+    <nav class="sl-container container">
+        <div class="sl-logo">
+            <a href="/fr/"><img class="LogoHeader" src="/static/images/logo.svg" height="25" width="194" alt="SANLAM : votre assurance en ligne" /></a>
+        </div>
+        <ul class="sl-links">
+            <li class="sl-last mobile">
+                <div class="button-language">
+                    <form action="/i18n/setlang/" method="post">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="NvP3chbqw8aqmHJ5wvBU1bq7o9y4REEINQDJrI1Kpwcq2Uv5AHMQfCYBmiD3mt7d">
+                        <input name="next" type="hidden" value="/" />
+                        <input name="language" type="hidden" value="ar" />
+                        <input class="lang-ar" type="submit" value="AR" />
+                    </form>
+                    <span>|</span>
+                    <form action="/i18n/setlang/" method="post">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="NvP3chbqw8aqmHJ5wvBU1bq7o9y4REEINQDJrI1Kpwcq2Uv5AHMQfCYBmiD3mt7d">
+                        <input name="next" type="hidden" value="/" />
+                        <input name="language" type="hidden" value="fr" />
+                        <input class="lang-fr active" type="submit" value="FR" />
+                    </form>
+                </div>
+                <a target="_blank" href="https://espace-client.sanlam.ma/" class="buttonContact">Mon Espace</a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="dropdown-toggle" role="button" aria-expanded="false">Découvrez nos offres</a>
+                <ul class="dropdown-menu">
+                    <div class="row">
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_categorie_offre('Auto / Moto','particulier')" class="h-100" href="https://sanlam.ma/fr/categories-offres/auto-moto/">
+                                
+                                    <div class="offre-header-pro">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                            
+                                                <img src="/media/uploads/CategorieOffre/images/icons8-car-100_1.png" height="40" width="40" alt="Icône d&#x27;une voiture" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Auto / Moto</p>
+                                            
+                                            
+                                            <p><p>Sanlam Maroc vous accompagne avec des offres d&#39;assurance auto qui r&eacute;pondent &agrave; tous vos besoins, que vous soyez propri&eacute;taire d&#39;une voiture ou d&#39;une moto.</p></p>
+                                            
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                            
+                                        </div>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_categorie_offre('Habitation','particulier')" class="h-100" href="https://sanlam.ma/fr/offres/habitation/assurance-habitation-sanlam/">
+                                
+                                    <div class="offre-header-pro">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                            
+                                                <img src="/media/uploads/CategorieOffre/images/icons8-house-100.png" height="40" width="40" alt="icône d&#x27;une maison" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Habitation</p>
+                                            
+                                            
+                                            <p><p>B&eacute;n&eacute;ficiez d&#39;une couverture compl&egrave;te pour votre logement, vos biens, et bien plus encore avec nos offres d&#39;assurance habitation.</p></p>
+                                            
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                            
+                                        </div>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_categorie_offre('Santé','particulier')" class="h-100" href="https://sanlam.ma/fr/categories-offres/sante/">
+                                
+                                    <div class="offre-header-pro">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                            
+                                                <img src="/media/uploads/CategorieOffre/images/icons8-heart-with-pulse-100_1.png" height="40" width="40" alt="icône d&#x27;un cœur" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Santé</p>
+                                            
+                                            
+                                            <p><p>Prot&eacute;gez-vous et votre famille avec l&#39;offre d&#39;assurance sant&eacute; de Sanlam Maroc, adapt&eacute;e &agrave; vos besoins sp&eacute;cifiques.</p></p>
+                                            
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                            
+                                        </div>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_categorie_offre('Epargne','particulier')" class="h-100" href="https://sanlam.ma/fr/categories-offres/epargne/">
+                                
+                                    <div class="offre-header-pro">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                            
+                                                <img src="/media/uploads/CategorieOffre/images/icons8-money-100.png" height="40" width="40" alt="icône d&#x27;argent" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Epargne</p>
+                                            
+                                            
+                                            <p><p>D&eacute;couvrez notre gamme de produits d&#39;&eacute;pargne pour r&eacute;pondre &agrave; tous vos besoins financiers et s&eacute;curiser votre avenir.</p></p>
+                                            
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                            
+                                        </div>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_categorie_offre('Loisirs','particulier')" class="h-100" href="https://sanlam.ma/fr/categories-offres/loisirs/">
+                                
+                                    <div class="offre-header-pro">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                            
+                                                <img src="/media/uploads/CategorieOffre/images/icons8-sun-lounger-100.png" height="40" width="40" alt="icône des pièces détachées" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Loisirs</p>
+                                            
+                                            
+                                            <p><p>Profitez pleinement de vos loisirs avec une couverture adapt&eacute;e, qui vous prot&egrave;ge dans toutes vos activit&eacute;s.</p></p>
+                                            
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                            
+                                        </div>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_categorie_offre('Chien &amp; Chat','particulier')" class="h-100" href="https://sanlam.ma/fr/offres/chien-chat/assurance-chien-chat/">
+                                
+                                    <div class="offre-header-pro">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                            
+                                                <img src="/media/uploads/CategorieOffre/images/chatchien.png" height="40" width="40" alt="Chien &amp; Chat" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Chien &amp; Chat</p>
+                                            
+                                            
+                                            <p><p>Sanlam Maroc vous propose une solution d&rsquo;assurance sant&eacute; sp&eacute;cialement con&ccedil;ue pour les chiens et les chats.</p></p>
+                                            
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                            
+                                        </div>
+                                        
+                                        <span class="badge bg-warning custom-badge">Nouveau</span>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_categorie_offre('Prévoyance','particulier')" class="h-100" href="https://sanlam.ma/fr/categories-offres/prevoyance/">
+                                
+                                    <div class="offre-header-pro">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                            
+                                                <img src="/media/uploads/CategorieOffre/images/icons8-famille-homme-femme-100_1.png" height="40" width="40" alt="icône d&#x27;un cœur" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Prévoyance</p>
+                                            
+                                            
+                                            <p><p>Prot&eacute;gez votre avenir et celui de vos proches avec nos assurances pr&eacute;voyance, qui vous offrent une s&eacute;curit&eacute; financi&egrave;re en cas d&#39;impr&eacute;vus.</p></p>
+                                            
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                            
+                                        </div>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+                        
+                    </div>
+                </ul>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="dropdown-toggle" role="button" aria-expanded="false">Obtenez un devis</a>
+                <ul class="dropdown-menu">
+                    <div class="row">
+                        
+                        
+			
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_simulateurs('Assurance Auto','particulier')" class="h-100" href="/simulateurs/assurance-auto/">
+                                    
+                                    <div class="sinistre-header">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                                
+                                                <img src="/media/uploads/CategorieOffre/Icone/icons8-car-sale-100.png" height="40" width="40" alt="Auto" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Assurance Auto</p>
+                                            
+                                            
+                                            <p><p>Demandez votre devis et assurez votre v&eacute;hicule au meilleur prix</p></p>
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                        </div>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+			    
+                            
+                        
+                        
+			
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_simulateurs('Renouvellement Auto','particulier')" class="h-100" href="https://souscription-en-ligne.sanlam.ma/assurance-auto-renouvellement">
+                                    
+                                    <div class="sinistre-header">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                                
+                                                <img src="/media/uploads/CategorieOffre/Icone/icons8-car-insurance-100.png" height="40" width="40" alt="icône renouvellement" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Renouvellement Auto</p>
+                                            
+                                            
+                                            <p><p>Renouvelez votre contrat en quelques clics et payez votre assurance automobile en ligne</p></p>
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                        </div>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+			    
+                            
+                        
+                        
+			
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_simulateurs('Carte Verte','particulier')" class="h-100" href="https://web-pp.sanlam.ma/fr/carte-verte/">
+                                    
+                                    <div class="sinistre-header">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                                
+                                                <img src="/media/uploads/CategorieOffre/Icone/icons8-car-insurance-100_h9iqD9a.png" height="40" width="40" alt="Carte verte" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Carte Verte</p>
+                                            
+                                            
+                                            <p><p>Achetez votre carte verte en ligne et obtenez instantan&eacute;ment votre attestation digitalis&eacute;e</p></p>
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                        </div>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+			    
+                            
+                        
+                        
+                        
+                        
+			
+                            
+                        
+                        
+			
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_simulateurs('Assurance Habitation','particulier')" class="h-100" href="https://souscription-en-ligne.sanlam.ma/habitation-simulation">
+                                    
+                                    <div class="sinistre-header">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                                
+                                                <img src="/media/uploads/CategorieOffre/Icone/icons8-activity-history-100_5DM5Gjk.png" height="40" width="40" alt="Habitation" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Assurance Habitation</p>
+                                            
+                                            
+                                            <p><p>Faites votre simulation et choisissez la couverture la plus adapt&eacute;e</p></p>
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                        </div>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+			    
+                            
+                        
+                        
+			
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_simulateurs('Assur’Chat et Chien','particulier')" class="h-100" href="https://sanlam.ma/simulateur-chat-chien/">
+                                    
+                                    <div class="sinistre-header">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                                
+                                                <img src="/media/uploads/CategorieOffre/Icone/empreinte-de-chien_2.png" height="40" width="40" alt="Assur’Chat et Chien" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            
+                                            <p class="offre-title">Assur’Chat et Chien</p>
+                                            
+                                            
+                                            <p><p>Assur&rsquo;Chat et Chien est une assurance qui couvre les frais v&eacute;t&eacute;rinaires de votre animal en cas de maladie ou d&rsquo;accident.</p></p>
+                                            
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                        </div>
+                                        
+                                        <span class="badge bg-warning custom-badge">Nouveau</span>
+                                        
+                                    </div>
+                                </a>
+                            </div>
+			    
+                            
+                        
+                    </div>
+                </ul>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="dropdown-toggle" role="button" aria-expanded="false">Déclarez votre sinistre</a>
+                <ul class="dropdown-menu">
+                    <div class="row">
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_sinistre('Sinistre Santé','particulier')" class="h-100" href="https://sanlam.ma/fr/sinistres/sinistre-sante/">
+                                    <div class="sinistre-header">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                                
+                                                <img src="/media/uploads/sinistre/logos/icons8-handmade-100_Qg7mWc0.png" height="40" width="40" alt="icône de santé" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            <p class="offre-title">Sinistre Santé</p>
+                                            <p>Tout savoir sur la déclaration de Sinistre Santé</p>
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                        </div>
+                                    </div>
+                                </a>
+                                
+                            </div>
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_sinistre('Sinistre Habitation','particulier')" class="h-100" href="https://sanlam.ma/fr/sinistres/sinistre-habitation/">
+                                    <div class="sinistre-header">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                                
+                                                <img src="/media/uploads/sinistre/logos/icons8-house-100_UebQHRd.png" height="40" width="40" alt="icône d&#x27;une maison" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            <p class="offre-title">Sinistre Habitation</p>
+                                            <p>Tout savoir sur la déclaration de Sinistre Habitation</p>
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                        </div>
+                                    </div>
+                                </a>
+                                
+                            </div>
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_sinistre('Accident de voiture','particulier')" class="h-100" href="https://sanlam.ma/fr/sinistres/accident-de-voiture/">
+                                    <div class="sinistre-header">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                                
+                                                <img src="/media/uploads/sinistre/logos/icons8-car-sale-100_HOlKOvI.png" height="40" width="40" alt="icône d&#x27;une voiture" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            <p class="offre-title">Accident de voiture</p>
+                                            <p>Tout savoir sur la déclaration de Accident de voiture</p>
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                        </div>
+                                    </div>
+                                </a>
+                                
+                            </div>
+                        
+                    </div>
+                </ul>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="dropdown-toggle" role="button" aria-expanded="false">Conseils et preventions</a>
+                <ul class="dropdown-menu">
+                    <div class="row">
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_conseil('Prévention Auto','particulier')" class="h-100" href="https://sanlam.ma/fr/conseils-preventions/prevention-auto/">
+                                    <div class="conseil-header">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                                
+                                                <img src="/media/uploads/ConseilPrevention/icone/icons8-service-de-voiture-100.png" height="40" width="40" alt="Prévention Auto" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            <p class="offre-title">Prévention Auto</p>
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                        </div>
+                                    </div>
+                                </a>
+                                
+                            </div>
+                        
+                            <div class="col-md-4 p-0">
+                                
+                                <a onclick="click_conseil('Prévention MRH','particulier')" class="h-100" href="https://sanlam.ma/fr/conseils-preventions/prevention-mrh/">
+                                    <div class="conseil-header">
+                                        <div class="icon-offre me-3">
+                                            <div class="icon-offre2">
+                                                
+                                                <img src="/media/uploads/ConseilPrevention/icone/icons8-lease-100.png" height="40" width="40" alt="Multirisque habitation" />
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="offre-text">
+                                            <p class="offre-title">Prévention MRH</p>
+                                            <img src="/static/images/arrow-offre2.png" height="20" width="20" alt="icone flèche" />
+                                        </div>
+                                    </div>
+                                </a>
+                                
+                            </div>
+                        
+                    </div>
+                </ul>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="dropdown-toggle" role="button" aria-expanded="false">Nous connaître</a>
+                <ul class="dropdown-menu">
+                    <div class="row">
+                        <div class="col-md-3 connaitre-col">
+                            <div class="connaitre-element connaitre-header">
+                                <img src="/static/images/connaitre1.png" height="40" width="40" alt="La compagnie" />
+                                <a class="compagnie" href="/fr/compagnie/"><p class="offre-title">La compagnie</p></a>
+                            </div>
+                            <div class="connaitre-element connaitre-header">
+                                <img src="/static/images/connaitre4.png" height="40" width="40" alt="Communiqués de presse" />
+                                <a class="communiques-presse" href="/fr/communiques-presse/"><p class="offre-title">Communiqués de presse</p></a>
+                            </div>
+                            <div class="connaitre-element connaitre-header">
+                                <img src="/static/images/connaitre6.png" height="40" width="40" alt="Code de déontologie" />
+                                <a class="code-de-deontologie" href="/fr/code-de-deontologie/"><p class="offre-title">Code de déontologie</p></a>
+                            </div>
+                            
+                        </div>
+                        <div class="col-md-3 connaitre-col">
+                            <div class="connaitre-element">
+                                <img src="/static/images/connaitre3.png" height="40" width="40" alt="Responsabilité sociétale des entreprises" />
+                                <p class="offre-title">Responsabilité sociétale des entreprises</p>
+                            </div>
+                            <ul>
+                                <a class="presentation-rse" href="/fr/presentation-rse/"><li>Présentation</li></a>
+                                <a class="fondation-ennajah" href="/fr/fondation-sanlam-li-ennajah/"><li>Fondation Sanlam Li-Ennajah</li></a>
+                                <a class="rapports-rse" href="/fr/rapports-rse/"><li>Rapports RSE</li></a>
+                            </ul>
+                        </div>
+                        <div class="col-md-3 connaitre-col">
+                            <div class="connaitre-element">
+                                <img src="/static/images/connaitre2.png" height="40" width="40" alt="Communication financière" />
+                                <p class="offre-title">Communication financière</p>
+                            </div>
+                            <ul>
+                                
+                                <a class="communiques-financiers" href="/fr/communiques-financiers/"><li>Communiqués financiers</li></a>
+                                <a class="publications-financieres" href="/fr/publications-financieres/"><li>Publications financières</li></a>
+                                <a class="rapports-activite" href="/fr/rapports-activite/"><li>Rapports d’activités</li></a>
+                                <a class="cours-de-bourse" href="https://www.casablanca-bourse.com/fr/live-market/instruments/SAH"><li>Cours de bourse</li></a>
+                            </ul>
+                        </div>
+                    </div>
+                </ul>
+            </li>
+        </ul>
+        <div class="desktop align-items-center">
+            <a target="_blank" href="https://espace-client.sanlam.ma/" class="buttonContact">Mon Espace</a>
+        </div>
+        <div class="sl-burger">
+            <div class="sl-line1"></div>
+            <div class="sl-line2"></div>
+            <div class="sl-line3"></div>
+        </div>
+    </nav>
+</header>
+
+    <div class="sl-navbar-space"></div>
+    <div class="banniere-home">
+        <div id="carouselParticulier" class="carousel slide carousel-fade" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                
+                    <div class="carousel-item active"  data-bs-interval="3000">
+                        <div class="banniere-image-container responsive-banniere">
+                            <a class="banniere-image-link"  href="https://sanlam.ma/allianz-devient-sanlam/" target="_blank" >
+                                
+                                    <img class="banniere-image d-none d-md-block" src="/media/uploads/slider/Message_Fusion_banniere_Desktop_1640_x_496_2.jpg" width="100%" height="auto" alt="allianz-devient-sanlam">
+                                
+                                
+                                    <img class="banniere-image d-block d-md-none" src="/media/uploads/Slider/image_mobile/Message_Fusion_banniere_Mobile_500x700.jpg" width="100%" height="auto" alt="allianz-devient-sanlam">
+                                
+                            </a>
+
+                            
+                        </div>
+                    </div>
+                
+                <div class="carousel-indicators">
+                    
+                        <button type="button" data-bs-target="#carouselParticulier" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="home-section-offres">
+        <div class="container">
+            <div class="section-title">
+                <p class="before-title">Découvrez nos <span>offres</span></p>
+                <h1 class="title">Découvrez nos offres d'assurance personnalisées</h1>
+                <p> <strong>Sanlam Maroc</strong> vous propose des solutions d’assurance adaptées à tous vos besoins, que vous soyez un conducteur de moto, un propriétaire de maison, ou à la recherche de la meilleure couverture santé. Nos produits sont conçus pour offrir une protection maximale à vous et vos proches, en toute sérénité. </p>
+            </div>
+            <div class="liste-offres">
+                
+                    <div class="offre">
+        
+                        <img class="icon-offre" src="/media/uploads/CategorieOffre/images/icons8-car-100_1.png" alt="Icône d&#x27;une voiture" width="35" height="35" />
+                        <h3 class="title-offre">Auto / Moto</h3>
+                        <p class="desc-offre">Sanlam Maroc vous accompagne avec des offres d&#39;assurance auto qui r&eacute;pondent &agrave; tous vos besoins, que vous soyez propri&eacute;taire d&#39;une voiture ou d&#39;une moto.</p>
+                        <a class="btn-offre" onclick="click_categorie_offre('Auto / Moto','particulier')" href="https://sanlam.ma/fr/categories-offres/auto-moto/">En savoir plus</a>
+                    </div>
+                
+                    <div class="offre">
+        
+                        <img class="icon-offre" src="/media/uploads/CategorieOffre/images/icons8-house-100.png" alt="icône d&#x27;une maison" width="35" height="35" />
+                        <h3 class="title-offre">Habitation</h3>
+                        <p class="desc-offre">B&eacute;n&eacute;ficiez d&#39;une couverture compl&egrave;te pour votre logement, vos biens, et bien plus encore avec nos offres d&#39;assurance habitation.</p>
+                        <a class="btn-offre" onclick="click_categorie_offre('Habitation','particulier')" href="https://sanlam.ma/fr/offres/habitation/assurance-habitation-sanlam/">En savoir plus</a>
+                    </div>
+                
+                    <div class="offre">
+        
+                        <img class="icon-offre" src="/media/uploads/CategorieOffre/images/icons8-heart-with-pulse-100_1.png" alt="icône d&#x27;un cœur" width="35" height="35" />
+                        <h3 class="title-offre">Santé</h3>
+                        <p class="desc-offre">Prot&eacute;gez-vous et votre famille avec l&#39;offre d&#39;assurance sant&eacute; de Sanlam Maroc, adapt&eacute;e &agrave; vos besoins sp&eacute;cifiques.</p>
+                        <a class="btn-offre" onclick="click_categorie_offre('Santé','particulier')" href="https://sanlam.ma/fr/categories-offres/sante/">En savoir plus</a>
+                    </div>
+                
+                    <div class="offre">
+        
+                        <img class="icon-offre" src="/media/uploads/CategorieOffre/images/icons8-money-100.png" alt="icône d&#x27;argent" width="35" height="35" />
+                        <h3 class="title-offre">Epargne</h3>
+                        <p class="desc-offre">D&eacute;couvrez notre gamme de produits d&#39;&eacute;pargne pour r&eacute;pondre &agrave; tous vos besoins financiers et s&eacute;curiser votre avenir.</p>
+                        <a class="btn-offre" onclick="click_categorie_offre('Epargne','particulier')" href="https://sanlam.ma/fr/categories-offres/epargne/">En savoir plus</a>
+                    </div>
+                
+                    <div class="offre">
+        
+                        <img class="icon-offre" src="/media/uploads/CategorieOffre/images/icons8-sun-lounger-100.png" alt="icône des pièces détachées" width="35" height="35" />
+                        <h3 class="title-offre">Loisirs</h3>
+                        <p class="desc-offre">Profitez pleinement de vos loisirs avec une couverture adapt&eacute;e, qui vous prot&egrave;ge dans toutes vos activit&eacute;s.</p>
+                        <a class="btn-offre" onclick="click_categorie_offre('Loisirs','particulier')" href="https://sanlam.ma/fr/categories-offres/loisirs/">En savoir plus</a>
+                    </div>
+                
+                    <div class="offre">
+        
+                        <img class="icon-offre" src="/media/uploads/CategorieOffre/images/chatchien.png" alt="Chien &amp; Chat" width="35" height="35" />
+                        <h3 class="title-offre">Chien &amp; Chat</h3>
+                        <p class="desc-offre">Sanlam Maroc vous propose une solution d&rsquo;assurance sant&eacute; sp&eacute;cialement con&ccedil;ue pour les chiens et les chats.</p>
+                        <a class="btn-offre" onclick="click_categorie_offre('Chien &amp; Chat','particulier')" href="https://sanlam.ma/fr/offres/chien-chat/assurance-chien-chat/">En savoir plus</a>
+                    </div>
+                
+                    <div class="offre">
+        
+                        <img class="icon-offre" src="/media/uploads/CategorieOffre/images/icons8-famille-homme-femme-100_1.png" alt="icône d&#x27;un cœur" width="35" height="35" />
+                        <h3 class="title-offre">Prévoyance</h3>
+                        <p class="desc-offre">Prot&eacute;gez votre avenir et celui de vos proches avec nos assurances pr&eacute;voyance, qui vous offrent une s&eacute;curit&eacute; financi&egrave;re en cas d&#39;impr&eacute;vus.</p>
+                        <a class="btn-offre" onclick="click_categorie_offre('Prévoyance','particulier')" href="https://sanlam.ma/fr/categories-offres/prevoyance/">En savoir plus</a>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+    <div class="home-section-advantages">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="section-title">
+                        <p class="before-title">Découvrez tous les avantages d’être assuré chez <strong>Sanlam MAROC</strong></p>
+                        <p class="title">Un univers d’avantages et de <span>services exclusifs !</span></p>
+                        <p> Sanlam Maroc ne se contente pas de vous offrir des assurances, nous vous proposons aussi des services supplémentaires pour simplifier votre quotidien. </p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 order-2 order-lg-1">
+                    <div class="list-services">
+                        
+                        <a class="service active" onclick="click_univers_avantages('Une application mobile qui facilite votre quotidien')" href="https://sanlam.ma/application-mobile" target="_blank">
+                            <h4 class="service-title">Une application mobile qui facilite votre quotidien</h4>
+                            <p class="service-btn">Découvrir</p>
+                        </a>
+                        
+                        <a class="service " onclick="click_univers_avantages('Un programme exclusif et gratuit pour récompenser votre fidélité')" href="https://sanlam.ma/fid-sanlam" target="_blank">
+                            <h4 class="service-title">Un programme exclusif et gratuit pour récompenser votre fidélité</h4>
+                            <p class="service-btn">Découvrir</p>
+                        </a>
+                        
+                        <a class="service " onclick="click_univers_avantages('Un service exclusif de déclaration de vos dossiers maladie en ligne')" href="https://espace-client.sanlam.ma/amc" target="_blank">
+                            <h4 class="service-title">Un service exclusif de déclaration de vos dossiers maladie en ligne</h4>
+                            <p class="service-btn">Découvrir</p>
+                        </a>
+                        
+                        <a class="service " onclick="click_univers_avantages('Le plus grand réseau d’agents généraux du Royaume pour vous accompagner dans la proximité')" href="https://agences.sanlam.ma/fr/maroc-MA" target="_blank">
+                            <h4 class="service-title">Le plus grand réseau d’agents généraux du Royaume pour vous accompagner dans la proximité</h4>
+                            <p class="service-btn">Découvrir</p>
+                        </a>
+                        
+                    </div>
+                </div>
+                <div class="text-info col-lg-6 order-1 order-lg-2">
+                    <div class="position-relative">
+                        <div class="list-services-img"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="home-section-simulateurs">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="section-title">
+                        <p class="before-title">Obtenir <span>un devis</span></p>
+                        <h2 class="title">Obtenez votre devis en ligne en quelques clics</h2>
+                        <p> Sanlam Maroc vous simplifie la vie en vous offrant la possibilité d’obtenir des devis d’assurance en ligne. Que vous souhaitiez renouveler votre contrat auto ou choisir une nouvelle couverture habitation, tout est à portée de main. </p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="simulateurs-carousel owl-carousel">
+                        
+                        
+			
+                        <a onclick="click_simulateurs('Assurance Auto')" class="h-100 item" href="/simulateurs/assurance-auto/" target="_blank">
+                            <div class="simulateur">
+                                <div class="image-similateur" 
+                                    style="background: url(/media/uploads/CategorieOffre/devis-auto.webp), linear-gradient(180deg, #E5F3FC00 0%, #E5F3FC 100%);"
+                                >
+                                </div>
+                                <div class="text-similateur">
+                                    <img class="icon-similateur" src="/media/uploads/CategorieOffre/Icone/icons8-car-sale-100.png" alt="Auto" width="25" height="25" />
+                                    <h3 class="title-similateur">Assurance Auto</h3>
+                                    <p class="desc-similateur">Demandez votre devis et assurez votre v&eacute;hicule au meilleur prix</p>
+                                    <span class="btn-similateur">En savoir plus</span>
+                                </div>
+                            </div>
+                        </a>
+			
+                        
+                    
+                        
+			
+                        <a onclick="click_simulateurs('Renouvellement Auto')" class="h-100 item" href="https://souscription-en-ligne.sanlam.ma/assurance-auto-renouvellement" target="_blank">
+                            <div class="simulateur">
+                                <div class="image-similateur" 
+                                    style="background: url(/media/uploads/CategorieOffre/assur_auto_image_principale_2.webp), linear-gradient(180deg, #E5F3FC00 0%, #E5F3FC 100%);"
+                                >
+                                </div>
+                                <div class="text-similateur">
+                                    <img class="icon-similateur" src="/media/uploads/CategorieOffre/Icone/icons8-car-insurance-100.png" alt="icône renouvellement" width="25" height="25" />
+                                    <h3 class="title-similateur">Renouvellement Auto</h3>
+                                    <p class="desc-similateur">Renouvelez votre contrat en quelques clics et payez votre assurance automobile en ligne</p>
+                                    <span class="btn-similateur">En savoir plus</span>
+                                </div>
+                            </div>
+                        </a>
+			
+                        
+                    
+                        
+			
+                        <a onclick="click_simulateurs('Carte Verte')" class="h-100 item" href="https://web-pp.sanlam.ma/fr/carte-verte/" target="_blank">
+                            <div class="simulateur">
+                                <div class="image-similateur" 
+                                    style="background: url(/media/uploads/CategorieOffre/Carte_verte_menu.webp), linear-gradient(180deg, #E5F3FC00 0%, #E5F3FC 100%);"
+                                >
+                                </div>
+                                <div class="text-similateur">
+                                    <img class="icon-similateur" src="/media/uploads/CategorieOffre/Icone/icons8-car-insurance-100_h9iqD9a.png" alt="Carte verte" width="25" height="25" />
+                                    <h3 class="title-similateur">Carte Verte</h3>
+                                    <p class="desc-similateur">Achetez votre carte verte en ligne et obtenez instantan&eacute;ment votre attestation digitalis&eacute;e</p>
+                                    <span class="btn-similateur">En savoir plus</span>
+                                </div>
+                            </div>
+                        </a>
+			
+                        
+                    
+                        
+                    
+                        
+			
+                        
+                    
+                        
+			
+                        <a onclick="click_simulateurs('Assurance Habitation')" class="h-100 item" href="https://souscription-en-ligne.sanlam.ma/habitation-simulation" target="_blank">
+                            <div class="simulateur">
+                                <div class="image-similateur" 
+                                    style="background: url(/media/uploads/CategorieOffre/devis-habitation.webp), linear-gradient(180deg, #E5F3FC00 0%, #E5F3FC 100%);"
+                                >
+                                </div>
+                                <div class="text-similateur">
+                                    <img class="icon-similateur" src="/media/uploads/CategorieOffre/Icone/icons8-activity-history-100_5DM5Gjk.png" alt="Habitation" width="25" height="25" />
+                                    <h3 class="title-similateur">Assurance Habitation</h3>
+                                    <p class="desc-similateur">Faites votre simulation et choisissez la couverture la plus adapt&eacute;e</p>
+                                    <span class="btn-similateur">En savoir plus</span>
+                                </div>
+                            </div>
+                        </a>
+			
+                        
+                    
+                        
+			
+                        <a onclick="click_simulateurs('Assur’Chat et Chien')" class="h-100 item" href="https://sanlam.ma/simulateur-chat-chien/" target="_blank">
+                            <div class="simulateur">
+                                <div class="image-similateur" 
+                                    style="background: url(/media/uploads/CategorieOffre/chatchien_1.webp), linear-gradient(180deg, #E5F3FC00 0%, #E5F3FC 100%);"
+                                >
+                                </div>
+                                <div class="text-similateur">
+                                    <img class="icon-similateur" src="/media/uploads/CategorieOffre/Icone/empreinte-de-chien_2.png" alt="Assur’Chat et Chien" width="25" height="25" />
+                                    <h3 class="title-similateur">Assur’Chat et Chien</h3>
+                                    <p class="desc-similateur">Assur&rsquo;Chat et Chien est une assurance qui couvre les frais v&eacute;t&eacute;rinaires de votre animal en cas de maladie ou d&rsquo;accident.</p>
+                                    <span class="btn-similateur">En savoir plus</span>
+                                </div>
+                            </div>
+                        </a>
+			
+                        
+                    
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="home-section-sinistres">
+        <div class="container">
+            <div class="section-title">
+                <h2 class="title">Déclarer <strong>vos sinistres en toute simplicité</strong></h2>
+                <img class="dots" src="/static/images/dots.svg" alt="dots image" width="240" height="240">
+            </div>
+            <div class="section-content">
+                
+                <div class="section-desc">
+                    <p> En cas de sinistre, Sanlam Maroc est à vos côtés pour vous guider à travers chaque étape du processus. Que ce soit pour un sinistre auto, habitation, ou santé, nos conseillers sont disponibles pour vous assister. </p>
+                    <p> Que faire en cas de sinistre ? Nous vous guidons pas à pas dans vos démarches et nos conseillers sont là pour vous aider. </p>
+                </div>
+                <div class="sinistres-btns">
+                    
+                        <a class="sinistre active" onclick="click_sinistres('Sinistre Santé','particulier')" href="https://sanlam.ma/fr/sinistres/sinistre-sante/">
+                            <p>Sinistre Santé</p>
+                        </a>
+                    
+                        <a class="sinistre " onclick="click_sinistres('Sinistre Habitation','particulier')" href="https://sanlam.ma/fr/sinistres/sinistre-habitation/">
+                            <p>Sinistre Habitation</p>
+                        </a>
+                    
+                        <a class="sinistre " onclick="click_sinistres('Accident de voiture','particulier')" href="https://sanlam.ma/fr/sinistres/accident-de-voiture/">
+                            <p>Accident de voiture</p>
+                        </a>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+
+<footer class="footer">
+    <div class="container">
+        <div class="footerUp">
+            <div class="footerDiv logoDiv">
+                <img class="logo" src="/static/images/logo_footer.png" alt="SANLAM : votre assurance en ligne" width="190" height="44"/>
+            </div>
+            <div class="footerDiv">
+                <p class="titleP">Offres d’assurance</p>
+                
+                    <a onclick="click_footer_categorie_offre('Auto / Moto','particulier')" href="https://sanlam.ma/fr/categories-offres/auto-moto/">Auto / Moto</a>
+                
+                    <a onclick="click_footer_categorie_offre('Habitation','particulier')" href="https://sanlam.ma/fr/offres/habitation/assurance-habitation-sanlam/">Habitation</a>
+                
+                    <a onclick="click_footer_categorie_offre('Santé','particulier')" href="https://sanlam.ma/fr/categories-offres/sante/">Santé</a>
+                
+                    <a onclick="click_footer_categorie_offre('Epargne','particulier')" href="https://sanlam.ma/fr/categories-offres/epargne/">Epargne</a>
+                
+                    <a onclick="click_footer_categorie_offre('Loisirs','particulier')" href="https://sanlam.ma/fr/categories-offres/loisirs/">Loisirs</a>
+                
+                    <a onclick="click_footer_categorie_offre('Chien &amp; Chat','particulier')" href="https://sanlam.ma/fr/offres/chien-chat/assurance-chien-chat/">Chien &amp; Chat</a>
+                
+                    <a onclick="click_footer_categorie_offre('Prévoyance','particulier')" href="https://sanlam.ma/fr/categories-offres/prevoyance/">Prévoyance</a>
+                
+            </div>
+            <div class="footerDiv">
+                <p class="titleP">Déclaration sinistre</p>
+                
+                    <a onclick="click_footer_sinistre('Sinistre Santé','particulier')" href="https://sanlam.ma/fr/sinistres/sinistre-sante/">Sinistre Santé</a>
+                
+                    <a onclick="click_footer_sinistre('Sinistre Habitation','particulier')" href="https://sanlam.ma/fr/sinistres/sinistre-habitation/">Sinistre Habitation</a>
+                
+                    <a onclick="click_footer_sinistre('Accident de voiture','particulier')" href="https://sanlam.ma/fr/sinistres/accident-de-voiture/">Accident de voiture</a>
+                
+            </div>
+            <div class="footerDiv">
+                <p class="titleP">Nous connaître</p>
+                <a class="compagnie-footer" href="/fr/compagnie/">La compagnie</a>
+                <a class="presentation-rse-footer" href="/fr/presentation-rse/">RSE</a>
+                <a class="communiques-financiers-footer" href="/fr/communiques-financiers/">Communiqués financiers</a>
+                <a class="publications-financieres-footer" href="/fr/publications-financieres/">Publications financiers</a>
+                <a class="rapports-activite-footer" href="/fr/rapports-activite/">Rapport d'activité</a>
+                <a class="communiques-presse-footer" href="/fr/communiques-presse/">Communiqués de presse</a>
+                <a class="fondation-ennajah" href="/fr/fondation-sanlam-li-ennajah/">Fondation Sanlam Li-Ennajah</a>
+                <!--<a class="valeur-rh" href="/valeur-rh/">Nous rejoindre</a>-->
+            </div>
+             <div class="footerDiv">
+                <p class="titleP">Liens utiles</p>
+                <a href="/fr/sanlam-lexique/">Lexique</a>
+                <a href="/fr/code-de-deontologie/">Code de déontologie</a>
+                <a href="/fr/faq/">FAQ</a>
+                <a href="/fr/contenu-editorial/blog/">Contenu éditorial</a>
+                <a href="https://sanlam.ma/media/uploads/Fichier_media/Guide-reclamation.pdf" target="_blank">Guide de réclamation</a>
+                <a href="/fr/mci/" target="_blank">Assurés MCi Care</a>
+                <a href="/fr/reglement-action-vignette-automobile/">Règlement vignette automobile</a>
+                <a href="/fr/reglement_tombola/">Réglement Tombola AUTO GREEN+</a>
+            </div>
+             <div class="footerDiv">
+                <p class="titleP">Univers d’avantages</p>
+                <a class="fid-sanlam" href="/fr/fid-sanlam/">Fid Sanlam</a>
+                <a class="application-mobile" href="/fr/application-mobile/">Application mobile</a>
+                <a class="amc" href="https://espace-client.sanlam.ma/amc" target='_blank'>AMC</a>
+                <a class="agences" href="https://agences.sanlam.ma/fr" target="_blank">Agences</a>
+            </div>
+        </div>
+        <div class="footer-apps-socialmedia">
+            <div class="row">
+                <div class="col-md-6 d-flex">
+                    <div class="mobile-apps">
+                        <p class="mobile-apps-title">Disponible sur les plateformes</p>
+                        <div class="mobile-apps-links">
+                            <a class="mobile-apps-link" href="https://apps.apple.com/fr/app/saham-assurance-maroc/id1216282486" target="_blank">
+                                <img src="/static/images/appstore-footer-fr.png" alt="app store" width="120" height="38"/>
+                            </a>
+                            <a class="mobile-apps-link" href="https://play.google.com/store/apps/details?id=ma.tnc.sahamassurance&hl=fr&gl=US"  target="_blank">
+                                <img src="/static/images/playstore-footer-fr.png" alt="play store" width="120" height="38"/>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex">
+                    <div class="social-media">
+                        <p class="social-media-title">Rejoignez nous</p>
+                        <ul class="social-media-links">
+                            <li class="social-media-link">
+                                <a href="https://www.linkedin.com/company/sanlam-maroc/" target="_blank"><img src="/static/images/linkedin.png" alt="linkedin" width="20" height="20"></a>
+                            </li>
+                            <li class="social-media-link">
+                                <a class="instagram-footer" href="https://www.instagram.com/sanlam_maroc/" target="_blank"><img src="/static/images/instagram.png" alt="instagram" width="20" height="20"></a>
+                            </li>
+                            <li class="social-media-link">
+                                <a href="#" target="_blank"><img src="/static/images/twitter.png" alt="twitter" width="20" height="20"></a>
+                            </li>
+                            <li class="social-media-link">
+                                <a href="https://www.youtube.com/user/SahamAssuranceMaroc" target="_blank"><img src="/static/images/youtube.png" alt="youtube" width="20" height="20"></a>
+                            </li>
+                            <li class="social-media-link">
+                                <a href="https://web.facebook.com/sanlammaroc" target="_blank"><img src="/static/images/facebook.png" alt="facebook" width="20" height="20"></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="separation"></div>
+        
+
+
+<div class="footerDown">
+    <!-- <p>© 2025 . All Rights Reserved.</p> -->
+      <p>
+        © 
+        <span id="current-year">2025</span> 
+        . All Rights Reserved.
+    </p>
+    <div class="buttons-footer">
+        <a class="plan-site" href="/fr/plan-site/">Plan du site</a>
+        <a class="cgu" href="/fr/cgu/">CGU</a>
+        <a class="cgu" href="/fr/cgp/">CGP</a>
+        <a class="mentions-legales" href="/fr/mentions-legales/">Mentions légales</a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentYear = new Date().getFullYear();
+        document.getElementById('current-year').textContent = currentYear;
+    });
+</script>
+
+    </div>
+</footer>
+
+
+
+    
+
+
+
+<div class="cookies-alert">
+    <div class="container d-flex align-items-center justify-content-center cookies-alert-inner">
+        
+        <p class="m-0">EN UTILISANT LE SITE, VOUS ACCEPTEZ DE RECEVOIR DES COOKIES CONFORMÉMENT À NOTRE <a target="_blank" href="/fr/mentions-legales/">POLITIQUE SUR LES COOKIES.</a></p>
+        
+
+        <div class="controls">
+            
+            <button onclick="toggleCookiesAlert()">J'accepte les cookies</button>
+            
+        </div>
+    </div>
+</div>
+
+<style>
+    .cookies-alert {
+        z-index: 999 !important;  
+    }
+    @media (max-width: 768px) {
+        .cookies-alert-inner {
+            margin-bottom: 33px !important;
+        }
+    }
+</style>
+
+    
+    <!--Scripts-->
+    
+    
+    
+
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js" integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script defer src="/static/js/multislider.min.js"></script>
+<script type="module" src="/static/js/cities.min.js"></script>
+<script defer src="/static/js/script.min.js"></script>
+
+
+
+    <script id="cloudx-chat-widget-code">
+    (function (d, t, id) {
+    if (d.getElementById(id)) return;
+    var fjs = d.getElementsByTagName(t)[0];
+    var js = d.createElement(t);
+    js.id = id;
+    js.src = 'https://sanlam.qalqul.io/widget/f45bbbcc7ab05efab5fd083eeded56fb/embed.js';
+    js.async = true;
+    fjs.parentNode.insertBefore(js, fjs);
+    })(document, 'script', 'cloudx-chat-widget');
+    </script>
+
+    <div class="whatsapp-float">
+      <a href="https://wa.me/212600003434?text=Bonjour%2C%20je%20vous%20contacte%20car%20j%27aurais%20besoin%20d%27une%20information." target="_blank" rel="noopener">
+    <img src="/static/images/whatsapp-icon.png" alt="WhatsApp">
+  </a>
+</div>
+</body>
+</html>

@@ -1633,8 +1633,8 @@ function connectWS() {
   ws.onmessage = e => {
     try {
       const data = JSON.parse(e.data);
-      if (data.evenement === "bvc_snapshot" && data.donnees) {
-        applySnapshot(data.donnees);
+      if (data.evenement === "bvc_snapshot") {
+        applySnapshot(data);
         document.getElementById("last-update").textContent = new Date().toLocaleTimeString("fr-FR");
       }
     } catch {}
@@ -1648,88 +1648,83 @@ function connectWS() {
 }
 connectWS();
 
+// ── Chargement HTTP immédiat (fallback si WS lent ou _latest_snapshot null) ──
+(async function loadInitialMarketData() {
+  try {
+    const base = (location.port === "80" || location.port === "443" || location.port === "")
+      ? "" : "http://localhost:8765";
+    const [ovDoc, stDoc] = await Promise.all([
+      fetch(base + "/api/overview", { cache: "no-store" }).then(r => r.ok ? r.json() : null),
+      fetch(base + "/api/stocks",   { cache: "no-store" }).then(r => r.ok ? r.json() : null),
+    ]);
+    if (!ovDoc || !stDoc) return;
+    if (mkt.rows.length) return; // WS déjà livré, on ne remplace pas
+    const ov = parseOverview(ovDoc);
+    const st = parseStocks(stDoc);
+    mkt.overview = ov;
+    mkt.rows = st;
+    renderTicker(st);
+    updateMarketBadge();
+    renderMarket();
+    renderWatchlistLive();
+    renderPortfolioLive();
+    renderTableauBord();
+    document.getElementById("mkt-count").textContent = st.length + " valeurs";
+    setWsStatus("warn", "HTTP · " + st.length + " valeurs");
+  } catch (e) {
+    console.warn("[market] Fallback HTTP:", e.message);
+  }
+})();
+
 function setWsStatus(kind, label) {
   document.getElementById("dot-ws").className = "dot " + kind;
   document.getElementById("label-ws").textContent = label;
 }
 
-// ── Parsing (same logic as index.html) ───────────────────────────────────────
-function findWidget(doc, pred) {
-  const node = doc?.pageProps?.node;
-  if (!node?.field_vactory_paragraphs) return null;
-  for (const p of node.field_vactory_paragraphs) {
-    const c = p.field_vactory_component;
-    if (!c) continue;
-    if (pred(c)) {
-      try { return typeof c.widget_data === "string" ? JSON.parse(c.widget_data) : c.widget_data; }
-      catch { return null; }
-    }
-  }
-  return null;
-}
+// ── Parsing — format bvc_snapshot v2 (drupalSettings HTML) ──────────────────
 function asNum(x) {
   if (x === null || x === undefined) return NaN;
   const n = typeof x === "number" ? x : parseFloat(String(x).replace(/[\s%]/g,"").replace(",","."));
   return isNaN(n) ? NaN : n;
 }
-function parseOverview(doc) {
-  const w = findWidget(doc, c => /marches-overview/.test(c.widget_id||""));
-  const out = { masi: null, vol: null, capi: null, ts: null };
-  if (!w) return out;
-  const comps = Array.isArray(w.components) ? w.components : [w.components].filter(Boolean);
-  for (const comp of comps) {
-    if (!comp || typeof comp !== "object") continue;
-    if (comp.capitalisation?.value) out.capi = asNum(comp.capitalisation.value);
-    if (comp.volume?.volume)        out.vol  = asNum(comp.volume.volume);
-    const coll = comp.collection?.data?.data;
-    if (Array.isArray(coll) && coll.length) {
-      const series = coll.map(it=>({v:asNum(it.attributes?.indexValue),t:it.attributes?.transactTime}))
-        .filter(p=>!isNaN(p.v)&&p.t).sort((a,b)=>new Date(a.t)-new Date(b.t));
-      if (series.length) {
-        const last=series[series.length-1], first=series[0];
-        out.masi = { value:last.v, open:first.v, varJ:first.v?(last.v-first.v)/first.v*100:NaN, ts:last.t };
-        out.ts = last.t;
-      }
-    }
-  }
-  return out;
+function parseOverview(data) {
+  const masi = data.masi || {};
+  const value = asNum(masi.value);
+  const varJ  = asNum(masi.change_pct);
+  return {
+    masi: isNaN(value) ? null : {
+      value,
+      open:  value,
+      varJ,
+      ts: data.horodatage || null,
+    },
+    vol:  asNum(data.vol_total),
+    capi: asNum(data.capi_total),
+    ts:   data.horodatage || null,
+  };
 }
-function parseStocks(doc) {
-  const w = findWidget(doc, c => /marches-actions/.test(c.widget_id||""));
-  if (!w) return [];
-  const sectors = Array.isArray(w.extra_field?.data) ? w.extra_field.data : [];
-  const out = [];
-  for (const sec of sectors) {
-    for (const it of (sec.items||[])) {
-      const inst = it.instrument||{};
-      out.push({
-        sector: sec.title||"—", name: inst.label||"—", ticker: (inst.url||'').split('/').pop().toUpperCase()||'',
-        price: asNum(it.field_cours_courant), ref: asNum(it.field_static_reference_price),
-        open:  asNum(it.field_opening_price), pct: asNum(it.field_var_veille),
-        high:  asNum(it.field_high_price),    low: asNum(it.field_low_price),
-        bid:   asNum(it.field_best_bid_price),ask: asNum(it.field_best_ask_price),
-        volMAD: asNum(it.field_cumul_volume_echange), volQty: asNum(it.field_cumul_titres_echanges),
-      });
-    }
-  }
-  return out;
+function parseStocks(data) {
+  const actions = Array.isArray(data.actions) ? data.actions : [];
+  return actions.map(a => ({
+    sector:  a.sector  || "—",
+    name:    a.name    || "—",
+    ticker:  a.symbol  || "",
+    price:   asNum(a.price),
+    ref:     asNum(a.reference),
+    open:    asNum(a.open),
+    pct:     asNum(a.variation),
+    high:    asNum(a.high),
+    low:     asNum(a.low),
+    bid:     asNum(a.bid_price),
+    ask:     asNum(a.ask_price),
+    volMAD:  asNum(a.volume),
+    volQty:  asNum(a.quantity),
+  }));
 }
 
-function applySnapshot(donnees) {
-  const ov = parseOverview(donnees.overview);
-  const st = parseStocks(donnees.stocks);
-
-  // Écrase la valeur MASI par le tick temps réel (API directe BVC, non paginée)
-  if (donnees.masi_live && donnees.masi_live.value) {
-    const liveVal = donnees.masi_live.value;
-    const refVal  = donnees.masi_ref  && donnees.masi_ref.value ? donnees.masi_ref.value : null;
-    ov.masi = {
-      value: liveVal,
-      open:  refVal ?? liveVal,
-      varJ:  refVal ? (liveVal - refVal) / refVal * 100 : NaN,
-      ts:    donnees.masi_live.time,
-    };
-  }
+function applySnapshot(data) {
+  const ov = parseOverview(data);
+  const st = parseStocks(data);
 
   mkt.overview = ov;
   mkt.rows = st;
@@ -1746,6 +1741,7 @@ function applySnapshot(donnees) {
 }
 
 // ── Logos entreprises (Google Favicon + fallback initiales) ───────────────────
+// Domaines pour Google Favicon API (retourne 404 propre si pas de favicon → fallback initiales)
 const LOGO_DOMAINS = {
   '2SAHA':'sanlam.ma',           'AFI':'africaindustries.com',
   'AFM':'afma.ma',               'AGM':'agma.ma',
@@ -1782,6 +1778,92 @@ const LOGO_DOMAINS = {
   'TQM':'taqa.com',              'VCN':'vicenne.ma',
   'WAA':'wafaassurance.ma',      'ZDJ':'zellidja.com',
 };
+// URLs directes pour les entreprises dont le favicon a été vérifié manuellement
+// (évite l'icône globe générique de Google qui apparaît quand le site n'a pas de favicon indexé)
+const LOGO_DIRECT = {
+  '2SAHA': '/favicons/2SAHA.ico',
+  'ADH': '/favicons/ADH.png',
+  'ADI': '/favicons/ADI.ico',
+  'AFI': '/favicons/AFI.ico',
+  'AFM': '/favicons/AFM.gif',
+  'AGM': '/favicons/AGM.ico',
+  'AKT': '/favicons/AKT.png',
+  'ALM': '/favicons/ALM.png',
+  'ARD': '/favicons/ARD.png',
+  'ATH': '/favicons/ATH.ico',
+  'ATL': '/favicons/ATL.svg',
+  'ATW': '/favicons/ATW.png',
+  'BAL': '/favicons/BAL.ico',
+  'BCI': '/favicons/BCI.ico',
+  'BCP': '/favicons/BCP.ico',
+  'BOA': '/favicons/BOA.png',
+  'CAP': '/favicons/CAP.png',
+  'CDM': '/favicons/CDM.ico',
+  'CFG': '/favicons/CFG.ico',
+  'CIH': '/favicons/CIH.ico',
+  'CMA': '/favicons/CMA.ico',
+  'CMG': '/favicons/CMG.ico',
+  'CMT': '/favicons/CMT.png',
+  'COL': '/favicons/COL.png',
+  'CRS': '/favicons/CRS.png',
+  'CSR': '/favicons/CSR.png',
+  'CTM': '/favicons/CTM.png',
+  'DHO': '/favicons/DHO.png',
+  'DIS': '/favicons/DIS.svg',
+  'DLM': '/favicons/DLM.ico',
+  'DRI': '/favicons/DRI.png',
+  'DWY': '/favicons/DWY.ico',
+  'DYT': '/favicons/DYT.ico',
+  'EQD': '/favicons/EQD.ico',
+  'FBR': '/favicons/FBR.png',
+  'GAZ': '/favicons/GAZ.ico',
+  'GTM': '/favicons/GTM.png',
+  'HPS': '/favicons/HPS.png',
+  'IAM': '/favicons/IAM.png',
+  'IBC': '/favicons/IBC.png',
+  'IMO': '/favicons/IMO.png',
+  'INV': '/favicons/INV.png',
+  'JET': '/favicons/JET.ico',
+  'LBV': '/favicons/LBV.ico',
+  'LES': '/favicons/LES.ico',
+  'LHM': '/favicons/LHM.ico',
+  'M2M': '/favicons/M2M.ico',
+  'MAB': '/favicons/MAB.ico',
+  'MDP': '/favicons/MDP.ico',
+  'MIC': '/favicons/MIC.png',
+  'MLE': '/favicons/MLE.ico',
+  'MNG': '/favicons/MNG.ico',
+  'MOX': '/favicons/MOX.png',
+  'MSA': '/favicons/MSA.png',
+  'MUT': '/favicons/MUT.png',
+  'NEJ': '/favicons/NEJ.svg',
+  'NKL': '/favicons/NKL.ico',
+  'OUL': '/favicons/OUL.png',
+  'PRO': '/favicons/PRO.svg',
+  'RDS': '/favicons/RDS.png',
+  'REB': '/favicons/REB.ico',
+  'RIS': '/favicons/RIS.ico',
+  'S2M': '/favicons/S2M.png',
+  'SAH': '/favicons/SAH.png',
+  'SAM': '/favicons/SAM.svg',
+  'SBM': '/favicons/SBM.ico',
+  'SID': '/favicons/SID.ico',
+  'SLF': '/favicons/SLF.png',
+  'SMI': '/favicons/SMI.png',
+  'SNA': '/favicons/SNA.png',
+  'SNP': '/favicons/SNP.png',
+  'SOT': '/favicons/SOT.ico',
+  'SRM': '/favicons/SRM.svg',
+  'STR': '/favicons/STR.ico',
+  'T2S': '/favicons/T2S.ico',
+  'TGC': '/favicons/TGC.ico',
+  'TMA': '/favicons/TMA.ico',
+  'TQM': '/favicons/TQM.ico',
+  'UMR': '/favicons/UMR.png',
+  'VCN': '/favicons/VCN.png',
+  'WAA': '/favicons/WAA.ico',
+  'ZDJ': '/favicons/ZDJ.png',
+};
 const _LOGO_COLORS = ['#7B1D3A','#1d4ed8','#0891b2','#059669','#7c3aed','#b45309','#be123c'];
 function _logoColor(t) {
   let h = 0; for (const c of t) h = (h * 31 + c.charCodeAt(0)) % _LOGO_COLORS.length;
@@ -1796,11 +1878,17 @@ function logoHtml(ticker, size) {
   const avatarStyle = `display:inline-flex;align-items:center;justify-content:center;`
     + `width:${size}px;height:${size}px;border-radius:${r}px;background:${bg};`
     + `color:#fff;font-size:${fs}px;font-weight:700;flex-shrink:0;vertical-align:middle`;
+  const errCode = `this.replaceWith(Object.assign(document.createElement('span'),`
+    + `{style:'${avatarStyle}',textContent:'${initials}'}))`;
+  const directUrl = LOGO_DIRECT[ticker];
+  if (directUrl)
+    return `<img src="${directUrl}"`
+      + ` width="${size}" height="${size}"`
+      + ` style="border-radius:${r}px;object-fit:contain;flex-shrink:0;vertical-align:middle"`
+      + ` onerror="${errCode}" alt="${ticker}">`;
   const domain = LOGO_DOMAINS[ticker];
   if (!domain)
     return `<span style="${avatarStyle}">${initials}</span>`;
-  const errCode = `this.replaceWith(Object.assign(document.createElement('span'),`
-    + `{style:'${avatarStyle}',textContent:'${initials}'}))`;
   return `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=64"`
     + ` width="${size}" height="${size}"`
     + ` style="border-radius:${r}px;object-fit:contain;flex-shrink:0;vertical-align:middle"`

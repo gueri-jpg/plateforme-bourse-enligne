@@ -1,0 +1,1382 @@
+﻿<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+
+<head profile="http://www.w3.org/1999/xhtml/vocab">
+    
+<!-- Google Tag Manager -->
+<script>
+ function readTheCookie(name) {
+    var nameEQ = encodeURIComponent(name) + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1);
+      if (c.indexOf(nameEQ) === 0)
+        return decodeURIComponent(c.substring(nameEQ.length));
+    }
+    return null;
+  }
+  if(readTheCookie('cookieConsent') === 'accepted'){
+
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5NJ2FJ9');
+  }
+  </script>
+<!-- End Google Tag Manager -->
+
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script src="https://www.google.com/recaptcha/api.js?hl=fr" async="async" defer="defer"></script>
+<link rel="shortcut icon" href="https://www.creditdumaroc.ma/sites/default/files/favicon_0.ico" type="image/vnd.microsoft.icon" />
+<script>window.dataLayer = window.dataLayer || []; window.dataLayer.push({'event' : 'datalayerready','pageSection' : 'particulier','pageCategorie' : 'top categorie page','virtualPath' : '/', 'env' : 'PROD'});</script>
+<meta name="description" content="Avec Crédit du Maroc, devenez client en 3 étapes et profitez des avantages de notre banque en ligne avec nos services bancaires pour particuliers." />
+<link rel="canonical" href="https://www.creditdumaroc.ma/" />
+<link rel="shortlink" href="https://www.creditdumaroc.ma/" />
+  <!-- Responsive -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="shortcut icon"
+        href="/sites/all/themes/custom/cdm_theme/assets/img/site/Crédit_Agricole.png"/>
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="/sites/all/themes/custom/cdm_rebrand/assets/plugins/Swiper/swiper-bundle.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale = 1.0" />
+  <style type="text/css" media="all">
+@import url("https://www.creditdumaroc.ma/modules/system/system.base.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/modules/system/system.menus.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/modules/system/system.messages.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/modules/system/system.theme.css?tj8z52");
+</style>
+<style type="text/css" media="all">
+@import url("https://www.creditdumaroc.ma/sites/all/modules/contrib/date/date_api/date.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/modules/contrib/date/date_popup/themes/datepicker.1.7.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/modules/field/theme/field.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/modules/node/node.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/modules/search/search.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/modules/user/user.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/modules/contrib/views/css/views.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/modules/contrib/ckeditor/css/ckeditor.css?tj8z52");
+</style>
+<style type="text/css" media="all">
+@import url("https://www.creditdumaroc.ma/sites/all/modules/contrib/ctools/css/ctools.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/modules/contrib/webform/css/webform.css?tj8z52");
+</style>
+<style type="text/css" media="screen">
+@import url("https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/fontawesome/css/fontawesome.min.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/css/bootstrap.min.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/css/bootstrap-slider.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/css/animate.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/open-iconic-master/font/css/open-iconic-bootstrap.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/css/style.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/css/entreprise.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/css/banque-prive.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/css/responsive.css?tj8z52");
+@import url("https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/css/institutionnel.css?tj8z52");
+</style>
+  <title>Crédit du Maroc | Banque et assurance</title>
+</head>
+<body data-url="/" class="accueil html front not-logged-in no-sidebars page-node page-node- page-node-11 node-type-home-page particulier" >
+  <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5NJ2FJ9"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+          
+
+<nav class="navbar navbar-expand-lg navbar-light px-5 brand">
+  <div class="container-fluid">
+      <a class="navbar-brand" href="/" aria-label="Accueil — Crédit du Maroc particuliers">
+                            <img src="/sites/all/themes/custom/cdm_rebrand/assets/images/icons/logo_cdm.svg"  class="blur-logo d-inline-block align-top" >
+                    </a>
+       
+      <div class="collapse navbar-collapse " id="navbarNav">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                              
+                                                            <li class="nav-item">
+                        <a href="https://www.creditdumaroc.ma/#nous-contacter" class="btn btn-primary bg-light-blue btn-lg btn-user btn-icon"> <span class="i-user"></span>Ouvrir un compte</a>
+                      </li>
+                                                                    
+                                                
+                                                              <div class="dropdown">
+                          <button type="button" class="btn bg-pink btn-lg btn-arrow btn-icon ml-3" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">  Accéder à mon espace</button>
+                          <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                                          <li><a class="dropdown-item" href="https://www.mycdm.ma/">Particulier/Professionnel/TPE</a></li>
+                                                            <li><a class="dropdown-item" href="https://ebankingentreprise.cdm.co.ma">Corporate</a></li>
+                                                        </ul>
+                        </div>
+
+                                                              
+            <div class="search-box">
+                <form action="/" method="post" id="search-block-form" accept-charset="UTF-8"><div><div class="search-form d-none">
+  <div class="form-item form-type-textfield form-item-search-block-form">
+  <label class="element-invisible" for="edit-search-block-form--2">Rechercher </label>
+ <input title="Indiquer les termes à rechercher" type="text" id="edit-search-block-form--2" name="search_block_form" value="" size="15" maxlength="128" class="form-text" />
+</div>
+<div class="form-actions form-wrapper" id="edit-actions"><input type="submit" id="edit-submit" name="op" value="Rechercher" class="form-submit" /></div><input type="hidden" name="form_build_id" value="form-CD6d8gmJeQjj5sbn7VtyM0lnrReYQuOKweg1jL9cFBY" />
+<input type="hidden" name="form_id" value="search_block_form" />
+</div></div></form>            </div>
+            <button class="ml-3 btn btn-outline-success bg-light-blue" id="search-btn" aria-label="Ouvrir la recherche" type="submit"><img src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/images/icons/search-normal.svg" alt=""></button>
+          </ul>
+        </div>
+      <div id="toolbarHeader">
+                </div>
+  </div>
+</nav>  
+<nav class="navbar navbar-light">
+    <div class="container-fluid humberger">
+        <button class="navbar-toggler" style="margin-right:5px !important;" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+        </button>
+    </div>
+</nav>
+<nav class="menu-mobile collapse" id="navContent">
+    <div class="search-box">
+        <input class="inputtext" placeholder="Rechercher" name="recherche" type="text"
+               id="mobile-search-input" data-url="/search/node">
+    </div>
+  <div class="menu-mobile-categories">
+                                     <div class="accordion" id="accordionMenu">
+                      <div class="accordion-item">
+                          <h2 class="accordion-header" id="id-349">
+                              <a href="/particulier" >
+                                  Particulier                              </a>
+                              <button  class="accordion-button" data-bs-toggle="collapse" data-bs-target="#collapseOne_349" aria-expanded="false" aria-controls="collapseOne_349">
+                              </button>
+                          </h2>
+                          <div id="collapseOne_349" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionMenu">
+                              <div class="accordion-body">
+                                  <ul class="leftListeMenu ">
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/particulier/gerer" itemprop="url">
+                                                      <span>Gérer</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/particulier/emprunter" itemprop="url">
+                                                      <span>Emprunter</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/particulier/sassurer" itemprop="url">
+                                                      <span>S'assurer</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/particulier/epargner" itemprop="url">
+                                                      <span>Epargner</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/particulier/simulations" itemprop="url">
+                                                      <span>Simulations</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/nos-partenaires" itemprop="url">
+                                                      <span>Nos partenaires</span>
+                                                  </a>
+                                          </li>
+                                                                        </ul>                              </div>
+                          </div>
+                      </div>
+              </div>
+                              <div class="accordion" id="accordionMenu">
+                      <div class="accordion-item">
+                          <h2 class="accordion-header" id="id-638">
+                              <a href="/professionnel" >
+                                  Professionnel                              </a>
+                              <button  class="accordion-button" data-bs-toggle="collapse" data-bs-target="#collapseOne_638" aria-expanded="false" aria-controls="collapseOne_638">
+                              </button>
+                          </h2>
+                          <div id="collapseOne_638" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionMenu">
+                              <div class="accordion-body">
+                                  <ul class="leftListeMenu ">
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/professionnel/gerer-mes-comptes" itemprop="url">
+                                                      <span>Gérer</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/professionnel/encaisser-et-regler" itemprop="url">
+                                                      <span>Encaisser</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/professionnel/financer" itemprop="url">
+                                                      <span>Financer</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/professionnel/epargner" itemprop="url">
+                                                      <span>Epargner</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/professionnel/sassurer" itemprop="url">
+                                                      <span>S'assurer</span>
+                                                  </a>
+                                          </li>
+                                                                        </ul>                              </div>
+                          </div>
+                      </div>
+              </div>
+                              <div class="accordion" id="accordionMenu">
+                      <div class="accordion-item">
+                          <h2 class="accordion-header" id="id-709">
+                              <a href="/entreprise" >
+                                  Entreprise                              </a>
+                              <button  class="accordion-button" data-bs-toggle="collapse" data-bs-target="#collapseOne_709" aria-expanded="false" aria-controls="collapseOne_709">
+                              </button>
+                          </h2>
+                          <div id="collapseOne_709" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionMenu">
+                              <div class="accordion-body">
+                                  <ul class="leftListeMenu ">
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/entreprise/gerer" itemprop="url">
+                                                      <span>Gérer</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/entreprise/financer-mes-projets" itemprop="url">
+                                                      <span>Financer</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/entreprise/developper" itemprop="url">
+                                                      <span>Développer</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/entreprise/optimiser-mes-placements" itemprop="url">
+                                                      <span>Optimiser</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/entreprise/beneficier-dun-accompagnement" itemprop="url">
+                                                      <span>Bénéficier</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/entreprise/offre-affacturage" itemprop="url">
+                                                      <span>Affacturage</span>
+                                                  </a>
+                                          </li>
+                                                                        </ul>                              </div>
+                          </div>
+                      </div>
+              </div>
+                              <div class="accordion" id="accordionMenu">
+                      <div class="accordion-item">
+                          <h2 class="accordion-header" id="id-710">
+                              <a href="/banqueprivee" >
+                                  Banque privée                              </a>
+                              <button  class="accordion-button" data-bs-toggle="collapse" data-bs-target="#collapseOne_710" aria-expanded="false" aria-controls="collapseOne_710">
+                              </button>
+                          </h2>
+                          <div id="collapseOne_710" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionMenu">
+                              <div class="accordion-body">
+                                  <ul class="leftListeMenu ">
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/banque-privee/gerer-mes-comptes" itemprop="url">
+                                                      <span>Gérer</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/banque-privee/epargner-transmettre" itemprop="url">
+                                                      <span>Epargner</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/banque-privee/financer" itemprop="url">
+                                                      <span>Financer</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/banque-privee/sassurer" itemprop="url">
+                                                      <span>S'assurer</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/banque-privee/conseil-patrimonial" itemprop="url">
+                                                      <span>Conseil</span>
+                                                  </a>
+                                          </li>
+                                                                        </ul>                              </div>
+                          </div>
+                      </div>
+              </div>
+                              <div class="accordion" id="accordionMenu">
+                      <div class="accordion-item">
+                          <h2 class="accordion-header" id="id-659">
+                              <a href="/institutionnel" >
+                                  Corporate                              </a>
+                              <button  class="accordion-button" data-bs-toggle="collapse" data-bs-target="#collapseOne_659" aria-expanded="false" aria-controls="collapseOne_659">
+                              </button>
+                          </h2>
+                          <div id="collapseOne_659" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionMenu">
+                              <div class="accordion-body">
+                                  <ul class="leftListeMenu ">
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/institutionnel/qui-sommes-nous" itemprop="url">
+                                                      <span>Notre entreprise</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/actualites" itemprop="url">
+                                                      <span>Actualités</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/institutionnel/rapports-annuels" itemprop="url">
+                                                      <span>Communication</span>
+                                                  </a>
+                                          </li>
+                                                                                <li itemprop="name">
+                                                  <a class="btn" href="/institutionnel/pourquoi-nous-rejoindre" itemprop="url">
+                                                      <span>Carrière</span>
+                                                  </a>
+                                          </li>
+                                                                        </ul>                              </div>
+                          </div>
+                      </div>
+              </div>
+          
+
+  </div>
+    <div id="toolbarHeader">
+                
+<nav class="navbar navbar-expand-lg navbar-light px-5 brand">
+  <div class="container-fluid">
+      <a class="navbar-brand" href="/" aria-label="Accueil — Crédit du Maroc particuliers">
+                            <img src="/sites/all/themes/custom/cdm_rebrand/assets/images/icons/logo_cdm.svg"  class="blur-logo d-inline-block align-top" >
+                    </a>
+       
+      <div class="collapse navbar-collapse " id="navbarNav">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                              
+                                                            <li class="nav-item">
+                        <a href="https://www.creditdumaroc.ma/#nous-contacter" class="btn btn-primary bg-light-blue btn-lg btn-user btn-icon"> <span class="i-user"></span>Ouvrir un compte</a>
+                      </li>
+                                                                    
+                                                
+                                                              <div class="dropdown">
+                          <button type="button" class="btn bg-pink btn-lg btn-arrow btn-icon ml-3" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">  Accéder à mon espace</button>
+                          <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                                          <li><a class="dropdown-item" href="https://www.mycdm.ma/">Particulier/Professionnel/TPE</a></li>
+                                                            <li><a class="dropdown-item" href="https://ebankingentreprise.cdm.co.ma">Corporate</a></li>
+                                                        </ul>
+                        </div>
+
+                                                              
+            <div class="search-box">
+                <form action="/" method="post" id="search-block-form--2" accept-charset="UTF-8"><div><div class="search-form d-none">
+  <div class="form-item form-type-textfield form-item-search-block-form">
+  <label class="element-invisible" for="edit-search-block-form--4">Rechercher </label>
+ <input title="Indiquer les termes à rechercher" type="text" id="edit-search-block-form--4" name="search_block_form" value="" size="15" maxlength="128" class="form-text" />
+</div>
+<div class="form-actions form-wrapper" id="edit-actions--2"><input type="submit" id="edit-submit--2" name="op" value="Rechercher" class="form-submit" /></div><input type="hidden" name="form_build_id" value="form-VHOWn2zvP3nCVP1GlmMIJcqbDD-T9jTR8HIr0_OSrH8" />
+<input type="hidden" name="form_id" value="search_block_form" />
+</div></div></form>            </div>
+            <button class="ml-3 btn btn-outline-success bg-light-blue" id="search-btn" aria-label="Ouvrir la recherche" type="submit"><img src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/images/icons/search-normal.svg" alt=""></button>
+          </ul>
+        </div>
+      <div id="toolbarHeader">
+                </div>
+  </div>
+</nav>    </div>
+
+</nav>
+
+  
+<div class="container-fluid site-head">
+    
+<div class="container-fluid menu-principal">
+    <div class="container">
+      <div class="row">
+                  <ul class="list-univers"><li class="menu-349 active-trail first active"><a href="/particulier" class="active-trail active">Particulier</a></li>
+<li class="menu-638"><a href="/professionnel">Professionnel</a></li>
+<li class="menu-709"><a href="/entreprise">Entreprise</a></li>
+<li class="menu-710 last"><a href="/banqueprivee">Banque privée</a></li>
+</ul>          </div>
+      <div class="row">
+                                                        <ul data-mlid="349" class="banner-subcategories menu-349 d-none">
+                                                                                                <li  class="">
+                                        <a href="/particulier/gerer" itemprop="url"
+                                           title="Gérer"
+                                           class="sublink ">
+                                           Gérer mes comptes                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/particulier/emprunter" itemprop="url"
+                                           title="Emprunter"
+                                           class="sublink ">
+                                           Emprunter                                         </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/particulier/sassurer" itemprop="url"
+                                           title="S'assurer"
+                                           class="sublink ">
+                                           S'assurer                                         </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/particulier/epargner" itemprop="url"
+                                           title="Epargner"
+                                           class="sublink ">
+                                           Epargner                                         </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/particulier/simulations" itemprop="url"
+                                           title="Simulations"
+                                           class="sublink ">
+                                           Simulations                                         </a>
+                                    </li>
+                                                                                                                                <li  class="partenaires">
+                                        <a href="/nos-partenaires" itemprop="url"
+                                           title="Nos partenaires"
+                                           class="sublink ">
+                                           Nos partenaires                                         </a>
+                                    </li>
+                                                                                    </ul>
+                                                                            <ul data-mlid="638" class="banner-subcategories menu-638 d-none">
+                                                                                                <li  class="">
+                                        <a href="/professionnel/gerer-mes-comptes" itemprop="url"
+                                           title="Gérer"
+                                           class="sublink ">
+                                           Gérer mes comptes                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/professionnel/encaisser-et-regler" itemprop="url"
+                                           title="Encaisser"
+                                           class="sublink ">
+                                           Encaisser et régler                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/professionnel/financer" itemprop="url"
+                                           title="Financer"
+                                           class="sublink ">
+                                           Financer                                         </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/professionnel/epargner" itemprop="url"
+                                           title="Epargner"
+                                           class="sublink ">
+                                           Epargner                                         </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/professionnel/sassurer" itemprop="url"
+                                           title="S'assurer"
+                                           class="sublink ">
+                                           S'assurer                                         </a>
+                                    </li>
+                                                                                    </ul>
+                                                                            <ul data-mlid="709" class="banner-subcategories menu-709 d-none">
+                                                                                                <li  class="">
+                                        <a href="/entreprise/gerer" itemprop="url"
+                                           title="Gérer"
+                                           class="sublink ">
+                                           Gérer mes comptes                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/entreprise/financer-mes-projets" itemprop="url"
+                                           title="Financer"
+                                           class="sublink ">
+                                           Financer mes projets                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/entreprise/developper" itemprop="url"
+                                           title="Développer"
+                                           class="sublink ">
+                                           Développer mon activité                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/entreprise/optimiser-mes-placements" itemprop="url"
+                                           title="Optimiser"
+                                           class="sublink ">
+                                           Optimiser mes placements                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/entreprise/beneficier-dun-accompagnement" itemprop="url"
+                                           title="Bénéficier"
+                                           class="sublink ">
+                                           Bénéficier d'un accompagnement                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/entreprise/offre-affacturage" itemprop="url"
+                                           title="Affacturage"
+                                           class="sublink ">
+                                           Affacturage                                         </a>
+                                    </li>
+                                                                                    </ul>
+                                                                            <ul data-mlid="710" class="banner-subcategories menu-710 d-none">
+                                                                                                <li  class="">
+                                        <a href="/banque-privee/gerer-mes-comptes" itemprop="url"
+                                           title="Gérer"
+                                           class="sublink ">
+                                           Gérer mes comptes                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/banque-privee/epargner-transmettre" itemprop="url"
+                                           title="Epargner"
+                                           class="sublink ">
+                                           Epargner & Transmettre                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/banque-privee/financer" itemprop="url"
+                                           title="Financer"
+                                           class="sublink ">
+                                           Financer                                         </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/banque-privee/sassurer" itemprop="url"
+                                           title="S'assurer"
+                                           class="sublink ">
+                                           S'assurer                                         </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/banque-privee/conseil-patrimonial" itemprop="url"
+                                           title="Conseil"
+                                           class="sublink ">
+                                           Conseil patrimonial                                        </a>
+                                    </li>
+                                                                                    </ul>
+                                                                            <ul data-mlid="659" class="banner-subcategories menu-659 d-none">
+                                                                                                <li  class="">
+                                        <a href="/institutionnel/qui-sommes-nous" itemprop="url"
+                                           title="Notre entreprise"
+                                           class="sublink ">
+                                           Notre entreprise                                         </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/actualites" itemprop="url"
+                                           title="Actualités"
+                                           class="sublink ">
+                                           Actualités et événements                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/institutionnel/rapports-annuels" itemprop="url"
+                                           title="Communication"
+                                           class="sublink ">
+                                           Communication financière                                        </a>
+                                    </li>
+                                                                                                                                <li  class="">
+                                        <a href="/institutionnel/pourquoi-nous-rejoindre" itemprop="url"
+                                           title="Carrière"
+                                           class="sublink ">
+                                           Carrière                                         </a>
+                                    </li>
+                                                                                    </ul>
+                                      </div>
+    </div>
+</div>
+    <div id="carouselExampleControls" class="carousel slide " data-bs-ride="carousel">
+      <div class="carousel-inner">
+                    <div class="carousel-item active">
+                                    <a href="/apple-pay"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/desktop-1900x650-px.jpg_1.jpeg" class="d-block img-fluid w-100" alt="Applepay slide 1 "></a>
+                    <a href="/apple-pay" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="/apple-pay"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/desktop-1900x650-px-.jpg_1.jpeg" class="d-block img-fluid w-100" alt="Apple pay slide 2 "></a>
+                    <a href="/apple-pay" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="/particulier/un-ete-sans-frontieres-envolez-vous-aux-maldives-grace-a-votre-carte-visa-va"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/visa-maldives3_slider_site_instit_desktop-va_1900x650pxl_16072026.jpg" class="d-block img-fluid w-100" alt="Visa summer slider VA"></a>
+                    <a href="/particulier/un-ete-sans-frontieres-envolez-vous-aux-maldives-grace-a-votre-carte-visa-va" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="/particulier/visa-summer-2026"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/visa-maldives3_slider_site_instit_desktop-vf_1900x650pxl_16072026.jpg" class="d-block img-fluid w-100" alt="Visa summer slider VF"></a>
+                    <a href="/particulier/visa-summer-2026" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="/particulier/change"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/cdm_change_2026_site_instit_desktop_1900x650_150720263_0.jpg" class="d-block img-fluid w-100" alt="Change VF"></a>
+                    <a href="/particulier/change" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://t2s.group/landing/devenezactionnaire/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/introduction_en_bourse_t2s_group_site_instit_desktop_08072026_va.jpg" class="d-block img-fluid w-100" alt="Introduction en bourse_T2S VA"></a>
+                    <a href="https://t2s.group/landing/devenezactionnaire/" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://t2s.group/landing/devenezactionnaire/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/introduction_en_bourse_t2s_group_site_instit_desktop_08072026_vf.jpg" class="d-block img-fluid w-100" alt="Introduction en bourse_T2S"></a>
+                    <a href="https://t2s.group/landing/devenezactionnaire/" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/slider-site-instit-desktop-1900x650.jpg" class="d-block img-fluid w-100" alt="Immo Juin2026"></a>
+                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/slider-site-instit-desktop-1900x650-j-vf.jpg" class="d-block img-fluid w-100" alt="Immo Juin 2026 Jaune VF"></a>
+                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/slider-site-instit-desktop-1900x650-j-va.jpg" class="d-block img-fluid w-100" alt="Immo Juin 2026 Jaune VA"></a>
+                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://www.creditdumaroc.ma/ar/econso/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/slider_site_instit_1900x650_desktop_0.jpg" class="d-block img-fluid w-100" alt="Econso Avril 2026"></a>
+                    <a href="https://www.creditdumaroc.ma/ar/econso/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="/particulier/la_cl_contiue_va"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/cdm_master-card_uefa_phase2_siteinstit_desktop_1900x650_va.jpg" class="d-block img-fluid w-100" alt="CL V2 VA"></a>
+                    <a href="/particulier/la_cl_contiue_va" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://creditdumaroc-career.talent-soft.com/accueil.aspx?LCID=1036"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/manbita_diapo.png" class="d-block img-fluid w-100" alt="Forum manbita"></a>
+                    <a href="https://creditdumaroc-career.talent-soft.com/accueil.aspx?LCID=1036" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="/particulier/la-champions-league-continue-le-jeu-aussi"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/cdm_master-card_uefa_phase2_siteinstit_desktop_1900x650_vf.jpg" class="d-block img-fluid w-100" alt="CL V2 VF"></a>
+                    <a href="/particulier/la-champions-league-continue-le-jeu-aussi" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mycdm_releves_de_compte_09012026_gab_vf_va_slider_site_instit_1900x650p.jpg" class="d-block img-fluid w-100" alt="E-document VF">
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="/nos-partenaires"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/slider_site_instit_-_desktop_1900x650_fr.jpg" class="d-block img-fluid w-100" alt="Partenaires VF"></a>
+                    <a href="/nos-partenaires" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/slider_site_instit_-_desktop_1900x650_va_1.jpg" class="d-block img-fluid w-100" alt="Service client VA">
+                            </div>
+                                <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/slider_site_instit_-_desktop_1900x650_vf_1.jpg" class="d-block img-fluid w-100" alt="Service client VF">
+                            </div>
+                                <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mycdm_releves_de_compte_09012026_gab_vf_va_slider_site_instit_desktop_1.jpg" class="d-block img-fluid w-100" alt="E-document VA">
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://creditdumaroc-career.talent-soft.com/accueil.aspx?LCID=1036"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/cdm_rh_slider_site_desktop-1900x650_homme_06102025.jpg" class="d-block img-fluid w-100" alt="RH SLIDE"></a>
+                    <a href="https://creditdumaroc-career.talent-soft.com/accueil.aspx?LCID=1036" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="/nos-partenaires"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/slider_site_instit_-_desktop_1900x650_ar.jpg" class="d-block img-fluid w-100" alt="Partenaires VA"></a>
+                    <a href="/nos-partenaires" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="/particulier/cdm_privilege"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/slider_desktop_0.jpg" class="d-block img-fluid w-100" alt="Clone of COncours Bouskoura"></a>
+                    <a href="/particulier/cdm_privilege" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://devenirclient.creditdumaroc.ma/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/1600x650_femme.png" class="d-block img-fluid w-100" alt="devenir client VF"></a>
+                    <a href="https://devenirclient.creditdumaroc.ma/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://devenirclient.creditdumaroc.ma/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/cdm_packs_1920x650_site_descktop_01102024_gp1_vf.jpg" class="d-block img-fluid w-100" alt="diapo part : 2.	Crédit conso rentrée scolaire AR"></a>
+                    <a href="https://devenirclient.creditdumaroc.ma/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://devenirclient.creditdumaroc.ma/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/cdm_packs_1920x650_site_descktop_01102024_gp2_vf.jpg" class="d-block img-fluid w-100" alt="diapo part : 8. Positionnement – visuel mère et fille AR"></a>
+                    <a href="https://devenirclient.creditdumaroc.ma/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://devenirclient.creditdumaroc.ma/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/cdm_packs_1920x650_site_descktop_01102024_gp3_vf.jpg" class="d-block img-fluid w-100" alt="diapo part VF : 9 . Pack platinuim"></a>
+                    <a href="https://devenirclient.creditdumaroc.ma/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="/particulier/sensibilisation-fraude"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/cdm_sensibilisation_fraude_site_instit_desktop_1900x650_27122024.jpg" class="d-block img-fluid w-100" alt="diapo part : 8. sensiblisation fraude"></a>
+                    <a href="/particulier/sensibilisation-fraude" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mycdm_slider_site_desktop-1900x650_dotations_en_devises_va_01072024_.jpg" class="d-block img-fluid w-100" alt="diapo part : 11.	Dotation AR">
+                            </div>
+                                <div class="carousel-item ">
+                                    <a href="https://immobilier.creditdumaroc.ma/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/slider_site_desktop-1900-650-cdm-generique-credit-habitat-vf_1.jpg" class="d-block img-fluid w-100" alt="diapo part : 12 Crédit immo FR"></a>
+                    <a href="https://immobilier.creditdumaroc.ma/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                            </div>
+                                <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mycdm_slider_site_desktop-1900x650_transfert_de_cash_vf_01072024_.jpg" class="d-block img-fluid w-100" alt="diapo part VF : 13 . Transfert de cash">
+                            </div>
+                          </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Précédant</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Suivant</span>
+      </button>
+    </div>
+
+    <div id="carouselExampleControls2" class="carousel slide mobile" data-bs-ride="carousel">
+        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                    <a href="/apple-pay"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/mobile-430x620-px-.jpg_1.jpeg" alt="Applepay slide 1 "
+                             class="fullWidth" height="620"></a>
+                    <a href="/apple-pay" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="/apple-pay"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/mobile-430x620-px.jpg_1.jpeg" alt="Apple pay slide 2 "
+                             class="fullWidth" height="620"></a>
+                    <a href="/apple-pay" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="/particulier/un-ete-sans-frontieres-envolez-vous-aux-maldives-grace-a-votre-carte-visa-va"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/visa-maldives3_slider_site_instit_mobile-375x665pxl_16072026_va.jpg" alt="Visa summer slider VA"
+                             class="fullWidth" height="620"></a>
+                    <a href="/particulier/un-ete-sans-frontieres-envolez-vous-aux-maldives-grace-a-votre-carte-visa-va" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="/particulier/visa-summer-2026"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/visa-maldives3_slider_site_instit_mobile-375x665pxl_16072026_vf.jpg" alt="Visa summer slider VF"
+                             class="fullWidth" height="620"></a>
+                    <a href="/particulier/visa-summer-2026" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="/particulier/change"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/cdm_change_2026_site_instit_mobile_375x665_150720263.jpg" alt="Change VF"
+                             class="fullWidth" height="620"></a>
+                    <a href="/particulier/change" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://t2s.group/landing/devenezactionnaire/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/introduction_en_bourse_t2s_group_site_instit_mobile_08072026_va.jpg" alt="Introduction en bourse_T2S VA"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://t2s.group/landing/devenezactionnaire/" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://t2s.group/landing/devenezactionnaire/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/introduction_en_bourse_t2s_group_site_instit_mobile_08072026_vf.jpg" alt="Introduction en bourse_T2S"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://t2s.group/landing/devenezactionnaire/" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/slider-site-instit-mobile375x665.jpg" alt="Immo Juin2026"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/slider-site-instit-mobile375x665-j-vf.jpg" alt="Immo Juin 2026 Jaune VF"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/slider-site-instit-mobile375x665-j-va.jpg" alt="Immo Juin 2026 Jaune VA"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://immobilier.creditdumaroc.ma/offre-du-moment" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://www.creditdumaroc.ma/ar/econso/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/slider_site_instit_375x665_mobile.jpg" alt="Econso Avril 2026"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://www.creditdumaroc.ma/ar/econso/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="/particulier/la_cl_contiue_va"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/cdm_master-card_uefa_phase2_siteinstit_mobile_375x665_va.jpg" alt="CL V2 VA"
+                             class="fullWidth" height="620"></a>
+                    <a href="/particulier/la_cl_contiue_va" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://creditdumaroc-career.talent-soft.com/accueil.aspx?LCID=1036"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/cdm_forums_rh_mobile_375x665pxl_260320262.jpg" alt="Forum manbita"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://creditdumaroc-career.talent-soft.com/accueil.aspx?LCID=1036" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="/particulier/la-champions-league-continue-le-jeu-aussi"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/cdm_master-card_uefa_phase2_siteinstit_mobile_375x665_vf.jpg" alt="CL V2 VF"
+                             class="fullWidth" height="620"></a>
+                    <a href="/particulier/la-champions-league-continue-le-jeu-aussi" class= "btn btn-primary bg-pink en-savoir action-right">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/mycdm_releves_de_compte_09012026_gab_vf_va_slider_site_instit_mobile_19._1.jpg" alt="E-document VF" class="fullWidth" height="620">
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="/nos-partenaires"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/slider_site_instit_-_mobile375x665_fr.jpg" alt="Partenaires VF"
+                             class="fullWidth" height="620"></a>
+                    <a href="/nos-partenaires" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/slider-site-instit-mobile375x665-va_02012026.jpg" alt="Service client VA" class="fullWidth" height="620">
+                                </div>
+                                            <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/slider-site-instit-mobile375x665-vf_02012026.jpg" alt="Service client VF" class="fullWidth" height="620">
+                                </div>
+                                            <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/mycdm_releves_de_compte_09012026_gab_vf_va_slider_site_instit_mobile_19.jpg" alt="E-document VA" class="fullWidth" height="620">
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://creditdumaroc-career.talent-soft.com/accueil.aspx?LCID=1036"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/cdm_rh_slider_site_mobile-375x665_homme_06102025.jpg" alt="RH SLIDE"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://creditdumaroc-career.talent-soft.com/accueil.aspx?LCID=1036" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="/nos-partenaires"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/slider_site_instit_-_mobile375x665_ar.jpg" alt="Partenaires VA"
+                             class="fullWidth" height="620"></a>
+                    <a href="/nos-partenaires" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="/particulier/cdm_privilege"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/slider_mobile.jpg" alt="Clone of COncours Bouskoura"
+                             class="fullWidth" height="620"></a>
+                    <a href="/particulier/cdm_privilege" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://devenirclient.creditdumaroc.ma/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/375x665_femme.png" alt="devenir client VF"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://devenirclient.creditdumaroc.ma/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://devenirclient.creditdumaroc.ma/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/cdm_packs_375x665_site_mobile_01102024_gp1_vf.jpg" alt="diapo part : 2.	Crédit conso rentrée scolaire AR"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://devenirclient.creditdumaroc.ma/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://devenirclient.creditdumaroc.ma/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/cdm_packs_375x665_site_mobile_01102024_gp2_vf.jpg" alt="diapo part : 8. Positionnement – visuel mère et fille AR"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://devenirclient.creditdumaroc.ma/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://devenirclient.creditdumaroc.ma/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/cdm_packs_375x665_site_mobile_01102024_gp3_vf.jpg" alt="diapo part VF : 9 . Pack platinuim"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://devenirclient.creditdumaroc.ma/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="/particulier/sensibilisation-fraude"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/cdm_sensibilisation_fraude_site_instit_mobile_375x665_27122024.jpg" alt="diapo part : 8. sensiblisation fraude"
+                             class="fullWidth" height="620"></a>
+                    <a href="/particulier/sensibilisation-fraude" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/mycdm_slider_site_mobile-375x665_dotation_en_devise_va_copie.jpg" alt="diapo part : 11.	Dotation AR" class="fullWidth" height="620">
+                                </div>
+                                            <div class="carousel-item ">
+                                    <a href="https://immobilier.creditdumaroc.ma/"><img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/slider_site_mobie-375x665-cdm-generique-credit-habitat-vf.jpg" alt="diapo part : 12 Crédit immo FR"
+                             class="fullWidth" height="620"></a>
+                    <a href="https://immobilier.creditdumaroc.ma/" class= "btn btn-primary bg-pink en-savoir action-left">En savoir plus</a>
+                                </div>
+                                            <div class="carousel-item ">
+                                    <img src="https://www.creditdumaroc.ma/sites/default/files/media/slides/mobile/mycdm_slider_site_mobile-375x665_transfert_de_cash_vf_copie.jpg" alt="diapo part VF : 13 . Transfert de cash" class="fullWidth" height="620">
+                                </div>
+                                    </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls2" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls2" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+
+</div>
+
+<style>
+<!--/*--><![CDATA[/* ><!--*/
+
+.site-footer .menu-offre a {
+    white-space: nowrap;
+}
+
+/*--><!]]>*/
+</style>
+<style type="text/css">
+<!--/*--><![CDATA[/* ><!--*/
+.carousel-item .en-savoir{
+display:none;
+}
+
+/*--><!]]>*/
+</style>    
+
+
+  <div class="featured">
+    <div class="container">
+      <div class="row row-cards">
+            
+
+
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="title">
+          <span class="title-center">CRÉDIT CONSOMMATION</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <a href="https://www.creditdumaroc.ma/ar/econso/">
+          <img class="img-conso img-fluid h-100" alt="Crédit consommation" src="https://www.creditdumaroc.ma/sites/default/files/bloc_de_mise_en_avant_550x880.jpg">
+        </a>
+      </div>
+    </div>
+  </div>
+
+<div class="col-md-4">
+          <div class="card hp-feat">
+      <div id="carouselExampleControls3" class="carousel slide h-100" data-bs-interval="false">
+        <div class="carousel-inner h-100">
+                        <div class="carousel-item h-100 active" data-nid="3282">
+                <a title= "financement immobilier" href="/particulier/nouveau-votre-accord-de-principe-en-ligne">
+                  <div class="card-header">
+                    <div class="title">
+                      <span class="title-center">financement immobilier</span>
+                    </div>
+                  </div>
+                  <div class="card-body h-100">
+                    <img class="img-conso img-fluid" src="https://www.creditdumaroc.ma/sites/default/files/media/products/promoted/bloc-de-mise-en-avant-550x880-j-va.jpg" class="d-block w-100" alt="">
+                                      </div>
+                </a>
+              </div>
+                                      <div class="carousel-item h-100 " data-nid="3283">
+                <a title= "Les risques sur Internet" href="/particulier/les-risques-sur-internet">
+                  <div class="card-header">
+                    <div class="title">
+                      <span class="title-center">Les risques sur Internet</span>
+                    </div>
+                  </div>
+                  <div class="card-body h-100">
+                    <img class="img-conso img-fluid" src="https://www.creditdumaroc.ma/sites/default/files/media/products/promoted/iphone_14_pro_-_8.jpg" class="d-block w-100" alt="">
+                                      </div>
+                </a>
+              </div>
+                                </div>
+      
+      
+        <div class="controls">
+                      <div class="carousel-indicators">
+                                          <button type="button" data-bs-target="#carouselExampleControls3" data-bs-slide-to="0" class="active" aria-label="Diapositive 1" ></button>
+                                              <button type="button" data-bs-target="#carouselExampleControls3" data-bs-slide-to="1" class="" aria-label="Diapositive 2" ></button>
+                                            </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls3" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Précédant</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls3" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Suivant</span>
+          </button>
+        </div>
+        </div>
+      </div>
+    </div>
+
+
+<div class="col-md-4" id="nous-contacter">
+    <div class="card">
+      <div class="card-header">
+        <div class="title">
+          <span class="title-center">Nous contacter</span>
+        </div>  
+      </div>
+      <div class="card-body">
+        <div class="col-xs-6 itemContant home-feedback open"><div id="Carouselitems2" class="carousel slide open"><div class="carousel-inner" role="listbox"><form class="webform-client-form webform-client-form-75" action="/" method="post" id="webform-client-form-75" accept-charset="UTF-8"><div>
+    <div class="region info formClient">
+        <div class="client" role="group" aria-labelledby="client-credit-label">
+        <div class="title">
+            <span id="client-credit-label">Êtes-vous client ?</span>
+        </div>
+        <div class="radio"><div class="form-item form-type-radio form-item-submitted-client-credit-du-maroc">
+ <input required="required" class="radio-inline form-radio" type="radio" id="edit-submitted-client-credit-du-maroc-1" name="submitted[client_credit_du_maroc]" value="1" />  <label class="option" for="edit-submitted-client-credit-du-maroc-1">Oui </label>
+
+</div>
+<div class="form-item form-type-radio form-item-submitted-client-credit-du-maroc">
+ <input required="required" class="radio-inline form-radio" type="radio" id="edit-submitted-client-credit-du-maroc-2" name="submitted[client_credit_du_maroc]" value="2" />  <label class="option" for="edit-submitted-client-credit-du-maroc-2">Non </label>
+
+</div>
+
+        </div>
+        </div><div class="col-xs-12 input-pref input-nom"><label for="edit-submitted-nom" class="element-invisible">Nom</label><input required="required" placeholder="Nom" class="form-control form-text required" type="text" id="edit-submitted-nom" name="submitted[nom]" value="" size="60" maxlength="128" /></div><div class="col-xs-12 input-pref input-prenom"><label for="edit-submitted-prenom" class="element-invisible">Prénom</label><input required="required" placeholder="Prénom" class="form-control form-text required" type="text" id="edit-submitted-prenom" name="submitted[prenom]" value="" size="60" maxlength="128" /></div><div class="col-xs-12 input-pref input-tel"><label for="edit-submitted-tel" class="element-invisible">N° de téléphone</label><input required="required" placeholder="N° de téléphone" class="form-control form-text required" type="text" id="edit-submitted-tel" name="submitted[tel]" value="" size="60" maxlength="128" /></div><div class="col-xs-12 input-pref input-email"><label for="edit-submitted-e-mail" class="element-invisible">Courriel</label><input required="required" class="email form-control form-text form-email required" placeholder="E-mail" type="email" id="edit-submitted-e-mail" name="submitted[e_mail]" size="60" /></div><div class="col-xs-12 input-pref input-cin"><label for="edit-submitted-cin" class="element-invisible">CIN</label><input required="required" placeholder="CIN" class="form-control form-text required" type="text" id="edit-submitted-cin" name="submitted[cin]" value="" size="60" maxlength="128" /></div>
+    <div class="col-xs-12 input-pref select">
+    <label for="edit-submitted-objet" class="element-invisible">Objet de la demande</label><select required="required" class="form-control form-select required" id="edit-submitted-objet" name="submitted[objet]"><option value="" selected="selected">Objet</option><option value="ouverture-compte">Ouverture de compte</option><option value="acces-mycdm">Accès à l&#039;application Mycdm</option><option value="solde-compte">Consultation solde du compte</option><option value="infos-credit">Informations sur mes crédits en cours</option><option value="assistance-produits">Assistance sur mes comptes ou produits</option><option value="maj-infos">Mise à jour de mes informations personnelles</option><option value="immo-credit">Renseignements sur les crédits immobiliers</option><option value="conso-credit">Renseignements sur les crédits à la consommation</option><option value="cordonnees-agences">Coordonnées et horaires d’ouverture des agences</option><option value="reclamations">Réclamations</option><option value="demande-assis">Demande d&#039;assistance</option><option value="demande-finan">Demande de financement</option><option value="req-social">Requêtes environnementales et sociales</option><option value="autre">Autre</option></select></div><div class="col-xs-12 input-pref input-message"><label for="edit-submitted-message" class="element-invisible">Message</label><div class="form-textarea-wrapper"><textarea placeholder="Message" class="form-control form-textarea" id="edit-submitted-message" name="submitted[message]" cols="60" rows="5"></textarea></div></div><label class="label_captcha col-xs-12 captcha">Captcha</label><div class="col-xs-6 captcha adapt_captcha"><div class="captcha"><input type="hidden" name="captcha_sid" value="71829814" />
+<input type="hidden" name="captcha_token" value="67eb98205d1ec0641ad1e4e0ac2e9103" />
+<input type="hidden" name="captcha_response" value="Google no captcha" />
+<div class="g-recaptcha" data-sitekey="6LfeajIUAAAAAA-CdC7CYO7e-OGty5Z7ro-CxceZ" data-theme="light" data-type="image"></div></div></div><div class="col-xs-12 general-condition"><div class="form-item form-type-checkbox form-item-submitted-general-conditions">
+ <input type="checkbox" id="edit-submitted-general-conditions" name="submitted[general_conditions]" value="1" class="form-checkbox required" /> <span class="field-suffix"><span class="cr"><span class="icon cr-icon ico-mark"></span></span></span>  <label class="option" for="edit-submitted-general-conditions">J'ai lu et j'accepte les <a href="/mentions-legales">mentions légales </a> , notamment la mention relative à la protection des données personnelles <span class="form-required" title="Ce champ est requis.">*</span></label>
+
+</div>
+ </div><input type="hidden" name="details[sid]" />
+<input type="hidden" name="details[page_num]" value="1" />
+<input type="hidden" name="details[page_count]" value="1" />
+<input type="hidden" name="details[finished]" value="0" />
+<input type="hidden" name="form_build_id" value="form-RiMzAvq3DqMpeLTVFYenVixKLWsr3TWn_sED3M-kxUA" />
+<input type="hidden" name="form_id" value="webform_client_form_75" />
+<div class="form-actions"><div class="col-xs-12 BtnValidate"><input class="button-normal form-submit" type="submit" name="op" value="Valider" /></div></div></div></div></div></form></div></div>      </div>
+    </div>
+</div>
+
+        </div>
+    </div>
+  </div>
+
+<div class="container-fluid bloc-footer mt-5">
+    
+
+
+  <div class="container">
+      <p class="utiles">Liens utiles</p>
+
+      <div class="row astuces">
+                  <div class="col-md-4">
+            <a href="/particulier/application-mobile">
+                <div class="astuce m-3">
+                  <img
+                    alt=""
+                    src="https://www.creditdumaroc.ma/sites/default/files/media/homepages/mobile_0.png" width="100" height="100">
+                    <span>MyCDM en ligne</span>
+                </div>
+              </a>
+          </div>
+                  <div class="col-md-4">
+            <a href="/institutionnel/qui-sommes-nous">
+                <div class="astuce m-3">
+                  <img
+                    alt=""
+                    src="https://www.creditdumaroc.ma/sites/default/files/media/homepages/bank.png" width="100" height="100">
+                    <span>Qui sommes nous?</span>
+                </div>
+              </a>
+          </div>
+                  <div class="col-md-4">
+            <a href="/carriere-cdm">
+                <div class="astuce m-3">
+                  <img
+                    alt=""
+                    src="https://www.creditdumaroc.ma/sites/default/files/media/homepages/ranking.png" width="100" height="100">
+                    <span>Carrières</span>
+                </div>
+              </a>
+          </div>
+                  <div class="col-md-4">
+            <a href="/particulier/ethique-et-conformite">
+                <div class="astuce m-3">
+                  <img
+                    alt=""
+                    src="https://www.creditdumaroc.ma/sites/default/files/media/homepages/bookmark-2.png" width="100" height="100">
+                    <span>Ethique et conformité</span>
+                </div>
+              </a>
+          </div>
+                  <div class="col-md-4">
+            <a href="/particulier/foire-aux-questions">
+                <div class="astuce m-3">
+                  <img
+                    alt=""
+                    src="https://www.creditdumaroc.ma/sites/default/files/media/homepages/messages-2.png" width="100" height="100">
+                    <span>Foire aux questions</span>
+                </div>
+              </a>
+          </div>
+                  <div class="col-md-4">
+            <a href="/particulier/informations-pratiques">
+                <div class="astuce m-3">
+                  <img
+                    alt=""
+                    src="https://www.creditdumaroc.ma/sites/default/files/media/homepages/info-circle_0.png" width="100" height="100">
+                    <span>Informations pratiques</span>
+                </div>
+              </a>
+          </div>
+            </div>
+  </div>
+
+
+
+<footer class="site-footer mobile">
+  <div class="container-fluid px-10">
+    <div class="container">
+      <div class="d-flex row logo">
+        <div class="col-md-2 col-8">
+          <img class="img-fluid blur-logo"  alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/logo_white.svg">
+        </div>
+        <div class="col-md-10 col-4 ml-auto">
+          <ul class="social-icons">
+                <li class="mx-2"><a class="facebook" target="_blank" href="https://www.facebook.com/creditdumaroc/" aria-label="Page Facebook Crédit du Maroc"><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/rs/facebook.svg"></a></li>
+                <li class="mx-2"><a class="youtube" target="_blank" href="https://www.youtube.com/@creditdumarocOfficiel" aria-label="Chaîne YouTube Crédit du Maroc"><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/rs/youtube.svg"></a></li>
+                <li class="mx-2"><a class="instagram" target="_blank" href="https://www.instagram.com/credit_du_maroc" aria-label="Compte Instagram Crédit du Maroc"><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/rs/instagram.svg"></a></li>
+                <li class="mx-2"><a class="linkedin" target="_blank" href="https://www.linkedin.com/company/credit-du-maroc/" aria-label="Page LinkedIn Crédit du Maroc"><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/rs/in.svg"></a></li>
+          </ul>
+        </div>
+      </div>
+    <hr>
+    <div class="row">
+      <div class="col-md-12 ml-place">
+                  <p class="offre">Notre offre</p>
+          <div class="container">
+            <div class="row row-cols-4 menu-offre mobile">
+                                                      <div class="col">
+                        <h5><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/carre.svg"><a href="/particulier/ouvrir-un-compte"
+                                    title="Compte bancaire">Compte bancaire</a></h5>
+                                              <ul class="nav flex-column">
+                                                                                <li class="nav-item mb-2"><a href="/particulier/ouvrir-un-compte"
+                                              title="Ouvrir un compte">Ouvrir un compte</a>
+                            </li>
+                                                                                                          <li class="nav-item mb-2"><a href="/particulier/choisir-ma-carte"
+                                              title="Carte bancaire">Carte bancaire</a>
+                            </li>
+                                                                                                          <li class="nav-item mb-2"><a href="https://www.mycdm.ma/"
+                                              title="Banque en ligne">Banque en ligne</a>
+                            </li>
+                                                                            </ul>
+                                          </div>
+                                                                              <div class="col">
+                        <h5><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/carre.svg"><a href="/particulier/emprunter"
+                                    title="Crédit">Crédit</a></h5>
+                                              <ul class="nav flex-column">
+                                                                                <li class="nav-item mb-2"><a href="/particulier/credit-immobilier-sakane"
+                                              title="Crédit immobilier">Crédit immobilier</a>
+                            </li>
+                                                                                                          <li class="nav-item mb-2"><a href="/particulier/credit-auto-sans-garantie"
+                                              title="Crédit auto">Crédit auto</a>
+                            </li>
+                                                                                                          <li class="nav-item mb-2"><a href="/particulier/financer-mes-projets"
+                                              title="Crédit conso">Crédit conso</a>
+                            </li>
+                                                                            </ul>
+                                          </div>
+                                                                              <div class="col">
+                        <h5><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/carre.svg"><a href="/particulier/epargner"
+                                    title="Epargne">Epargne</a></h5>
+                                              <ul class="nav flex-column">
+                                                                                <li class="nav-item mb-2"><a href="/particulier/serenea-epargne"
+                                              title="Assurance épargne">Assurance épargne</a>
+                            </li>
+                                                                                                          <li class="nav-item mb-2"><a href="/particulier/serenea-retraite"
+                                              title="Epargne retraite">Epargne retraite</a>
+                            </li>
+                                                                                                          <li class="nav-item mb-2"><a href="/particulier/serenea-education"
+                                              title="Epargne éducation">Epargne éducation</a>
+                            </li>
+                                                                            </ul>
+                                          </div>
+                                                                              <div class="col">
+                        <h5><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/carre.svg"><a href="/particulier/sassurer"
+                                    title="Assurances">Assurances</a></h5>
+                                          </div>
+                                                                                          </div>
+          </div>
+              </div>
+    </div>
+
+    <hr>
+
+    <div class="row text-center d-flex menu-offre mobile">
+        <div class="container row">
+            <div class="col-md-3 wrapper">
+
+                              <div class="col-md-3">
+              <h6 class="">
+    
+                <a href="/trouver-une-agence" target="" title="Trouver une agence">
+                <!--i class="far fa-map-marker-alt"></i-->
+                <img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/location.svg">  
+                <span
+                    class="location"></span>Trouver une agence                </a>
+              </h6>
+            </div>
+                                                          <div class="col-md-3">
+              <h6 class="">
+    
+                <a href="/particulier/ethique-et-conformite" target="" title="Ethique et conformité">
+                <!--i class="far fa-map-marker-alt"></i-->
+                <img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/bookmark.svg">  
+                <span
+                    class="bookmark"></span>Ethique et conformité                </a>
+              </h6>
+            </div>
+                                        <div class="col-md-3">
+              <h6 class="nous_connaitre">
+    
+                <a href="/institutionnel" target="_blank" title="Nous connaitre">
+                <!--i class="far fa-map-marker-alt"></i-->
+                <img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/people.svg">  
+                <span
+                    class="people"></span>Nous connaitre                </a>
+              </h6>
+            </div>
+                                                </div>
+        <div class="col-md-10 col-4 ml-auto mobile">
+            <ul class="social-icons">
+                <li class="mx-2"><a  class="facebook" target="_blank" href="https://www.facebook.com/creditdumaroc/" aria-label="Page Facebook Crédit du Maroc"><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/rs/facebook.svg"></a></li>
+                <li class="mx-2"><a  class="youtube" target="_blank" href="https://www.youtube.com/@creditdumarocOfficiel" aria-label="Chaîne YouTube Crédit du Maroc"><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/rs/youtube.svg"></a></li>
+                <li class="mx-2"><a  class="instagram" target="_blank" href="https://www.instagram.com/credit_du_maroc" aria-label="Compte Instagram Crédit du Maroc"><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/rs/instagram.svg"></a></li>
+                <li class="mx-2"><a  class="linkedin" target="_blank" href="https://www.linkedin.com/company/credit-du-maroc/" aria-label="Page LinkedIn Crédit du Maroc"><img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/rs/in.svg"></a></li>
+            </ul>
+        </div>
+    </div> 
+
+    <hr>
+  <div class="row d-flex menu-offre desktop">
+            <div class="col m-auto">
+          <a  href="/particulier/plan-du-site">Plan du site</a>
+        </div>
+            <div class="col m-auto">
+          <a  href="/particulier/reclamation">Réclamation</a>
+        </div>
+            <div class="col m-auto">
+          <a  href="/particulier/tarification">Tarification</a>
+        </div>
+            <div class="col m-auto">
+          <a  href="/mentions-legales">Mentions légales</a>
+        </div>
+            <div class="col m-auto">
+          <a  href="https://www.creditdumaroc.ma/sites/default/files/guide_mobilite_bancaire_21_janv_0.pdf">Mobilité bancaire</a>
+        </div>
+            <div class="col m-auto">
+          <a  href="https://www.creditdumaroc.ma/sites/default/files/conditions_et_modalite-1.pdf">Clôture des comptes à vue</a>
+        </div>
+            <div class="col m-auto">
+          <a  href="/particulier/protection-des-donnees-personnelles">Politique Protection des données</a>
+        </div>
+                
+     
+      <div class="col">
+      <a href="https://www.holmarcom.ma/" class="holmarcom-logo" aria-label="Site institutionnel du Groupe Holmarcom">
+        <img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/img_footer.png">
+      </a>
+      </div>
+  </div>
+        <div class="row d-flex menu-offre static-links">
+            <div class=" col-md-6">
+                              <div class="col-md-2 m-auto">
+                  <a  href="/particulier/plan-du-site">Plan du site</a>
+                </div>
+                              <div class="col-md-2 m-auto">
+                  <a  href="/particulier/reclamation">Réclamation</a>
+                </div>
+                              <div class="col-md-2 m-auto">
+                  <a  href="/particulier/tarification">Tarification</a>
+                </div>
+                              <div class="col-md-2 m-auto">
+                  <a  href="/mentions-legales">Mentions légales</a>
+                </div>
+                              <div class="col-md-2 m-auto">
+                  <a  href="https://www.creditdumaroc.ma/sites/default/files/guide_mobilite_bancaire_21_janv_0.pdf">Mobilité bancaire</a>
+                </div>
+                              <div class="col-md-2 m-auto">
+                  <a  href="https://www.creditdumaroc.ma/sites/default/files/conditions_et_modalite-1.pdf">Clôture des comptes à vue</a>
+                </div>
+                              <div class="col-md-2 m-auto">
+                  <a  href="/particulier/protection-des-donnees-personnelles">Politique Protection des données</a>
+                </div>
+                          </div>
+            <div class="col-md-6">
+              <a href="https://www.holmarcom.ma/" aria-label="Site institutionnel du Groupe Holmarcom">
+                <img class="img-fluid" alt="" src="../sites/all/themes/custom/cdm_rebrand/assets/images/icons/img_footer.png">
+              </a>
+            </div>
+        </div>
+
+</footer>
+
+
+<!-- <nav role="navigation" class="footer-ban">
+  <ul>
+                  <li class="">
+          <a href="/trouver-une-agence" target="" title="Trouver une agence">
+            <span
+              class="location"></span>Trouver une agence          </a>
+        </li>
+                                  <li class="">
+          <a href="/particulier/ethique-et-conformite" target="" title="Ethique et conformité">
+            <span
+              class="bookmark"></span>Ethique et conformité          </a>
+        </li>
+                        <li class="nous_connaitre">
+          <a href="/institutionnel" target="_blank" title="Nous connaitre">
+            <span
+              class="people"></span>Nous connaitre          </a>
+        </li>
+                    
+          
+        <li>
+          <a href="https://www.instagram.com/credit_du_maroc/" title="Instagram"
+             target="_blank">
+            <span class="icon ico-twitter"></span>
+          </a>
+        </li>
+                
+        <li>
+          <a href="https://www.facebook.com/creditdumaroc/" title="Facebook"
+             target="_blank">
+            <span class="icon ico-facebook"></span>
+          </a>
+        </li>
+                      </ul>
+</nav> -->
+
+<!-- <nav role="navigation" class="footer-legal">
+  <ul>
+                  <li><a href="/particulier/plan-du-site"
+               title="Plan du site">Plan du site</a></li>
+                        <li><a href="/particulier/reclamation"
+               title="Réclamation">Réclamation</a></li>
+                        <li><a href="/particulier/tarification"
+               title="Tarification">Tarification</a></li>
+                        <li><a href="/mentions-legales"
+               title="Mentions légales">Mentions légales</a></li>
+                        <li><a href="https://www.creditdumaroc.ma/sites/default/files/guide_mobilite_bancaire_21_janv_0.pdf"
+               title="Mobilité bancaire">Mobilité bancaire</a></li>
+                        <li><a href="https://www.creditdumaroc.ma/sites/default/files/conditions_et_modalite-1.pdf"
+               title="Clôture des comptes à vue">Clôture des comptes à vue</a></li>
+                        <li><a href="/particulier/protection-des-donnees-personnelles"
+               title="Politique Protection des données">Politique Protection des données</a></li>
+              <li>© Crédit Du Maroc</li>
+  </ul>
+  <span id="footer-logo">
+     <a href="/"
+        title="Retour à l’accueil du site Crédit du Maroc, Banque et assurances">
+       <img
+         src="/sites/all/modules/custom/cdm_block/assets/img/Credit_du_MAROC.png"
+         alt="Crédit du maroc, toute une banque pour vous"/>
+     </a>
+  </span>
+</nav> -->
+</div>    
+    <script src="/sites/all/themes/custom/cdm_rebrand/assets/plugins/Swiper/swiper-bundle.min.js"></script>
+
+    <script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/js/jquery-3.6.1.min.js?v=1.4.4"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/misc/jquery-extend-3.4.0.js?v=1.4.4"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/misc/jquery-html-prefilter-3.5.0-backport.js?v=1.4.4"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/misc/jquery.once.js?v=1.2"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/misc/drupal.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/modules/custom/cdm_cloture/js/cdm_cloture.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/default/files/languages/fr_5__SSM9IGqKCrc57r3_WNNfAIHOQrjs-BVgQEIAg_7A.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/modules/contrib/captcha/captcha.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/modules/contrib/webform/js/webform.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/js/jquery-3.6.1.min.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/js/jquery.mobile.custom.min.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/js/popper.min.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/js/bootstrap.min.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/js/bootstrap-slider.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/js/bootstrap-select.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/plugins/js/wow.min.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/js/main.js?tj8z52"></script>
+<script type="text/javascript" src="https://www.creditdumaroc.ma/sites/all/themes/custom/cdm_rebrand/assets/js/cdm.js?tj8z52"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+jQuery.extend(Drupal.settings, {"basePath":"\/","pathPrefix":"","setHasJsCookie":0,"ajaxPageState":{"theme":"cdm_rebrand","theme_token":"qFL8hrhATzXTQsHRd8NF23BQFu4HlyjXOWEP1dBRps8","js":{"misc\/jquery.js":1,"misc\/jquery-extend-3.4.0.js":1,"misc\/jquery-html-prefilter-3.5.0-backport.js":1,"misc\/jquery.once.js":1,"misc\/drupal.js":1,"sites\/all\/modules\/custom\/cdm_cloture\/js\/cdm_cloture.js":1,"public:\/\/languages\/fr_5__SSM9IGqKCrc57r3_WNNfAIHOQrjs-BVgQEIAg_7A.js":1,"sites\/all\/modules\/contrib\/captcha\/captcha.js":1,"sites\/all\/modules\/contrib\/webform\/js\/webform.js":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/js\/jquery-3.6.1.min.js":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/js\/jquery.mobile.custom.min.js":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/js\/popper.min.js":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/js\/bootstrap.min.js":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/js\/bootstrap-slider.js":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/js\/bootstrap-select.js":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/js\/wow.min.js":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/js\/main.js":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/js\/cdm.js":1},"css":{"modules\/system\/system.base.css":1,"modules\/system\/system.menus.css":1,"modules\/system\/system.messages.css":1,"modules\/system\/system.theme.css":1,"sites\/all\/modules\/contrib\/date\/date_api\/date.css":1,"sites\/all\/modules\/contrib\/date\/date_popup\/themes\/datepicker.1.7.css":1,"modules\/field\/theme\/field.css":1,"modules\/node\/node.css":1,"modules\/search\/search.css":1,"modules\/user\/user.css":1,"sites\/all\/modules\/contrib\/views\/css\/views.css":1,"sites\/all\/modules\/contrib\/ckeditor\/css\/ckeditor.css":1,"sites\/all\/modules\/contrib\/ctools\/css\/ctools.css":1,"sites\/all\/modules\/contrib\/webform\/css\/webform.css":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/fontawesome\/css\/fontawesome.min.css":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/css\/bootstrap.min.css":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/css\/bootstrap-slider.css":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/css\/animate.css":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/plugins\/open-iconic-master\/font\/css\/open-iconic-bootstrap.css":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/css\/style.css":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/css\/entreprise.css":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/css\/banque-prive.css":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/css\/responsive.css":1,"sites\/all\/themes\/custom\/cdm_rebrand\/assets\/css\/institutionnel.css":1}},"urlIsAjaxTrusted":{"\/":true}});
+//--><!]]>
+</script>
+    <div
+  class="cookie-info"
+  role="region"
+  aria-label="Gestion des cookies"
+  tabindex="-1"
+  style="border-top-left-radius: 15px; border-top-right-radius: 15px; border: 1px solid #dfdfdf !important;">
+
+  <p style="text-align:left !important; color:#616161; font-weight:600; font-size:12px !important;">
+    Crédit du Maroc aimerait utiliser des cookies placés sur ce site.
+  </p>
+
+  <ul>
+    <li>
+      <p style="text-align:left !important; color:#616161; font-size:12px !important;">
+        Paramétrer vos préférences en personnalisant vos fonctionnalités et en se souvenant de vos choix.
+      </p>
+    </li>
+    <li>
+      <p style="text-align:left !important; color:#616161; font-size:12px !important;">
+        Mesurer l’audience en suivant le nombre de visiteurs.
+      </p>
+    </li>
+  </ul>
+
+  <p style="text-align:left !important; color:#616161; font-weight:600; font-size:12px !important;">
+    Nous vous invitons à consulter notre
+    <a class="ici-cookie" href="/particulier/protection-des-donnees-personnelles">
+      politique de protection des données
+    </a>
+    pour en savoir plus.
+  </p>
+
+  <div class="btns-cookies">
+    <button type="button" class="cookie-info-btn btn refuse">
+      Continuer sans accepter
+    </button>
+
+    <button type="button" class="cookie-info-btn btn accept">
+      Accepter tous les cookies
+    </button>    
+  </div>
+</div>
+  </body>
+
+</html>
