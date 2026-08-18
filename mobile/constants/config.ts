@@ -34,7 +34,7 @@ export const CONFIG = {
 } as const;
 
 // Version affichÃ©e dans l'UI â€” mettre Ã  jour Ã  chaque OTA (vit dans le bundle JS)
-export const APP_VERSION = '1.0.30';
+export const APP_VERSION = '1.0.40';
 
 export const KEYCLOAK_DISCOVERY = {
   authorizationEndpoint: `${CONFIG.KEYCLOAK_BASE_URL}/realms/${CONFIG.KEYCLOAK_REALM}/protocol/openid-connect/auth`,

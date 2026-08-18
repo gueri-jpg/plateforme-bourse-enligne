@@ -37,7 +37,7 @@ export interface Overview {
 
 export type WsStatus = 'connecting' | 'connected' | 'disconnected';
 
-// ── Parsers (inchangés) ──────────────────────────────────────────────────────
+// ── Parsers — format bvc_snapshot v2 (drupalSettings HTML) ──────────────────
 function asNum(x: unknown): number {
   if (x === null || x === undefined) return NaN;
   const n = typeof x === 'number' ? x : parseFloat(String(x).replace(/[\s%]/g, '').replace(',', '.'));
@@ -45,34 +45,17 @@ function asNum(x: unknown): number {
 }
 
 function parseOverview(doc: Record<string, unknown>): Overview {
-  const out: Overview = { masi: null, masiOpen: null, masiVarJ: null, masiHigh: null, masiLow: null, vol: null, capi: null, ts: null };
+  const out: Overview = {
+    masi: null, masiOpen: null, masiVarJ: null,
+    masiHigh: null, masiLow: null, vol: null, capi: null, ts: null,
+  };
   try {
-    const node = (doc as any)?.pageProps?.node;
-    for (const p of node?.field_vactory_paragraphs ?? []) {
-      const c = p?.field_vactory_component;
-      if (!c?.widget_id?.includes('marches-overview')) continue;
-      const wd = typeof c.widget_data === 'string' ? JSON.parse(c.widget_data) : c.widget_data;
-      for (const comp of (Array.isArray(wd?.components) ? wd.components : [wd?.components].filter(Boolean))) {
-        if (comp?.capitalisation?.value) out.capi = asNum(comp.capitalisation.value);
-        if (comp?.volume?.volume)        out.vol  = asNum(comp.volume.volume);
-        const coll = comp?.collection?.data?.data;
-        if (Array.isArray(coll) && coll.length) {
-          const series = coll
-            .map((it: any) => ({ v: asNum(it?.attributes?.indexValue), t: it?.attributes?.transactTime }))
-            .filter(p => !isNaN(p.v) && p.t)
-            .sort((a, b) => new Date(a.t).getTime() - new Date(b.t).getTime());
-          if (series.length) {
-            const last = series[series.length - 1], first = series[0];
-            out.masi     = last.v;
-            out.masiOpen = first.v;
-            out.masiHigh = Math.max(...series.map(p => p.v));
-            out.masiLow  = Math.min(...series.map(p => p.v));
-            out.masiVarJ = first.v ? (last.v - first.v) / first.v * 100 : null;
-            out.ts       = last.t;
-          }
-        }
-      }
-    }
+    const masi = (doc as any)?.masi;
+    if (masi?.value != null) out.masi     = asNum(masi.value);
+    if (masi?.change_pct != null) out.masiVarJ = asNum(masi.change_pct);
+    if ((doc as any)?.vol_total  != null) out.vol  = asNum((doc as any).vol_total);
+    if ((doc as any)?.capi_total != null) out.capi = asNum((doc as any).capi_total);
+    if ((doc as any)?.horodatage) out.ts = (doc as any).horodatage;
   } catch {}
   return out;
 }
@@ -80,35 +63,28 @@ function parseOverview(doc: Record<string, unknown>): Overview {
 function parseStocks(doc: Record<string, unknown>): Stock[] {
   const out: Stock[] = [];
   try {
-    const node = (doc as any)?.pageProps?.node;
-    for (const p of node?.field_vactory_paragraphs ?? []) {
-      const c = p?.field_vactory_component;
-      if (!c?.widget_id?.includes('marches-actions')) continue;
-      const wd = typeof c.widget_data === 'string' ? JSON.parse(c.widget_data) : c.widget_data;
-      for (const sec of (wd?.extra_field?.data ?? [])) {
-        for (const it of (sec.items ?? [])) {
-          out.push({
-            sector:      sec.title ?? '—',
-            name:        it?.instrument?.label ?? '—',
-            ticker:      (it?.instrument?.url ?? '').split('/').pop() ?? '',
-            price:       asNum(it?.field_cours_courant),
-            pct:         asNum(it?.field_var_veille),
-            open:        asNum(it?.field_opening_price),
-            high:        asNum(it?.field_high_price),
-            low:         asNum(it?.field_low_price),
-            bid:         asNum(it?.field_best_bid_price),
-            ask:         asNum(it?.field_best_ask_price),
-            volMAD:      asNum(it?.field_cumul_volume_echange),
-            volQty:      asNum(it?.field_cumul_titres_echanges),
-            refPrice:    asNum(it?.field_static_reference_price),
-            bidSize:     asNum(it?.field_best_bid_size),
-            askSize:     asNum(it?.field_best_ask_size),
-            totalTrades: typeof it?.field_total_trades === 'number' ? it.field_total_trades : asNum(it?.field_total_trades),
-            stockCapi:   asNum(it?.field_capitalisation),
-            etat:        typeof it?.field_etat_cot_val === 'string' ? it.field_etat_cot_val : '',
-          });
-        }
-      }
+    const actions: any[] = (doc as any)?.actions ?? [];
+    for (const a of actions) {
+      out.push({
+        sector:      a.sector      ?? '—',
+        name:        a.name        ?? '—',
+        ticker:      a.symbol      ?? '',
+        price:       asNum(a.price),
+        pct:         asNum(a.variation),
+        open:        asNum(a.open),
+        high:        asNum(a.high),
+        low:         asNum(a.low),
+        bid:         asNum(a.bid_price),
+        ask:         asNum(a.ask_price),
+        volMAD:      asNum(a.volume),
+        volQty:      asNum(a.quantity),
+        refPrice:    asNum(a.reference),
+        bidSize:     asNum(a.bid_qty),
+        askSize:     asNum(a.ask_qty),
+        totalTrades: typeof a.trades === 'number' ? a.trades : asNum(a.trades),
+        stockCapi:   asNum(a.capi),
+        etat:        typeof a.status === 'string' ? a.status : '',
+      });
     }
   } catch {}
   return out;
@@ -145,10 +121,10 @@ function connectWs() {
   ws.onmessage = (e) => {
     try {
       const data = JSON.parse(e.data);
-      if (data.evenement === 'bvc_snapshot' && data.donnees) {
+      if (data.evenement === 'bvc_snapshot') {
         useMarketStore.setState({
-          overview:   parseOverview(data.donnees.overview),
-          stocks:     parseStocks(data.donnees.stocks),
+          overview:   parseOverview(data),
+          stocks:     parseStocks(data),
           lastUpdate: new Date(),
         });
       }

@@ -10,8 +10,10 @@ import {
 } from 'react-native';
 import { useFocusEffect, useRoute, RouteProp } from '@react-navigation/native';
 import { useMarketData, Stock } from '../../hooks/useMarketData';
+import { useOrderBook } from '../../hooks/useOrderBook';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { TickerLogo } from '../components/TickerLogo';
+import { TVChartView } from '../components/TVChartView';
 import { fetchPortfolio, placeOrdre, PlaceOrdreParams } from '../api/portfolio';
 import { isMarketOpen } from '../../services/trading';
 import { useNotifications } from '../store/useNotifications';
@@ -43,56 +45,15 @@ function fmtN(x: number | null | undefined, dp = 2) {
   if (x === null || x === undefined || isNaN(x as number)) return '—';
   return (x as number).toLocaleString('fr-FR', { minimumFractionDigits: dp, maximumFractionDigits: dp });
 }
-
-function StatCell({ label, value, color }: { label: string; value: string; color?: string }) {
-  return (
-    <View style={st.cell}>
-      <Text style={st.cellLabel}>{label}</Text>
-      <Text style={[st.cellVal, color ? { color } : null]}>{value}</Text>
-    </View>
-  );
+function fmtK(x: number | null | undefined): string {
+  if (x === null || x === undefined || isNaN(x as number)) return '—';
+  const n = x as number;
+  if (n >= 1e9) return `${(n / 1e9).toFixed(2)} Md`;
+  if (n >= 1e6) return `${(n / 1e6).toFixed(2)} M`;
+  if (n >= 1e3) return `${(n / 1e3).toFixed(1)} k`;
+  return fmtN(n, 0);
 }
 
-function LiveStatsPanel({ stock }: { stock: Stock }) {
-  const pctColor = isNaN(stock.pct) ? C.muted : stock.pct > 0 ? C.up : stock.pct < 0 ? C.down : C.muted;
-  const etatLabel = stock.etat === 'T' ? 'En négociation'
-    : stock.etat === 'R' ? 'Réservé'
-    : stock.etat === 'S' ? 'Suspendu'
-    : stock.etat || '—';
-  const etatColor = stock.etat === 'T' ? C.up : C.gold;
-
-  return (
-    <View style={st.panel}>
-      {/* Ligne prix + variation */}
-      <View style={st.header}>
-        <Text style={st.price}>{fmtN(stock.price)} MAD</Text>
-        <View style={[st.badge, { backgroundColor: stock.pct >= 0 ? 'rgba(22,163,74,0.12)' : 'rgba(220,38,38,0.12)' }]}>
-          <Text style={[st.badgeTxt, { color: pctColor }]}>
-            {isNaN(stock.pct) ? '—' : (stock.pct > 0 ? '▲ ' : '▼ ') + Math.abs(stock.pct).toFixed(2) + '%'}
-          </Text>
-        </View>
-        <View style={st.etatRow}>
-          <View style={[st.etatDot, { backgroundColor: etatColor }]} />
-          <Text style={[st.etatTxt, { color: etatColor }]}>{etatLabel}</Text>
-        </View>
-      </View>
-
-      {/* Grille 2 colonnes */}
-      <View style={st.grid}>
-        <StatCell label="Transactions" value={isNaN(stock.totalTrades) ? '—' : stock.totalTrades.toLocaleString('fr-FR')} color={C.accent} />
-        <StatCell label="Vol. titres"   value={fmtN(stock.volQty, 0)} />
-        <StatCell label="Vol. MAD"      value={fmtN(stock.volMAD, 0)} />
-        <StatCell label="Réf. veille"   value={`${fmtN(stock.refPrice)} MAD`} />
-        <StatCell label="+ Haut"        value={`${fmtN(stock.high)} MAD`}  color={C.up} />
-        <StatCell label="+ Bas"         value={`${fmtN(stock.low)} MAD`}   color={C.down} />
-        <StatCell label={`Bid ×${isNaN(stock.bidSize) ? '—' : stock.bidSize}`}  value={`${fmtN(stock.bid)} MAD`}  color={C.up} />
-        <StatCell label={`Ask ×${isNaN(stock.askSize) ? '—' : stock.askSize}`}  value={`${fmtN(stock.ask)} MAD`}  color={C.down} />
-      </View>
-
-      <Text style={st.liveHint}>· Mis à jour en direct (BVC)</Text>
-    </View>
-  );
-}
 
 type OrdresRoute = RouteProp<MainTabParamList, 'Ordre'>;
 
@@ -136,6 +97,8 @@ export function OrdresScreen() {
       if (updated) setSelectedStock(updated);
     }
   }, [stocks]);
+
+  const { data: ob, loading: obLoading } = useOrderBook(selectedStock?.ticker || null);
 
   const effectivePrice = orderType === 'limite' ? parseFloat(limitPrice) : (selectedStock?.price ?? 0);
   const qtyNum         = parseInt(qty) || 0;
@@ -205,7 +168,7 @@ export function OrdresScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScreenHeader title="Passer un ordre" />
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32 }} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
         {/* Instrument */}
         <View style={s.block}>
@@ -220,8 +183,113 @@ export function OrdresScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Stats temps réel */}
-        {selectedStock && <LiveStatsPanel stock={selectedStock} />}
+        {/* Détail complet de l'instrument sélectionné */}
+        {selectedStock && (
+          <View>
+            {/* En-tête : nom + secteur + état */}
+            <View style={s.detailHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.detailName}>{selectedStock.name}</Text>
+                <Text style={s.detailSector}>{selectedStock.sector}</Text>
+              </View>
+              {ob?.etatCotVal && (
+                <View style={s.etatBadge}>
+                  <Text style={s.etatTxt}>{ob.etatCotVal}</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Prix + variations */}
+            <View style={s.detailPriceRow}>
+              <Text style={s.detailPrice}>{fmtN(selectedStock.price)} MAD</Text>
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: isNaN(selectedStock.pct) ? C.muted : selectedStock.pct > 0 ? C.up : C.down }}>
+                  {isNaN(selectedStock.pct) ? '—' : (selectedStock.pct > 0 ? '▲ ' : '▼ ') + Math.abs(selectedStock.pct).toFixed(2) + '%'}
+                </Text>
+                {ob?.instrumentVarYear != null && (
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: parseFloat(ob.instrumentVarYear) >= 0 ? C.up : C.down }}>
+                    {parseFloat(ob.instrumentVarYear) >= 0 ? '▲ ' : '▼ '}{Math.abs(parseFloat(ob.instrumentVarYear)).toFixed(2)}% YTD
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            {/* Graphe TradingView */}
+            <View style={s.block} collapsable={false}>
+              <Text style={s.label}>Graphe historique · BVC</Text>
+              <TVChartView stockName={selectedStock.name} stockTicker={selectedStock.ticker} />
+            </View>
+
+            {/* Grille OHLC */}
+            <View style={s.block}>
+              <View style={s.ohlcGrid}>
+                {((): [string, string][] => {
+                  const isPre = ob?.etatCotVal === 'PRE';
+                  return [
+                    [isPre ? 'Théorique' : 'Ouverture', fmtN(isPre ? ob?.pto : (ob?.openingPrice ?? selectedStock.open))],
+                    ['+ Haut',      fmtN(ob?.highPrice   ?? selectedStock.high)],
+                    ['+ Bas',       fmtN(ob?.lowPrice    ?? selectedStock.low)],
+                    ['Référence',   fmtN(ob?.staticReferencePrice ?? selectedStock.refPrice)],
+                    ['Vol. titres', fmtK(ob?.cumulTitresEchanges ?? selectedStock.volQty)],
+                    ['Montant',     fmtK(ob?.cumulVolumeEchange  ?? selectedStock.volMAD)],
+                  ];
+                })().map(([lbl, val]) => (
+                  <View key={lbl} style={s.ohlcItem}>
+                    <Text style={s.ohlcLabel}>{lbl}</Text>
+                    <Text style={s.ohlcVal}>{val}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Carnet BVC */}
+            <View style={s.block}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                <Text style={s.label}>Carnet BVC</Text>
+                {ob?.totalTrades != null && (
+                  <Text style={{ fontSize: 11, color: C.muted, marginLeft: 8 }}>{ob.totalTrades} trades</Text>
+                )}
+                {obLoading && !ob && <ActivityIndicator size="small" color={C.accent} style={{ marginLeft: 8 }} />}
+              </View>
+              {ob ? (
+                <>
+                  <View style={s.bookRow}>
+                    <View style={[s.bookSide, { backgroundColor: 'rgba(22,163,74,0.06)', borderColor: 'rgba(22,163,74,0.25)' }]}>
+                      <Text style={[s.bookLabel, { color: C.up }]}>▲ ACHAT</Text>
+                      <Text style={[s.bookPrice, { color: C.up }]}>{ob.bestBidPrice != null ? fmtN(ob.bestBidPrice) : '—'} MAD</Text>
+                      <Text style={s.bookQty}>{ob.bestBidSize != null ? `× ${fmtN(ob.bestBidSize, 0)} titres` : '—'}</Text>
+                    </View>
+                    <View style={s.bookSpread}>
+                      <Text style={s.bookSpreadTxt}>
+                        {ob.bestBidPrice != null && ob.bestAskPrice != null ? fmtN(ob.bestAskPrice - ob.bestBidPrice) : '—'}
+                      </Text>
+                      <Text style={[s.bookLabel, { color: C.muted, fontSize: 9 }]}>Écart</Text>
+                    </View>
+                    <View style={[s.bookSide, { backgroundColor: 'rgba(220,38,38,0.06)', borderColor: 'rgba(220,38,38,0.25)' }]}>
+                      <Text style={[s.bookLabel, { color: C.down }]}>▼ VENTE</Text>
+                      <Text style={[s.bookPrice, { color: C.down }]}>{ob.bestAskPrice != null ? fmtN(ob.bestAskPrice) : '—'} MAD</Text>
+                      <Text style={s.bookQty}>{ob.bestAskSize != null ? `× ${fmtN(ob.bestAskSize, 0)} titres` : '—'}</Text>
+                    </View>
+                  </View>
+                  {ob.lastTransactions.length > 0 && (
+                    <>
+                      <Text style={[s.label, { marginTop: 12, marginBottom: 6 }]}>Derniers trades</Text>
+                      {ob.lastTransactions.slice(0, 5).map((tx, i) => (
+                        <View key={i} style={s.txRow}>
+                          <Text style={s.txTime}>{tx.time ? (tx.time.includes('T') ? tx.time.split('T')[1].slice(0, 5) : tx.time.slice(0, 5)) : '—'}</Text>
+                          <Text style={s.txPrice}>{tx.price != null ? fmtN(tx.price) : '—'} MAD</Text>
+                          <Text style={s.txQty}>× {tx.qty != null ? fmtN(tx.qty, 0) : '—'}</Text>
+                        </View>
+                      ))}
+                    </>
+                  )}
+                </>
+              ) : !obLoading ? (
+                <Text style={{ color: C.muted, fontSize: 12 }}>Données indisponibles pour ce ticker</Text>
+              ) : null}
+            </View>
+          </View>
+        )}
 
         {/* Sens */}
         <View style={s.block}>
@@ -485,6 +553,34 @@ const s = StyleSheet.create({
   tifTxt:            { fontSize: 12, fontWeight: '700', color: C.muted },
   tifTxtActive:      { color: C.accent },
   tifHint:           { fontSize: 11, color: C.muted, marginTop: 6 },
+
+  // ── Détail instrument ────────────────────────────────────────────────────
+  detailHeader:  { flexDirection: 'row', alignItems: 'flex-start', marginHorizontal: 16, marginBottom: 10, gap: 10 },
+  detailName:    { fontSize: 15, fontWeight: '700', color: C.txt },
+  detailSector:  { fontSize: 12, color: C.muted, marginTop: 2 },
+  etatBadge:     { backgroundColor: 'rgba(22,163,74,0.1)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: 'rgba(22,163,74,0.25)' },
+  etatTxt:       { fontSize: 11, fontWeight: '700', color: C.up },
+  detailPriceRow:{ marginHorizontal: 16, marginBottom: 14 },
+  detailPrice:   { fontSize: 26, fontWeight: '800', color: C.txt },
+
+  // ── Grille OHLC ──────────────────────────────────────────────────────────
+  ohlcGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  ohlcItem:  { width: '30%', flexGrow: 1, backgroundColor: C.panel2, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 10 },
+  ohlcLabel: { fontSize: 9, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 3 },
+  ohlcVal:   { fontSize: 13, fontWeight: '600', color: C.txt },
+
+  // ── Carnet BVC ───────────────────────────────────────────────────────────
+  bookRow:      { flexDirection: 'row', gap: 8, alignItems: 'stretch' },
+  bookSide:     { flex: 1, borderRadius: 10, borderWidth: 1, padding: 10, alignItems: 'center' },
+  bookSpread:   { width: 48, alignItems: 'center', justifyContent: 'center' },
+  bookSpreadTxt:{ fontSize: 12, fontWeight: '700', color: C.muted },
+  bookLabel:    { fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700', marginBottom: 4 },
+  bookPrice:    { fontSize: 15, fontWeight: '700' },
+  bookQty:      { fontSize: 11, color: C.muted, marginTop: 2 },
+  txRow:        { flexDirection: 'row', alignItems: 'center', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: C.line, gap: 8 },
+  txTime:       { fontSize: 12, color: C.muted, width: 40 },
+  txPrice:      { flex: 1, fontSize: 13, fontWeight: '600', color: C.txt },
+  txQty:        { fontSize: 12, color: C.muted },
 });
 
 const cm = StyleSheet.create({
@@ -512,21 +608,4 @@ const pk = StyleSheet.create({
   sector:  { fontSize: 11, color: C.muted, marginTop: 2 },
   price:   { fontSize: 14, color: C.txt },
   close:   { padding: 14, marginTop: 8 },
-});
-
-// ── Styles panneau stats temps réel ──────────────────────────────────────────
-const st = StyleSheet.create({
-  panel:    { marginHorizontal: 16, marginBottom: 14, backgroundColor: C.panel, borderRadius: 12, borderWidth: 1, borderColor: C.line, padding: 14 },
-  header:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
-  price:    { fontSize: 22, fontWeight: '700', color: C.txt },
-  badge:    { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  badgeTxt: { fontSize: 13, fontWeight: '700' },
-  etatRow:  { flexDirection: 'row', alignItems: 'center', gap: 5, marginLeft: 'auto' },
-  etatDot:  { width: 7, height: 7, borderRadius: 4 },
-  etatTxt:  { fontSize: 11, fontWeight: '600' },
-  grid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  cell:     { width: '48%', backgroundColor: C.panel2, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 10 },
-  cellLabel:{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 3 },
-  cellVal:  { fontSize: 13, fontWeight: '600', color: C.txt },
-  liveHint: { fontSize: 10, color: C.muted, textAlign: 'right', marginTop: 8 },
 });

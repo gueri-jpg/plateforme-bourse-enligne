@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  View, Text, StyleSheet, ScrollView,
+  View, Text, StyleSheet, ScrollView, FlatList,
   TouchableOpacity, RefreshControl, Alert, Modal,
   StatusBar as RNStatusBar, Animated, Easing, Dimensions,
+  Platform, ActivityIndicator,
 } from 'react-native';
 import WebView from 'react-native-webview';
 
@@ -210,6 +211,9 @@ function miniChartHtml(symbol: string): string {
 }
 
 function TradingViewCharts() {
+  const [inAppUrl,  setInAppUrl]  = useState<string | null>(null);
+  const [inAppLoad, setInAppLoad] = useState(true);
+
   return (
     <View style={{ marginTop: 14 }}>
       <Text style={{ fontSize: 11, color: MUTED, fontWeight: '600',
@@ -237,10 +241,56 @@ function TradingViewCharts() {
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}
+              setSupportMultipleWindows={false}
+              onOpenWindow={(e) => {
+                const url = e.nativeEvent.targetUrl;
+                if (url?.startsWith('http')) setInAppUrl(url);
+              }}
+              onShouldStartLoadWithRequest={(req) => {
+                if (req.url === 'about:blank' || req.url.startsWith('blob:')) return true;
+                if (req.url.startsWith('http')) { setInAppUrl(req.url); return false; }
+                return true;
+              }}
             />
           </View>
         ))}
       </ScrollView>
+
+      <Modal visible={!!inAppUrl} animationType="slide" onRequestClose={() => setInAppUrl(null)}>
+        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+          <View style={{
+            flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12,
+            paddingTop: Platform.OS === 'ios' ? 52 : (RNStatusBar.currentHeight ?? 24) + 10,
+            paddingBottom: 10, backgroundColor: '#1e293b', gap: 8,
+          }}>
+            <Text style={{ flex: 1, fontSize: 12, color: '#94a3b8' }} numberOfLines={1}>
+              {inAppUrl ?? ''}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setInAppUrl(null)}
+              style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#7B1D3A', borderRadius: 8 }}
+            >
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>✕ Fermer</Text>
+            </TouchableOpacity>
+          </View>
+          {inAppLoad && (
+            <View style={{ ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.8)', zIndex: 10 }}>
+              <ActivityIndicator color="#7B1D3A" />
+            </View>
+          )}
+          {inAppUrl && (
+            <WebView
+              source={{ uri: inAppUrl }}
+              javaScriptEnabled
+              domStorageEnabled
+              setSupportMultipleWindows={false}
+              onLoadStart={() => setInAppLoad(true)}
+              onLoadEnd={() => setInAppLoad(false)}
+              style={{ flex: 1 }}
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }

@@ -16,6 +16,7 @@ import { useMarketData, Stock } from '../../hooks/useMarketData';
 import { useOrderBook } from '../../hooks/useOrderBook';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { TickerLogo } from '../components/TickerLogo';
+import { TVChartView } from '../components/TVChartView';
 import {
   isMarketOpen, toggleWatchlist, getWatchlist,
   checkPendingOrders,
@@ -78,10 +79,16 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
   };
 
   return (
-    <Modal visible animationType="fade" transparent onRequestClose={onClose}>
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
       <View style={modal.overlay}>
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 24 }}>
-          <View style={modal.card}>
+        <View style={modal.card}>
+          <View style={modal.handle} />
+          <ScrollView
+            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 40 }}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled
+            keyboardShouldPersistTaps="handled"
+          >
             {/* En-tête */}
             <View style={modal.header}>
               <View style={{ flex: 1 }}>
@@ -117,6 +124,13 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
                 </View>
               )}
             </View>
+
+            {/* ── Graphe TradingView ── */}
+            <View style={modal.sectionHeader}>
+              <Text style={modal.sectionTitle}>Graphe historique · BVC</Text>
+            </View>
+            <TVChartView stockName={stock.name} stockTicker={stock.ticker} />
+            <View style={{ height: 16 }} />
 
             {/* Grille OHLC BVC */}
             <View style={modal.grid}>
@@ -208,23 +222,24 @@ function StockDetailModal({ stock, onClose, onOrder, isStarred, onToggleStar }: 
               <Text style={modal.bookNA}>Données indisponibles pour ce ticker</Text>
             ) : null}
 
-            {/* Boutons */}
-            <View style={modal.actions}>
-              <TouchableOpacity
-                style={[modal.btn, { borderColor: C.up, backgroundColor: 'rgba(34,197,94,0.1)' }]}
-                onPress={() => onOrder(stock, 'achat')}
-              >
-                <Text style={{ color: C.up, fontWeight: '700', fontSize: 15 }}>Acheter</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[modal.btn, { borderColor: C.down, backgroundColor: 'rgba(239,68,68,0.1)' }]}
-                onPress={() => onOrder(stock, 'vente')}
-              >
-                <Text style={{ color: C.down, fontWeight: '700', fontSize: 15 }}>Vendre</Text>
-              </TouchableOpacity>
-            </View>
+          </ScrollView>
+
+          {/* Boutons fixes hors du scroll */}
+          <View style={modal.actions}>
+            <TouchableOpacity
+              style={[modal.btn, { borderColor: C.up, backgroundColor: 'rgba(34,197,94,0.1)' }]}
+              onPress={() => onOrder(stock, 'achat')}
+            >
+              <Text style={{ color: C.up, fontWeight: '700', fontSize: 15 }}>Acheter</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[modal.btn, { borderColor: C.down, backgroundColor: 'rgba(239,68,68,0.1)' }]}
+              onPress={() => onOrder(stock, 'vente')}
+            >
+              <Text style={{ color: C.down, fontWeight: '700', fontSize: 15 }}>Vendre</Text>
+            </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
       </View>
     </Modal>
   );
@@ -551,8 +566,9 @@ const s = StyleSheet.create({
 });
 
 const modal = StyleSheet.create({
-  overlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center' },
-  card:          { backgroundColor: C.panel, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: C.line },
+  overlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  card:          { backgroundColor: C.panel, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '85%', overflow: 'hidden', borderTopWidth: 1, borderLeftWidth: 1, borderRightWidth: 1, borderColor: C.line },
+  handle:        { width: 40, height: 4, backgroundColor: C.line, borderRadius: 2, alignSelf: 'center', marginTop: 10, marginBottom: 6 },
   header:        { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
   name:          { fontSize: 18, fontWeight: '700', color: C.txt },
   sector:        { fontSize: 12, color: C.muted, marginTop: 2 },
@@ -567,8 +583,8 @@ const modal = StyleSheet.create({
   gridItem:      { width: '30%', backgroundColor: C.panel2, borderRadius: 8, padding: 10 },
   gridLabel:     { fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
   gridVal:       { fontSize: 14, fontWeight: '600', color: C.txt, marginTop: 3 },
-  actions:       { flexDirection: 'row', gap: 10, marginTop: 16 },
-  btn:           { flex: 1, borderWidth: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  actions:       { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24, borderTopWidth: 1, borderTopColor: C.line, backgroundColor: C.panel },
+  btn:           { flex: 1, borderWidth: 1, borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   // Carnet BVC
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   sectionTitle:  { fontSize: 11, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.6 },

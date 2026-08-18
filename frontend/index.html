@@ -705,7 +705,6 @@ const RELAY = (location.port === "80" || location.port === "443" || location.por
 const API = {
   overview: RELAY + "/api/overview",
   stocks:   RELAY + "/api/stocks",
-  buildId:  RELAY + "/api/buildId",
 };
 
 const mkt = {
@@ -762,80 +761,42 @@ async function getJson(url) {
   return r.json();
 }
 
-/* ── Parsing ── */
-function findWidget(doc, pred) {
-  const node = doc?.pageProps?.node;
-  if (!node?.field_vactory_paragraphs) return null;
-  for (const p of node.field_vactory_paragraphs) {
-    const c = p.field_vactory_component;
-    if (!c) continue;
-    if (pred(c)) {
-      try { return typeof c.widget_data === "string" ? JSON.parse(c.widget_data) : c.widget_data; }
-      catch { return null; }
-    }
-  }
-  return null;
-}
-
+/* ── Parsing — format bvc_snapshot v2 (drupalSettings HTML) ── */
 function parseOverview(doc) {
-  const w = findWidget(doc, c => /marches-overview/.test(c.widget_id || ""));
-  const out = { masi: null, vol: null, capi: null, ts: null, masiSeries: [] };
-  if (!w) return out;
-  const comps = Array.isArray(w.components) ? w.components : [w.components].filter(Boolean);
-  for (const comp of comps) {
-    if (!comp || typeof comp !== "object") continue;
-    if (comp.capitalisation?.value) out.capi = asNum(comp.capitalisation.value);
-    if (comp.volume?.volume)        out.vol  = asNum(comp.volume.volume);
-    const coll = comp.collection?.data?.data;
-    if (Array.isArray(coll) && coll.length) {
-      const series = coll
-        .map(it => ({ v: asNum(it.attributes?.indexValue), t: it.attributes?.transactTime }))
-        .filter(p => !isNaN(p.v) && p.t)
-        .sort((a, b) => new Date(a.t) - new Date(b.t));
-      if (series.length) {
-        const last = series[series.length - 1];
-        const first = series[0];
-        const high  = Math.max(...series.map(p => p.v));
-        const low   = Math.min(...series.map(p => p.v));
-        out.masi = {
-          value: last.v, open: first.v, high, low,
-          varJ: first.v ? (last.v - first.v) / first.v * 100 : NaN,
-          ts: last.t,
-        };
-        out.ts = last.t;
-        out.masiSeries = series;
-      }
-    }
-  }
-  return out;
+  // Compatible avec /api/overview et le message WebSocket complet
+  const masi  = doc.masi || {};
+  const value = asNum(masi.value);
+  const varJ  = asNum(masi.change_pct);
+  return {
+    masi: isNaN(value) ? null : {
+      value, varJ,
+      open: value, high: NaN, low: NaN,
+      ts: doc.horodatage || null,
+    },
+    vol:  asNum(doc.vol_total),
+    capi: asNum(doc.capi_total),
+    ts:   doc.horodatage || null,
+    masiSeries: [],
+  };
 }
 
 function parseStocks(doc) {
-  const w = findWidget(doc, c => /marches-actions/.test(c.widget_id || ""));
-  if (!w) return [];
-  const sectors = Array.isArray(w.extra_field?.data) ? w.extra_field.data : [];
-  const out = [];
-  for (const sec of sectors) {
-    const title = sec.title || "—";
-    for (const it of (sec.items || [])) {
-      const inst = it.instrument || {};
-      out.push({
-        sector: title,
-        name:   inst.label || "—",
-        price:  asNum(it.field_cours_courant),
-        ref:    asNum(it.field_static_reference_price),
-        open:   asNum(it.field_opening_price),
-        pct:    asNum(it.field_var_veille),
-        high:   asNum(it.field_high_price),
-        low:    asNum(it.field_low_price),
-        bid:    asNum(it.field_best_bid_price),
-        ask:    asNum(it.field_best_ask_price),
-        volMAD: asNum(it.field_cumul_volume_echange),
-        volQty: asNum(it.field_cumul_titres_echanges),
-      });
-    }
-  }
-  return out;
+  // Compatible avec /api/stocks et le message WebSocket complet
+  const actions = Array.isArray(doc.actions) ? doc.actions : [];
+  return actions.map(a => ({
+    sector: a.sector || "—",
+    name:   a.name   || "—",
+    price:  asNum(a.price),
+    ref:    asNum(a.reference),
+    open:   asNum(a.open),
+    pct:    asNum(a.variation),
+    high:   asNum(a.high),
+    low:    asNum(a.low),
+    bid:    asNum(a.bid_price),
+    ask:    asNum(a.ask_price),
+    volMAD: asNum(a.volume),
+    volQty: asNum(a.quantity),
+  }));
 }
 
 function computeMovers(stocks) {
@@ -1013,12 +974,12 @@ async function tick() {
       getJson(API.overview),
       getJson(API.stocks),
     ]);
-    getJson(API.buildId).catch(() => {});
 
     const ov = parseOverview(ovDoc);
     const st = parseStocks(stDoc);
     const mv = computeMovers(st);
 
+    renderTicker(st);
     renderIndices(ov, st);
     renderMovers("topUp",   mv.up,   "hcount");
     renderMovers("topDown", mv.down, "lcount");
@@ -1059,21 +1020,8 @@ const WS_URL = (location.port === "80" || location.port === "443" || location.po
 const wsState = { socket: null, reconnectDelay: 2000, active: false };
 
 function applySnapshot(data) {
-  if (!data.donnees) return;
-  const ov = parseOverview(data.donnees.overview);
-  const st = parseStocks(data.donnees.stocks);
-
-  // Écrase MASI par le tick temps réel (API directe BVC, non paginée/cachée)
-  if (data.masi_live && data.masi_live.value && ov.masi) {
-    const liveVal = data.masi_live.value;
-    const refVal  = data.masi_ref && data.masi_ref.value ? data.masi_ref.value : null;
-    ov.masi = {
-      ...ov.masi,                     // conserve high, low, open, masiSeries
-      value: liveVal,
-      varJ:  refVal ? (liveVal - refVal) / refVal * 100 : NaN,
-      ts:    data.masi_live.time,
-    };
-  }
+  const ov = parseOverview(data);
+  const st = parseStocks(data);
   renderTicker(st);
   updateMarketBadge();
   const mv = computeMovers(st);
