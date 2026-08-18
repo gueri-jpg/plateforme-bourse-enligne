@@ -207,6 +207,7 @@ jobs:
             --set postgres.host=psql-bourse-prod.postgres.database.azure.com \
             --set postgres.password="${{ secrets.TF_VAR_POSTGRES_ADMIN_PASSWORD }}" \
             --set secrets.kcAdminPassword="${{ secrets.KC_STAGING_ADMIN_PASSWORD }}" \
+            --set secrets.twelveDataApiKey="${{ secrets.TWELVE_DATA_API_KEY }}" \
             --timeout 20m
 
       # Crée le topic Kafka market.prices s'il n'existe pas déjà (idempotent).
