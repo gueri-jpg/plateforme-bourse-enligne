@@ -177,8 +177,8 @@ ingress:
 replicaCount:
   backend: 1
   frontend: 1
-  adminFrontend: 1
-  bvcRelay: 0
+  adminFrontend: 0
+  bvcRelay: 1
   bvcProducer: 1
 
 # ------------------------------------------------------------------------------
