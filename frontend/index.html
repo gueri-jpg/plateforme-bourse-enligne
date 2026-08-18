@@ -1039,27 +1039,34 @@ function connectWS() {
   setStatus("warn", "connexion WebSocket…");
   wsState.socket = new WebSocket(WS_URL);
 
+  // Démarre le polling HTTP en secours si aucun snapshot WS reçu dans les 8s
+  wsState.fallbackTimer = setTimeout(() => {
+    if (!mkt.timer) { tick(); schedule(); }
+  }, 8000);
+
   wsState.socket.onopen = () => {
     wsState.active = true;
     wsState.reconnectDelay = 2000;
-    // Couper le polling HTTP dès que le WebSocket est établi
-    if (mkt.timer) { clearInterval(mkt.timer); mkt.timer = null; }
     setStatus("ok", "WebSocket connecté — en attente du prochain snapshot…");
   };
 
   wsState.socket.onmessage = evt => {
     try {
       const data = JSON.parse(evt.data);
-      if (data.evenement === "bvc_snapshot") applySnapshot(data);
+      if (data.evenement === "bvc_snapshot") {
+        // Premier snapshot reçu : désactiver le fallback HTTP
+        if (wsState.fallbackTimer) { clearTimeout(wsState.fallbackTimer); wsState.fallbackTimer = null; }
+        if (mkt.timer) { clearInterval(mkt.timer); mkt.timer = null; }
+        applySnapshot(data);
+      }
     } catch (e) { console.error("WS parse:", e); }
   };
 
   wsState.socket.onclose = () => {
     wsState.active = false;
+    if (wsState.fallbackTimer) { clearTimeout(wsState.fallbackTimer); wsState.fallbackTimer = null; }
     setStatus("warn", "WebSocket fermé — repli vers HTTP…");
-    // Activer le polling HTTP en secours
     if (!mkt.timer) { tick(); schedule(); }
-    // Tentative de reconnexion avec backoff exponentiel
     setTimeout(connectWS, wsState.reconnectDelay);
     wsState.reconnectDelay = Math.min(wsState.reconnectDelay * 2, 30000);
   };
