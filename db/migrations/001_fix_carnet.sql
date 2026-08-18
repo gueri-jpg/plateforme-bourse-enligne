@@ -35,7 +35,8 @@ ALTER TABLE ordres.ordres
         'execute',
         'partiellement_execute',
         'annule',
-        'rejete'
+        'rejete',
+        'expire'
     ));
 
 COMMIT;
