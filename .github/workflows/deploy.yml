@@ -230,7 +230,7 @@ jobs:
             echo "Topic market.prices OK"
           fi
 
-      # Migration DB via un pod temporaire postgres dans le cluster (accès VNet privé).
+      # Migration DB via le pod postgres-0 existant dans le cluster (accès VNet privé).
       # 1) Applique db/init.sql si le schéma "ordres" n'existe pas encore (1ère install).
       # 2) Applique ensuite les migrations delta db/migrations/*.sql (idempotentes).
       #    Utilise le pod postgres-0 déjà en cours (évite de créer un pod supplémentaire
