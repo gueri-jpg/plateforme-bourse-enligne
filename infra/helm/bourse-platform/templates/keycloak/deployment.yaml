@@ -28,7 +28,14 @@ spec:
         - name: keycloak
           image: {{ include "bourse.image" (dict "registry" .Values.global.imageRegistry "repository" .Values.image.keycloak.repository "tag" .Values.image.keycloak.tag) }}
           imagePullPolicy: {{ .Values.image.keycloak.pullPolicy }}
-          args: ["start-dev", "--import-realm"]
+          args: ["start", "--optimized", "--import-realm"]
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
           ports:
             - name: http
               containerPort: 8080
