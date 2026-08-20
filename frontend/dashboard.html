@@ -1403,8 +1403,7 @@ const _heartbeatInterval = setInterval(async () => {
     });
     if (r.status === 401) {
       clearInterval(_heartbeatInterval);
-      showToast("Session expirée", "Votre session banque a été clôturée. Reconnexion requise.", "warn");
-      setTimeout(seDeconnecter, 3500);
+      showToast("Session banque", "Votre session banque a été clôturée. Cliquez sur 'Aller à la banque' pour vous reconnecter.", "warn");
     }
   } catch {}
 }, 30000);
