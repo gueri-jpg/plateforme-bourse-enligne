@@ -182,6 +182,48 @@ class KeycloakAdminClient:
             )
 
     # ------------------------------------------------------------------
+    # Auto-correction du rôle investisseur manquant
+    # ------------------------------------------------------------------
+    def assigner_role_investisseur(self, keycloak_user_id: str) -> None:
+        """
+        Assigne le rôle realm 'investisseur' à l'utilisateur Keycloak.
+        Utilisé pour corriger les comptes créés avant la mise en place du
+        default-role, sans bloquer l'accès à l'API.
+        Lève HTTPException(502) en cas d'échec (à intercepter par l'appelant).
+        """
+        headers = self._en_tetes_autorises()
+
+        role_resp = requests.get(
+            f"{settings.keycloak_admin_realm_url}/roles/{settings.ROLE_INVESTISSEUR}",
+            headers=headers,
+            timeout=10,
+        )
+        if role_resp.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=(
+                    f"Rôle '{settings.ROLE_INVESTISSEUR}' introuvable dans Keycloak : "
+                    f"{role_resp.status_code}"
+                ),
+            )
+        role = role_resp.json()
+
+        assign_resp = requests.post(
+            f"{settings.keycloak_admin_realm_url}/users/{keycloak_user_id}/role-mappings/realm",
+            json=[{"id": role["id"], "name": role["name"]}],
+            headers=headers,
+            timeout=10,
+        )
+        if assign_resp.status_code not in (200, 204):
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=(
+                    f"Échec de l'assignation du rôle '{settings.ROLE_INVESTISSEUR}' "
+                    f"à '{keycloak_user_id}' : {assign_resp.status_code}"
+                ),
+            )
+
+    # ------------------------------------------------------------------
     # Suppression de compte self-service : DELETE /users/{id}
     # ------------------------------------------------------------------
     def supprimer_utilisateur(self, keycloak_user_id: str) -> None:

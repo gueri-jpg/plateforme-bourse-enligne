@@ -8,9 +8,10 @@ import requests as _requests
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
-from app.auth import UtilisateurAuthentifie, investisseur_requis
+from app.auth import UtilisateurAuthentifie, investisseur_requis, utilisateur_courant
 from app.config import settings
 from app.db import get_connection, get_dict_cursor
+from app.keycloak_client import keycloak_admin_client
 
 router = APIRouter(prefix="/api/portefeuille", tags=["Portefeuille"])
 
@@ -267,8 +268,19 @@ def creer_portefeuille(
 
 @router.get("")
 def lire_portefeuille(
-    utilisateur: Annotated[UtilisateurAuthentifie, Depends(investisseur_requis)],
+    utilisateur: Annotated[UtilisateurAuthentifie, Depends(utilisateur_courant)],
 ):
+    # Auto-correction silencieuse : assigne le rôle 'investisseur' aux comptes
+    # créés avant la mise en place du default-role dans le realm.
+    if not (
+        utilisateur.a_le_role(settings.ROLE_INVESTISSEUR)
+        or utilisateur.a_le_role(settings.ROLE_ADMINISTRATEUR)
+    ):
+        try:
+            keycloak_admin_client.assigner_role_investisseur(utilisateur.keycloak_user_id)
+        except Exception:
+            pass  # Ne pas bloquer l'accès si l'assignation échoue
+
     with get_connection() as conn:
         uid = _get_or_create_utilisateur(conn, utilisateur)
         compte = _get_or_create_compte(conn, uid)
