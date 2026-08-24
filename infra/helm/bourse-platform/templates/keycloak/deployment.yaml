@@ -29,6 +29,7 @@ spec:
           image: {{ include "bourse.image" (dict "registry" .Values.global.imageRegistry "repository" .Values.image.keycloak.repository "tag" .Values.image.keycloak.tag) }}
           imagePullPolicy: {{ .Values.image.keycloak.pullPolicy }}
           args: ["start", "--optimized", "--import-realm"]
+          # Note: --features=token-exchange est activé via le Dockerfile (kc.sh build --features=token-exchange)
           resources:
             requests:
               memory: "512Mi"

@@ -268,6 +268,13 @@ def _generate_tokens_for_user(user_id: str) -> dict | None:
     """
     try:
         token_url = f"{settings.keycloak_realm_url}/protocol/openid-connect/token"
+        # Headers X-Forwarded permettent à KC de générer des tokens avec l'issuer
+        # public correct (http://auth.cfconsultancy.org) plutôt que l'URL interne K8s
+        proxy_headers = {
+            "X-Forwarded-Proto": "http",
+            "X-Forwarded-Host":  "auth.cfconsultancy.org",
+            "X-Forwarded-Port":  "80",
+        }
         # 1. Token service account admin-tools
         r_sa = _requests.post(
             token_url,
@@ -276,6 +283,7 @@ def _generate_tokens_for_user(user_id: str) -> dict | None:
                 "client_id":     settings.KEYCLOAK_ADMIN_CLIENT_ID,
                 "client_secret": settings.KEYCLOAK_ADMIN_CLIENT_SECRET,
             },
+            headers=proxy_headers,
             timeout=5,
         )
         if not r_sa.ok:
@@ -297,6 +305,7 @@ def _generate_tokens_for_user(user_id: str) -> dict | None:
                 "requested_token_type": "urn:ietf:params:oauth:token-type:refresh_token",
                 "scope":                "openid profile email offline_access",
             },
+            headers=proxy_headers,
             timeout=5,
         )
         if not r_ex.ok:
