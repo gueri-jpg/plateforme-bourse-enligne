@@ -106,6 +106,7 @@ keycloak:
       value: "true"
 
   # Cloudflare Flexible : HTTPS Cloudflare → HTTP AKS. Keycloak lit X-Forwarded-Proto.
+  # Le domaine public doit rester HTTPS ; l’URL interne du service reste HTTP.
   proxy: edge
 
   resources:
@@ -230,10 +231,10 @@ resources:
 # ------------------------------------------------------------------------------
 config:
   kafkaBootstrapServers: "bourse-platform-kafka:9092"
-  # URL publique KC bourse — accès direct sans Cloudflare proxy (DNS-only sur auth.cfconsultancy.org)
+  # URL interne du service Keycloak dans le cluster Kubernetes.
   keycloakBaseUrl: "http://bourse-platform-keycloak:8080"
-  # Claim "iss" des JWT émis par Keycloak (http car KC_PROXY_HEADERS lit X-Forwarded-Proto)
-  keycloakIssuerBaseUrl: "http://auth.cfconsultancy.org"
+  # Claim "iss" des JWT émis par Keycloak : domaine public HTTPS, car Cloudflare termine TLS.
+  keycloakIssuerBaseUrl: "https://auth.cfconsultancy.org"
   keycloakRealm: "bourse-en-ligne"
   keycloakBackendClientId: "backend-api"
   bvcIntervalSeconds: "30"
